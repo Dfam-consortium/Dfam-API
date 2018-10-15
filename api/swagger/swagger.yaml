@@ -1,0 +1,696 @@
+swagger: '2.0'
+info:
+  version: 0.0.3
+  title: Dfam API
+  description: |
+    The Dfam API is an interface to the Dfam database.
+    Repeats defined in the Dfam database are annotated for use with
+    RepeatMasker using a combination of automated and manual steps.
+
+    ### Authentication
+    The API is secured using a token-based authentication
+    system.  The token is obtained using the "/authenticate" path.  In addition
+    the "/version", "/register" paths do not require a token to access.
+
+    ### Known Consumers
+
+    TODO (none yet)
+
+    #### Authors
+    Robert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen
+
+    Copyright 2016-2018 Institute for Systems Biology
+  termsOfService: 'http://creativecommons.org/licenses/by/4.0/'
+host: 'localhost:9925'
+basePath: /
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    in: header
+    name: Authorization
+paths:
+  /version:
+    x-swagger-router-controller: Version
+    get:
+      produces:
+        - application/json
+      description: Get the API version.
+      tags:
+        - version
+      operationId: getVersion
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/versionResponse'
+        default:
+          description: Error
+          schema:
+            type: string
+  /authenticate:
+    x-swagger-router-controller: Authenticate
+    post:
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      description: Obtain API access token for previously registered user.
+      tags:
+        - authenticate
+      operationId: authenticate
+      parameters:
+        - name: email
+          in: formData
+          description: User's email address as username
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: User's password for obtaining API access token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/loginResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /register:
+    x-swagger-router-controller: Register
+    post:
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      description: Register a new account with the API.
+      tags:
+        - register
+      operationId: register
+      parameters:
+        - name: email
+          in: formData
+          description: User's email address
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: User's full name
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: User's password for obtaining API access token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /verify:
+    x-swagger-router-controller: Register
+    get:
+      produces:
+        - text/plain
+      description: Verify a user's email address.
+      tags:
+        - register
+      operationId: verifyEmail
+      parameters:
+        - name: token
+          in: query
+          description: User's email verification token
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+  /families:
+    x-swagger-router-controller: Families
+    get:
+      description: Returns a list of Dfam families optionally filtered and sorted.
+      tags:
+        - families
+      operationId: readFamilies
+      parameters:
+        - name: format
+          in: query
+          description: Desired output format
+          required: false
+          type: string
+        - name: sort
+          in: query
+          description: A string containing the ordered sort columns
+          required: false
+          type: string
+        - name: name
+          in: query
+          description: Search term for repeat identifier
+          required: false
+          type: string
+        - name: name_prefix
+          in: query
+          description: Search term for repeat name prefix ( overriden by "name" search )
+          type: string
+        - name: clade
+          in: query
+          description: Search term for repeat clade
+          required: false
+          type: string
+        - name: type
+          in: query
+          description: Search term for repeat type
+          required: false
+          type: string
+        - name: subtype
+          in: query
+          description: Search term for repeat subtype
+          required: false
+          type: string
+        - name: updated_after
+          in: query
+          description: Filter by "updated on or after" date
+          required: false
+          type: string
+          format: date
+        - name: updated_before
+          in: query
+          description: Filter by "updated on or before" date
+          required: false
+          type: string
+          format: date
+        - name: desc
+          in: query
+          description: Search term for repeat description
+          required: false
+          type: string
+        - name: start
+          in: query
+          description: Start index ( for range queries )
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: Records to return ( for range queries )
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/familiesResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}':
+    x-swagger-router-controller: Families
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+    get:
+      description: Retrieve an individual Dfam family.
+      tags:
+        - families
+      operationId: readFamilyById
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/familyResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+  /classes:
+    x-swagger-router-controller: Classification
+    get:
+      description: Get generalized repeat classification heirarchy
+      tags:
+        - classification
+      operationId: readClassification
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/classesResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /taxa:
+    x-swagger-router-controller: Taxa
+    get:
+      security:
+        - Bearer: []
+      description: Query the local copy of the NCBI taxonomy database
+      tags:
+        - taxa
+      operationId: readTaxa
+      parameters:
+        - name: name
+          in: query
+          description: Search string for taxonomy name
+          required: true
+          type: string
+        - name: limit
+          in: query
+          description: Only return up to a maximum number of hits
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/taxaResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+  '/users/{userId}/files':
+    x-swagger-router-controller: Files
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        type: string
+    get:
+      security:
+        - Bearer: []
+      produces:
+        - application/json
+      description: Get details on submitted and unproccesed files
+      tags:
+        - files
+      operationId: getSubmittedFiles
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            type: string
+    post:
+      security:
+        - Bearer: []
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      description: Upload misc datasets for submission to Dfam
+      tags:
+        - files
+      operationId: uploadFileOrChunk
+      parameters:
+        - name: guid
+          in: formData
+          required: false
+          type: string
+        - name: title
+          in: formData
+          required: false
+          type: string
+        - name: description
+          in: formData
+          required: false
+          type: string
+        - name: citations
+          in: formData
+          required: false
+          type: string
+        - name: fileDescription
+          in: formData
+          required: false
+          type: string
+        - name: flowChunkNumber
+          in: formData
+          required: false
+          type: integer
+        - name: flowChunkSize
+          in: formData
+          required: false
+          type: integer
+        - name: flowCurrentChunkSize
+          in: formData
+          required: false
+          type: integer
+        - name: flowTotalSize
+          in: formData
+          required: false
+          type: integer
+        - name: flowType
+          in: formData
+          required: false
+          type: string
+        - name: flowIdentifier
+          in: formData
+          required: false
+          type: string
+        - name: flowFilename
+          in: formData
+          required: false
+          type: string
+        - name: flowRelativePath
+          in: formData
+          required: false
+          type: string
+        - name: flowTotalChunks
+          in: formData
+          required: false
+          type: integer
+        - name: file
+          in: formData
+          required: false
+          description: something
+          type: file
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            type: string
+  '/users/{userId}/files/status':
+    x-swagger-router-controller: fileSubmission
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        type: string
+    get:
+      security:
+        - Bearer: []
+      produces:
+        - application/json
+      description: Upload misc datasets for submission to Dfam
+      tags:
+        - files
+      operationId: checkFileOrChunk
+      parameters:
+        - name: flowChunkNumber
+          in: query
+          required: false
+          type: integer
+        - name: flowChunkSize
+          in: query
+          required: false
+          type: integer
+        - name: flowCurrentChunkSize
+          in: query
+          required: false
+          type: integer
+        - name: flowTotalSize
+          in: query
+          required: false
+          type: integer
+        - name: flowIdentifier
+          in: query
+          required: false
+          type: string
+        - name: flowFilename
+          in: query
+          required: false
+          type: string
+        - name: flowRelativePath
+          in: query
+          required: false
+          type: string
+        - name: flowTotalChunks
+          in: query
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            type: string
+
+  /swagger:
+    x-swagger-pipe: swagger_raw
+definitions:
+  loginResponse:
+    required:
+      - token
+    properties:
+      token:
+        type: string
+  taxaResponse:
+    required:
+      - taxa
+    properties:
+      taxa:
+        type: array
+        items:
+          type: object
+          properties:
+            species_name:
+              type: string
+  classesResponse:
+    required:
+      - name
+      - full_name
+      - children
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+      tooltip:
+        type: string
+      hyperlink:
+        type: string
+      full_name:
+        type: string
+      repeatmasker_type:
+        type: string
+      repeatmasker_subtype:
+        type: string
+      dfam_count:
+        type: string
+      repbase_equiv:
+        type: string
+      wicker_equiv:
+        type: string
+      curcio_derbyshire_equiv:
+        type: string
+      piegu_equiv:
+        type: string
+      children:
+        type: array
+        items:
+          $ref: '#/definitions/classesResponse'
+  familiesResponse:
+    required:
+      - totalHits
+      - results
+    properties:
+      totalHits:
+        type: integer
+      results:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            aliases:
+              type: array
+              items:
+                type: object
+                required:
+                  - database
+                  - alias
+                properties:
+                  database:
+                    type: string
+                  alias:
+                    type: string
+            source_species_name:
+              type: string
+            clade_names:
+              type: string
+            repeat_type_name:
+              type: string
+            repeat_type_confidence:
+              type: string
+              format: binary
+            repeat_subtype_name:
+              type: string
+            repeat_subtype_confidence:
+              type: string
+              format: binary
+            date_modified:
+              type: string
+            date_created:
+              type: string
+            repeat_disabled:
+              type: string
+  familyResponse:
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: integer
+      classification:
+        type: string
+      name:
+        type: string
+      aliases:
+        type: array
+        items:
+          type: object
+          required:
+            - database
+            - alias
+          properties:
+            database:
+              type: string
+            alias:
+              type: string
+      repeat_type_name:
+        type: string
+      repeat_type_confidence:
+        type: string
+      repeat_subtype_name:
+        type: string
+      repeat_subtype_confidence:
+        type: string
+      source_species_name:
+        type: string
+      date_created:
+        type: string
+      date_modified:
+        type: string
+      target_site_cons:
+        type: string
+      repeat_refineable:
+        type: string
+      repeat_disabled:
+        type: string
+      description:
+        type: string
+      sequence:
+        type: string
+      clades:
+        type: array
+        items:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+      search_stages:
+        type: array
+        items:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+      buffer_stages:
+        type: array
+        items:
+          type: object
+          required:
+            - name
+            - start
+            - end
+          properties:
+            name:
+              type: string
+            start:
+              type: string
+            end:
+              type: string
+      assembly_annots:
+        type: array
+        items:
+          type: object
+          required:
+            - assembly_name
+            - species_name
+          properties:
+            assembly_name:
+              type: string
+            species_name:
+              type: string
+            cons_derived_divergence:
+              type: string
+            cons_derived_kimura_divergence:
+              type: string
+            cons_derived_copies:
+              type: string
+      author:
+        type: string
+      dfam_consensus:
+        type: string
+      seed_alignment:
+        type: string
+      citations:
+        type: array
+        items:
+          type: object
+          required:
+            - pmid
+          properties:
+            pmid:
+              type: string
+            title:
+              type: string
+            author:
+              type: string
+            journal:
+              type: string
+  versionResponse:
+    required:
+      - major
+      - minor
+      - bugfix
+    properties:
+      major:
+        type: string
+      minor:
+        type: string
+      bugfix:
+        type: string
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string

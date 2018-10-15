@@ -1,0 +1,15 @@
+
+Auto-generate initial API stubs:
+
+wget http://central.maven.org/maven2/io/swagger/swagger-codegen-cli/2.3.1/swagger-codegen-cli-2.3.1.jar
+
+  /usr/bin/java -jar swagger-codegen-cli-2.3.1.jar generate \
+                -i ../api/swagger/swagger.yaml \
+                -l nodejs-server -o output
+
+Auto-generate initial Sequelize models:
+
+mkdir models
+sequelize-auto -o "./models" -d dfam_dev -h localhost -u <user> -x <pass> -e mysql
+mkdir models/auth
+sequelize-auto -o "./models/auth" -d dfam_users_dev -h localhost -u <user> -x <pass> -e mysql

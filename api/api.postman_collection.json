@@ -1,0 +1,696 @@
+{
+	"info": {
+		"_postman_id": "578bf46b-3076-4632-9d39-51e8e87bbbfd",
+		"name": "Dfam API",
+		"description": "The Dfam API is an interface to the Dfam database.\nRepeats defined in the Dfam database are annotated for use with\nRepeatMasker using a combination of automated and manual steps.\n\n### Authentication\nThe API is secured using a token-based ( \"OAuth\" ) authentication\nsystem.  The token is obtained using the \"/login\" path.  In addition\nthe \"/version\", \"/register\" paths do not require a token to access.\n\n### Known Consumers\n\nTODO (none yet)\n\n#### Authors\nRobert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen\n\nCopyright 2016-2018 Institute for Systems Biology\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "366ef7fd-4a98-46d0-bb7f-7c9b0d0dfa26",
+						"exec": [
+							"pm.test(\"Version is 0.0.3\", function() {",
+							"  var version = pm.response.json();",
+							"  pm.expect(version).to.eql({\"major\":\"0\",\"minor\":\"0\",\"bugfix\":\"3\"});",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/version",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"version"
+					]
+				},
+				"description": "Get the API version."
+			},
+			"response": []
+		},
+		{
+			"name": "authenticate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5f391e65-e48d-497f-92d4-28105bb796b0",
+						"exec": [
+							"var response = pm.response.json();",
+							"pm.environment.set(\"dfam_token\", response.token);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "john.doe@example.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "password",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:9925/authenticate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"authenticate"
+					]
+				},
+				"description": "Obtain API access token for previously registered user."
+			},
+			"response": []
+		},
+		{
+			"name": "register",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "60352b8b-4d2b-482e-9034-2620c291fe80",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "john.doe@example.com",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "John Doe",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "password1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:9925/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"register"
+					]
+				},
+				"description": "Register a new account with the API."
+			},
+			"response": []
+		},
+		{
+			"name": "verify",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9925/verify?token=02cc651e965b138e33ebaebdaaa895e8",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"verify"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "02cc651e965b138e33ebaebdaaa895e8"
+						}
+					]
+				},
+				"description": "Verify a user's email address."
+			},
+			"response": []
+		},
+		{
+			"name": "family",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/MIR",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"MIR"
+					]
+				},
+				"description": "Retrieve an individual Dfam family."
+			},
+			"response": []
+		},
+		{
+			"name": "families",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families?sort={{sort}}&name={{name}}&name_prefix={{name_prefix}}&cld={{cld}}&typ={{typ}}&styp={{styp}}&uoa={{uoa}}&uob={{uob}}&dsc={{dsc}}&idx={{idx}}&sz={{sz}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "{{sort}}"
+						},
+						{
+							"key": "name",
+							"value": "{{name}}"
+						},
+						{
+							"key": "name_prefix",
+							"value": "{{name_prefix}}"
+						},
+						{
+							"key": "cld",
+							"value": "{{cld}}"
+						},
+						{
+							"key": "typ",
+							"value": "{{typ}}"
+						},
+						{
+							"key": "styp",
+							"value": "{{styp}}"
+						},
+						{
+							"key": "uoa",
+							"value": "{{uoa}}"
+						},
+						{
+							"key": "uob",
+							"value": "{{uob}}"
+						},
+						{
+							"key": "dsc",
+							"value": "{{dsc}}"
+						},
+						{
+							"key": "idx",
+							"value": "{{idx}}"
+						},
+						{
+							"key": "sz",
+							"value": "{{sz}}"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "familySummary",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families?name={{name}}&cld={{cld}}&typ={{typ}}&styp={{styp}}&uoa={{uoa}}&uob={{uob}}&dsc={{dsc}}&idx={{idx}}&sz={{sz}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "{{name}}"
+						},
+						{
+							"key": "cld",
+							"value": "{{cld}}"
+						},
+						{
+							"key": "typ",
+							"value": "{{typ}}"
+						},
+						{
+							"key": "styp",
+							"value": "{{styp}}"
+						},
+						{
+							"key": "uoa",
+							"value": "{{uoa}}"
+						},
+						{
+							"key": "uob",
+							"value": "{{uob}}"
+						},
+						{
+							"key": "dsc",
+							"value": "{{dsc}}"
+						},
+						{
+							"key": "idx",
+							"value": "{{idx}}"
+						},
+						{
+							"key": "sz",
+							"value": "{{sz}}"
+						}
+					]
+				},
+				"description": "Returns a summary of the Dfam sequences. Not implemented yet."
+			},
+			"response": []
+		},
+		{
+			"name": "classes",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/classes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"classes"
+					]
+				},
+				"description": "Get generalized repeat classification heirarchy"
+			},
+			"response": []
+		},
+		{
+			"name": "taxa",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/taxa?name=Homo sapiens&limit=5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"taxa"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Homo sapiens"
+						},
+						{
+							"key": "limit",
+							"value": "5"
+						}
+					]
+				},
+				"description": "Query the local copy of the NCBI taxonomy database"
+			},
+			"response": []
+		},
+		{
+			"name": "submittedFiles",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/submittedFiles",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"submittedFiles"
+					]
+				},
+				"description": "Get details on submitted and unproccesed files"
+			},
+			"response": []
+		},
+		{
+			"name": "fileSubmission",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/fileSubmission?flowChunkNumber={{flowChunkNumber}}&flowChunkSize={{flowChunkSize}}&flowCurrentChunkSize={{flowCurrentChunkSize}}&flowTotalSize={{flowTotalSize}}&flowIdentifier={{flowIdentifier}}&flowFilename={{flowFilename}}&flowRelativePath={{flowRelativePath}}&flowTotalChunks={{flowTotalChunks}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"fileSubmission"
+					],
+					"query": [
+						{
+							"key": "flowChunkNumber",
+							"value": "{{flowChunkNumber}}"
+						},
+						{
+							"key": "flowChunkSize",
+							"value": "{{flowChunkSize}}"
+						},
+						{
+							"key": "flowCurrentChunkSize",
+							"value": "{{flowCurrentChunkSize}}"
+						},
+						{
+							"key": "flowTotalSize",
+							"value": "{{flowTotalSize}}"
+						},
+						{
+							"key": "flowIdentifier",
+							"value": "{{flowIdentifier}}"
+						},
+						{
+							"key": "flowFilename",
+							"value": "{{flowFilename}}"
+						},
+						{
+							"key": "flowRelativePath",
+							"value": "{{flowRelativePath}}"
+						},
+						{
+							"key": "flowTotalChunks",
+							"value": "{{flowTotalChunks}}"
+						}
+					]
+				},
+				"description": "Upload misc datasets for submission to Dfam"
+			},
+			"response": []
+		},
+		{
+			"name": "fileSubmission",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "guid",
+							"value": "{{guid}}",
+							"type": "text"
+						},
+						{
+							"key": "title",
+							"value": "{{title}}",
+							"type": "text"
+						},
+						{
+							"key": "description",
+							"value": "{{description}}",
+							"type": "text"
+						},
+						{
+							"key": "citations",
+							"value": "{{citations}}",
+							"type": "text"
+						},
+						{
+							"key": "fileDescription",
+							"value": "{{fileDescription}}",
+							"type": "text"
+						},
+						{
+							"key": "flowChunkNumber",
+							"value": "{{flowChunkNumber}}",
+							"type": "text"
+						},
+						{
+							"key": "flowChunkSize",
+							"value": "{{flowChunkSize}}",
+							"type": "text"
+						},
+						{
+							"key": "flowCurrentChunkSize",
+							"value": "{{flowCurrentChunkSize}}",
+							"type": "text"
+						},
+						{
+							"key": "flowTotalSize",
+							"value": "{{flowTotalSize}}",
+							"type": "text"
+						},
+						{
+							"key": "flowType",
+							"value": "{{flowType}}",
+							"type": "text"
+						},
+						{
+							"key": "flowIdentifier",
+							"value": "{{flowIdentifier}}",
+							"type": "text"
+						},
+						{
+							"key": "flowFilename",
+							"value": "{{flowFilename}}",
+							"type": "text"
+						},
+						{
+							"key": "flowRelativePath",
+							"value": "{{flowRelativePath}}",
+							"type": "text"
+						},
+						{
+							"key": "flowTotalChunks",
+							"value": "{{flowTotalChunks}}",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"value": "{{file}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:9925/fileSubmission",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"fileSubmission"
+					]
+				},
+				"description": "Upload misc datasets for submission to Dfam"
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{dfam_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "4f0aee7e-eba9-4359-ac78-1d51a28f7540",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "761c30f2-6d6d-46c9-9b5f-98fa066efed8",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
