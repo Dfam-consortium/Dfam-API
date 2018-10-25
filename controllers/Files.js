@@ -17,9 +17,9 @@ module.exports.checkFileOrChunk = function checkFileOrChunk (req, res, next) {
     .then(function (response) {
       utils.writeJson(res, response);
     })
-//    .catch(function (response) {
-//      utils.writeJson(res, response);
-//    });
+    .catch(function (err) {
+      next(err);
+    });
 };
 
 module.exports.getSubmittedFiles = function getSubmittedFiles (req, res, next) {
@@ -28,9 +28,9 @@ module.exports.getSubmittedFiles = function getSubmittedFiles (req, res, next) {
     .then(function (response) {
       utils.writeJson(res, response);
     })
-//    .catch(function (response) {
-//      utils.writeJson(res, response);
-//    });
+    .catch(function (err) {
+      next(err);
+    });
 };
 
 module.exports.uploadFileOrChunk = function uploadFileOrChunk (req, res, next) {
@@ -54,7 +54,7 @@ module.exports.uploadFileOrChunk = function uploadFileOrChunk (req, res, next) {
     .then(function (response) {
       utils.writeJson(res, response);
     })
-//    .catch(function (response) {
-//      utils.writeJson(res, response);
-//    });
+    .catch(function (err) {
+      next(err);
+    });
 };

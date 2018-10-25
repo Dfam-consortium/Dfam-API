@@ -20,9 +20,9 @@ module.exports.readFamilies = function readFamilies (req, res, next) {
     .then(function (response) {
       utils.writeJson(res, response);
     })
-//    .catch(function (response) {
-//      utils.writeJson(res, response);
-//    });
+    .catch(function (err) {
+      next(err);
+    });
 };
 
 module.exports.readFamilyById = function readFamilyById (req, res, next) {
@@ -31,7 +31,7 @@ module.exports.readFamilyById = function readFamilyById (req, res, next) {
     .then(function (response) {
       utils.writeJson(res, response);
     })
-//    .catch(function (response) {
-//      utils.writeJson(res, response);
-//    });
+    .catch(function (err) {
+      next(err);
+    });
 };

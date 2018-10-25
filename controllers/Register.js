@@ -11,9 +11,9 @@ module.exports.register = function register (req, res, next) {
     .then(function (response) {
       utils.writeJson(res, response);
     })
-//    .catch(function (response) {
-//      utils.writeJson(res, response);
-//    });
+    .catch(function (err) {
+      next(err);
+    });
 };
 
 module.exports.verifyEmail = function verifyEmail (req, res, next) {
@@ -22,7 +22,7 @@ module.exports.verifyEmail = function verifyEmail (req, res, next) {
     .then(function (response) {
       utils.writeJson(res, response);
     })
-//    .catch(function (response) {
-//      utils.writeJson(res, response);
-//    });
+    .catch(function (err) {
+      next(err);
+    });
 };
