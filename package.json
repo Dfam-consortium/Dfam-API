@@ -3,9 +3,13 @@
   "version": "0.0.3",
   "description": "Dfam API server",
   "main": "index.js",
+  "watch": {
+    "start": "**/*.js"
+  },
   "scripts": {
     "prestart": "npm install",
-    "start": "node index.js"
+    "start": "node index.js",
+    "watch": "npm-watch"
   },
   "keywords": [
     "swagger"
@@ -26,6 +30,7 @@
   },
   "devDependencies": {
     "mysql": "^2.16.0",
+    "npm-watch": "^0.4.0",
     "sequelize-auto": "^0.4.29"
   }
 }
