@@ -469,8 +469,6 @@ paths:
   /taxa:
     x-swagger-router-controller: Taxa
     get:
-      security:
-        - Bearer: []
       description: Query the local copy of the NCBI taxonomy database
       tags:
         - taxa
