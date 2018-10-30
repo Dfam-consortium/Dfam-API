@@ -228,7 +228,7 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/MIR",
+					"raw": "http://localhost:9925/families/DF0000001",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -236,10 +236,127 @@
 					"port": "9925",
 					"path": [
 						"families",
-						"MIR"
+						"DF0000001"
 					]
 				},
 				"description": "Retrieve an individual Dfam family."
+			},
+			"response": []
+		},
+		{
+			"name": "family hmm",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/hmm?format=hmm",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"hmm"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "hmm"
+						}
+					]
+				},
+				"description": "Retrieve a family's HMM in text or logo format."
+			},
+			"response": []
+		},
+		{
+			"name": "family relationships",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/relationships",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"relationships"
+					]
+				},
+				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
+			},
+			"response": []
+		},
+		{
+			"name": "family seed",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/seed?format=graph",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"seed"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "graph"
+						}
+					]
+				},
+				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
 			},
 			"response": []
 		},
@@ -259,7 +376,7 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families?sort={{sort}}&name={{name}}&name_prefix={{name_prefix}}&cld={{cld}}&typ={{typ}}&styp={{styp}}&uoa={{uoa}}&uob={{uob}}&dsc={{dsc}}&idx={{idx}}&sz={{sz}}",
+					"raw": "http://localhost:9925/families?format=summary&name_prefix=M&limit=20",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -270,120 +387,65 @@
 					],
 					"query": [
 						{
+							"key": "format",
+							"value": "summary"
+						},
+						{
 							"key": "sort",
-							"value": "{{sort}}"
+							"value": "repeat_type_name:asc",
+							"disabled": true
 						},
 						{
 							"key": "name",
-							"value": "{{name}}"
+							"value": "Charlie",
+							"disabled": true
 						},
 						{
 							"key": "name_prefix",
-							"value": "{{name_prefix}}"
+							"value": "M"
 						},
 						{
-							"key": "cld",
-							"value": "{{cld}}"
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
 						},
 						{
-							"key": "typ",
-							"value": "{{typ}}"
+							"key": "type",
+							"value": "SINE",
+							"disabled": true
 						},
 						{
-							"key": "styp",
-							"value": "{{styp}}"
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
 						},
 						{
-							"key": "uoa",
-							"value": "{{uoa}}"
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
 						},
 						{
-							"key": "uob",
-							"value": "{{uob}}"
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
 						},
 						{
-							"key": "dsc",
-							"value": "{{dsc}}"
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
 						},
 						{
-							"key": "idx",
-							"value": "{{idx}}"
+							"key": "start",
+							"value": "0",
+							"disabled": true
 						},
 						{
-							"key": "sz",
-							"value": "{{sz}}"
+							"key": "limit",
+							"value": "20"
 						}
 					]
 				},
 				"description": "Returns a list of Dfam families optionally filtered and sorted."
-			},
-			"response": []
-		},
-		{
-			"name": "familySummary",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {},
-				"url": {
-					"raw": "http://localhost:9925/families?name={{name}}&cld={{cld}}&typ={{typ}}&styp={{styp}}&uoa={{uoa}}&uob={{uob}}&dsc={{dsc}}&idx={{idx}}&sz={{sz}}",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "9925",
-					"path": [
-						"families"
-					],
-					"query": [
-						{
-							"key": "name",
-							"value": "{{name}}"
-						},
-						{
-							"key": "cld",
-							"value": "{{cld}}"
-						},
-						{
-							"key": "typ",
-							"value": "{{typ}}"
-						},
-						{
-							"key": "styp",
-							"value": "{{styp}}"
-						},
-						{
-							"key": "uoa",
-							"value": "{{uoa}}"
-						},
-						{
-							"key": "uob",
-							"value": "{{uob}}"
-						},
-						{
-							"key": "dsc",
-							"value": "{{dsc}}"
-						},
-						{
-							"key": "idx",
-							"value": "{{idx}}"
-						},
-						{
-							"key": "sz",
-							"value": "{{sz}}"
-						}
-					]
-				},
-				"description": "Returns a summary of the Dfam sequences. Not implemented yet."
 			},
 			"response": []
 		},
@@ -433,7 +495,7 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/taxa?name=Homo sapiens&limit=5",
+					"raw": "http://localhost:9925/taxa?name=Homo sapiens&limit=20",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -449,7 +511,51 @@
 						},
 						{
 							"key": "limit",
-							"value": "5"
+							"value": "20"
+						}
+					]
+				},
+				"description": "Query the local copy of the NCBI taxonomy database"
+			},
+			"response": []
+		},
+		{
+			"name": "annotated taxa",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/taxa?name=&limit=20&annotated=true",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"taxa"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": ""
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						},
+						{
+							"key": "annotated",
+							"value": "true"
 						}
 					]
 				},
