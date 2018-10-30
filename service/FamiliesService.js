@@ -4,6 +4,7 @@ const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const conn = require("../databases.js").dfam;
 const winston = require("winston");
+const zlib = require("zlib");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
@@ -14,6 +15,10 @@ const rmStageModel = require("../models/repeatmasker_stage.js")(conn, Sequelize)
 const familyHasBufferStageModel = require("../models/family_has_buffer_stage.js")(conn, Sequelize);
 const citationModel = require("../models/citation.js")(conn, Sequelize);
 const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
+const modelDataModel = require("../models/model_data.js")(conn, Sequelize);
+const seedCoverageDataModel = require("../models/seed_coverage_data.js")(conn, Sequelize);
+const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
+const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
 const writer = require("../utils/writer.js");
 
 
@@ -25,7 +30,11 @@ familyModel.belongsToMany(citationModel, { as: 'citations', through: 'family_has
 familyModel.belongsToMany(dfamTaxdbModel, { as: 'clades', through: 'family_clade', foreignKey: 'family_id', otherKey: 'dfam_taxdb_tax_id' });
 classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id', as: 'rm_type' });
 classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtype_id', as: 'rm_subtype' });
-
+modelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
+seedCoverageDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
+familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family1_id', as: 'family1' });
+familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family2_id', as: 'family2' });
+familyOverlapModel.hasMany(overlapSegmentModel, { foreignKey: 'family_overlap_id' });
 
 // TODO: Implement per-search cache or cache invalidation
 const classification_paths = {};
@@ -69,31 +78,11 @@ function mapFields(source, dest, mapping) {
 
 async function familyQueryRowToObject(row, format) {
     const obj = mapFields(row, {}, {
-      "id": "id",
+      "accession": "accession",
       "name": "name",
-      "author": "author",
-      "date_created": "date_created",
-      "date_modified": "date_modified",
       "description": "description",
-      "target_site_cons": "target_site_cons",
-      "refineable": "refineable",
-      "disabled": "disabled",
+      "length": "length",
     });
-
-    if (format != "summary") {
-      // TODO: Decide which fields are not part of the "summary" format
-      mapFields(row, obj, {
-        // TODO: Use real consensus instead
-        "model_consensus": "consensus_sequence",
-      });
-    }
-
-    const aliases = obj["aliases"] = [];
-    if (row.aliases) {
-      row.aliases.forEach(function(alias) {
-        aliases.push(mapFields(alias, {}, { "db_id": "database", "db_link": "alias" }));
-      });
-    }
 
     if (row.classification) {
       obj.classification = await getClassificationPath(row.classification.id);
@@ -103,6 +92,27 @@ async function familyQueryRowToObject(row, format) {
       if (row.classification.rm_subtype) {
         obj.repeat_subtype_name = row.classification.rm_subtype.name;
       }
+    }
+
+    if (format == "summary") {
+      return obj;
+    }
+
+    mapFields(row, obj, {
+      "consensus": "consensus_sequence",
+      "author": "author",
+      "date_created": "date_created",
+      "date_modified": "date_modified",
+      "target_site_cons": "target_site_cons",
+      "refineable": "refineable",
+      "disabled": "disabled",
+    });
+
+    const aliases = obj["aliases"] = [];
+    if (row.aliases) {
+      row.aliases.forEach(function(alias) {
+        aliases.push(mapFields(alias, {}, { "db_id": "database", "db_link": "alias" }));
+      });
     }
 
     // TODO: Can this be flattened into an Array<String>?
@@ -171,14 +181,14 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
 
   const replacements = {};
 
-  const selects = [ "family.id AS id", "family.name AS name", "author", "date_created", "date_modified", "family.description AS description", "target_site_cons", "refineable", "disabled", "classification.id AS classification_id", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
+  var selects = [ "family.id AS id", "family.accession", "family.name AS name", "length", "family.description AS description", "classification.id AS classification_id", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
   const from = "family LEFT JOIN classification ON family.classification_id = classification.id" +
 " LEFT JOIN repeatmasker_type ON classification.repeatmasker_type_id = repeatmasker_type.id" +
 " LEFT JOIN repeatmasker_subtype ON classification.repeatmasker_subtype_id = repeatmasker_subtype.id";
   const where = ["1"];
 
   if (format != "summary") {
-    selects.push("model_consensus");
+    selects = selects.concat([ "consensus", "author", "date_created", "date_modified", "target_site_cons", "refineable", "disabled" ]);
   }
 
   if (name) {
@@ -219,6 +229,7 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
     replacements.where_before = new Date(updated_before);
   }
 
+  var count_sql = "SELECT COUNT(*) as total_count FROM " + from + " WHERE " + where.join(" AND ");
   var sql = "SELECT " + selects.join(",") + " FROM " + from + " WHERE " + where.join(" AND ");
 
   // TODO: Implement more complex sort keys
@@ -248,7 +259,11 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
     replacements.offset = start;
   }
 
-  return conn.query(sql, { type: "SELECT", replacements }).then(function(rows) {
+  return Promise.all([
+    conn.query(count_sql, { type: "SELECT", replacements }),
+    conn.query(sql, { type: "SELECT", replacements }),
+  ]).then(function([count_result, rows]) {
+    const total_count = count_result[0].total_count;
     if (rows.length) {
       return Promise.all(rows.map(function(row) {
         var replacements = { family_id: row.id };
@@ -271,7 +286,9 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
           row.classification = { id: row.classification_id, rm_type: { name: row.type }, rm_subtype: { name: row.subtype } };
           return familyQueryRowToObject(row, format);
         });
-      }));
+      })).then(function(objs) {
+        return { total_count, results: objs };
+      });
     } else {
       return writer.respondWithCode(404, "");
     }
@@ -287,7 +304,7 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
  **/
 exports.readFamilyById = function(id) {
   return familyModel.findOne({
-    where: { name: id },
+    where: { accession: id },
     include: [
       'aliases',
       { model: classificationModel, as: 'classification', include: [ 'rm_type', 'rm_subtype' ] },
@@ -315,9 +332,32 @@ exports.readFamilyById = function(id) {
  * format String The desired output format, \"hmm\" or \"logo\"
  * no response value expected for this operation
  **/
-exports.readFamilyHmm = function(id,format) {
-  return new Promise(function(resolve, reject) {
-    resolve();
+exports.readFamilyHmm = function(id, format) {
+  var field;
+  var content_type;
+  if (format == "hmm") {
+    // TODO: This is un-annotated. Should we return annotated?
+    field = "hmm";
+    content_type = "text/plain";
+  } else if (format == "logo") {
+    field = "hmm_logo";
+    content_type = "application/json";
+  } else {
+    throw new Error("Invalid format: " + format);
+  }
+
+  return modelDataModel.findOne({
+    attributes: [ field ],
+    include: [ { model: familyModel, where: { accession: id } } ],
+  }).then(function(model) {
+    return new Promise(function(resolve, reject) {
+      zlib.gunzip(model[field], function(err, data) {
+        if (err) { reject(err); }
+        else { resolve(data); }
+      });
+    }).then(function(data) {
+      return { data, content_type };
+    });
   });
 }
 
@@ -329,8 +369,53 @@ exports.readFamilyHmm = function(id,format) {
  * no response value expected for this operation
  **/
 exports.readFamilyRelationships = function(id) {
-  return new Promise(function(resolve, reject) {
-    resolve();
+  return familyOverlapModel.findAll({
+    include: [
+      { model: familyModel, as: 'family1' },
+      { model: familyModel, as: 'family2' },
+      overlapSegmentModel,
+    ],
+    where: {
+      [Sequelize.Op.or]: {
+        '$family1.accession$': id,
+      }
+    }
+  }).then(function(overlaps) {
+    var all_overlaps = [];
+
+    overlaps.forEach(function(overlap) {
+      const family_map = {
+        "name": "id",
+        "accession": "accession",
+        "length": "length",
+      };
+      const model_info = mapFields(overlap.family1, {}, family_map);
+      const target_info = mapFields(overlap.family2, {}, family_map);
+
+      all_overlaps = all_overlaps.concat(overlap.overlap_segments.map(function(overlap_segment) {
+        const seg = mapFields(overlap_segment, {}, {
+          "strand": "strand",
+          "evalue": "evalue",
+          "identity": "identity",
+          "coverage": "coverage",
+          "cigar": "cigar",
+
+          "family1_start": "model_start",
+          "family2_start": "target_start",
+          "family1_end": "model_end",
+          "family2_end": "target_end",
+        });
+
+        seg.auto_overlap = {
+          model: model_info,
+          target: target_info,
+        };
+
+        return seg;
+      }));
+    });
+
+    return all_overlaps;
   });
 }
 
@@ -343,8 +428,39 @@ exports.readFamilyRelationships = function(id) {
  * no response value expected for this operation
  **/
 exports.readFamilySeed = function(id,format) {
-  return new Promise(function(resolve, reject) {
-    resolve();
-  });
+  var field;
+  var content_type;
+  if (format == "graph") {
+    return seedCoverageDataModel.findOne({
+      attributes: [ "whisker", "seed" ],
+      include: [ { model: familyModel, where: { accession: id } } ],
+    }).then(function(coverage_data) {
+      return {
+        data: JSON.stringify({
+          whisker: JSON.parse(coverage_data.whisker),
+          seed: JSON.parse(coverage_data.seed),
+        }),
+        content_type: "application/json",
+      };
+    });
+
+  } else if (format == "stockholm") {
+    return modelDataModel.findOne({
+      attributes: [ "seed" ],
+      include: [ { model: familyModel, where: { accession: id } } ],
+    }).then(function(model) {
+      return new Promise(function(resolve, reject) {
+        zlib.gunzip(model.seed, function(err, data) {
+          if (err) { reject(err); }
+          else { resolve(data); }
+        });
+      }).then(function(data) {
+        return { data, content_type: "text/plain" };
+      });
+    });
+  } else {
+    throw new Error("Invalid format: " + format);
+  }
+
 }
 

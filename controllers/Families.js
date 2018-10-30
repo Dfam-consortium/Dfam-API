@@ -41,7 +41,13 @@ module.exports.readFamilyHmm = function readFamilyHmm (req, res, next) {
   var format = req.swagger.params['format'].value;
   Families.readFamilyHmm(id,format)
     .then(function (response) {
-      utils.writeJson(res, response);
+      if (response) {
+        res.writeHead(200, { 'Content-Type': response.content_type });
+        res.end(response.data);
+      } else {
+        res.statusCode = 404;
+        res.end();
+      }
     })
     .catch(function (err) {
       next(err);
@@ -64,7 +70,13 @@ module.exports.readFamilySeed = function readFamilySeed (req, res, next) {
   var format = req.swagger.params['format'].value;
   Families.readFamilySeed(id,format)
     .then(function (response) {
-      utils.writeJson(res, response);
+      if (response) {
+        res.writeHead(200, { 'Content-Type': response.content_type });
+        res.end(response.data);
+      } else {
+        res.statusCode = 404;
+        res.end();
+      }
     })
     .catch(function (err) {
       next(err);
