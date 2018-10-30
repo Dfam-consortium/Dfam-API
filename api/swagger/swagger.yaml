@@ -141,7 +141,6 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-
   /families:
     x-swagger-router-controller: Families
     get:
@@ -242,7 +241,215 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-
+  '/families/{id}/hmm':
+    x-swagger-router-controller: Families
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+    get:
+      description: Retrieve an individual Dfam family's HMM data
+      tags:
+        - families
+      operationId: readFamilyHmm
+      parameters:
+        - name: format
+          in: query
+          description: The desired output format, "hmm" or "logo"
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/seed':
+    x-swagger-router-controller: Families
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+    get:
+      description: Retrieve an individual Dfam family's HMM data
+      tags:
+        - families
+      operationId: readFamilySeed
+      parameters:
+        - name: format
+          in: query
+          description: The desired output format, "graph" or "stockholm"
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/relationships':
+    x-swagger-router-controller: Families
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+    get:
+      description: Retrieve an individual Dfam family's relationship information
+      tags:
+        - families
+      operationId: readFamilyRelationships
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/assemblies':
+    x-swagger-router-controller: FamilyAssemblies
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+    get:
+      description: Retrieve an individual Dfam family's list of linked annotated assemblies
+      tags:
+        - familyAssemblies
+      operationId: readFamilyAssemblies
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/assemblies/{assembly_id}/model_coverage':
+    x-swagger-router-controller: FamilyAssemblies
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+      - name: assembly_id
+        in: path
+        description: The assembly name
+        required: true
+        type: string
+    get:
+      description: Retrieve a family's coverage data for a given assembly
+      tags:
+        - familyAssemblies
+      operationId: readFamilyAssemblyModelCoverage
+      parameters:
+        - name: model
+          in: query
+          description: Model type, "cons" or "hmm"
+          required: true
+          type: string
+        - name: threshold
+          in: query
+          description: Threshold, TODO enumerate or provide list of values
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/assemblies/{assembly_id}/annotations':
+    x-swagger-router-controller: FamilyAssemblies
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+      - name: assembly_id
+        in: path
+        description: The assembly name
+        required: true
+        type: string
+    get:
+      description: Retrieve a family's annotation data for a given assembly
+      tags:
+        - familyAssemblies
+      operationId: readFamilyAssemblyAnnotations
+      parameters:
+        - name: nrph
+          in: query
+          description: \"true\" to include only non-redundant profile hits
+          required: true
+          type: boolean
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/assemblies/{assembly_id}/annotation_stats':
+    x-swagger-router-controller: FamilyAssemblies
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+      - name: assembly_id
+        in: path
+        description: The assembly name
+        required: true
+        type: string
+    get:
+      description: Retrieve a family's annotation statistics for a given assembly
+      tags:
+        - familyAssemblies
+      operationId: readFamilyAssemblyAnnotationStats
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/assemblies/{assembly_id}/karyoimage':
+    x-swagger-router-controller: FamilyAssemblies
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+      - name: assembly_id
+        in: path
+        description: The assembly name
+        required: true
+        type: string
+    get:
+      description: Retrieve a family's karyotype image data for a given assembly
+      tags:
+        - familyAssemblies
+      operationId: readFamilyAssemblyKaryoImage
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   /classes:
     x-swagger-router-controller: Classification
     get:
@@ -274,6 +481,11 @@ paths:
           description: Search string for taxonomy name
           required: true
           type: string
+        - name: annotated
+          in: query
+          description: Whether only taxa with annotated assemblies should be returned.
+          required: false
+          type: boolean
         - name: limit
           in: query
           description: Only return up to a maximum number of hits
@@ -288,7 +500,51 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-
+  /annotations:
+    x-swagger-router-controller: Annotations
+    get:
+      description: Retrieve annotations for a given assembly in a given range.
+      tags:
+        - annotations
+      operationId: readAnnotations
+      parameters:
+        - name: assembly
+          in: query
+          description: Assembly to search
+          required: true
+          type: string
+        - name: chrom
+          in: query
+          description: Chromosome to search
+          required: true
+          type: string
+        - name: start
+          in: query
+          description: Start of the sequence range.
+          required: true
+          type: integer
+        - name: end
+          in: query
+          description: End of the sequence range.
+          required: true
+          type: integer
+        - name: family
+          in: query
+          description: An optional family to restrict results to
+          required: false
+          type: string
+        - name: nrph
+          in: query
+          description: \"true\" to exclude redundant profile hits
+          required: false
+          type: boolean
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   '/users/{userId}/files':
     x-swagger-router-controller: Files
     parameters:
@@ -454,7 +710,6 @@ paths:
           description: Error
           schema:
             type: string
-
   /swagger:
     x-swagger-pipe: swagger_raw
 definitions:

@@ -6,7 +6,8 @@ var Taxa = require('../service/TaxaService');
 module.exports.readTaxa = function readTaxa (req, res, next) {
   var name = req.swagger.params['name'].value;
   var limit = req.swagger.params['limit'].value;
-  Taxa.readTaxa(name,limit)
+  var annotated = req.swagger.params['annotated'].value;
+  Taxa.readTaxa(name,limit,annotated)
     .then(function (response) {
       utils.writeJson(res, response);
     })

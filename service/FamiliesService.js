@@ -307,3 +307,44 @@ exports.readFamilyById = function(id) {
   });
 }
 
+
+/**
+ * Retrieve an individual Dfam family's HMM data
+ *
+ * id String The Dfam family name
+ * format String The desired output format, \"hmm\" or \"logo\"
+ * no response value expected for this operation
+ **/
+exports.readFamilyHmm = function(id,format) {
+  return new Promise(function(resolve, reject) {
+    resolve();
+  });
+}
+
+
+/**
+ * Retrieve an individual Dfam family's relationship information
+ *
+ * id String The Dfam family name
+ * no response value expected for this operation
+ **/
+exports.readFamilyRelationships = function(id) {
+  return new Promise(function(resolve, reject) {
+    resolve();
+  });
+}
+
+
+/**
+ * Retrieve an individual Dfam family's HMM data
+ *
+ * id String The Dfam family name
+ * format String The desired output format, \"graph\" or \"stockholm\"
+ * no response value expected for this operation
+ **/
+exports.readFamilySeed = function(id,format) {
+  return new Promise(function(resolve, reject) {
+    resolve();
+  });
+}
+

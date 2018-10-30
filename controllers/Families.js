@@ -35,3 +35,38 @@ module.exports.readFamilyById = function readFamilyById (req, res, next) {
       next(err);
     });
 };
+
+module.exports.readFamilyHmm = function readFamilyHmm (req, res, next) {
+  var id = req.swagger.params['id'].value;
+  var format = req.swagger.params['format'].value;
+  Families.readFamilyHmm(id,format)
+    .then(function (response) {
+      utils.writeJson(res, response);
+    })
+    .catch(function (err) {
+      next(err);
+    });
+};
+
+module.exports.readFamilyRelationships = function readFamilyRelationships (req, res, next) {
+  var id = req.swagger.params['id'].value;
+  Families.readFamilyRelationships(id)
+    .then(function (response) {
+      utils.writeJson(res, response);
+    })
+    .catch(function (err) {
+      next(err);
+    });
+};
+
+module.exports.readFamilySeed = function readFamilySeed (req, res, next) {
+  var id = req.swagger.params['id'].value;
+  var format = req.swagger.params['format'].value;
+  Families.readFamilySeed(id,format)
+    .then(function (response) {
+      utils.writeJson(res, response);
+    })
+    .catch(function (err) {
+      next(err);
+    });
+};
