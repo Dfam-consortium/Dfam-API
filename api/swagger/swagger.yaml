@@ -357,9 +357,35 @@ paths:
           description: Model type, "cons" or "hmm"
           required: true
           type: string
-        - name: threshold
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/assemblies/{assembly_id}/model_conservation':
+    x-swagger-router-controller: FamilyAssemblies
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+      - name: assembly_id
+        in: path
+        description: The assembly name
+        required: true
+        type: string
+    get:
+      description: Retrieve a family's conservation data for a given assembly
+      tags:
+        - familyAssemblies
+      operationId: readFamilyAssemblyModelConservation
+      parameters:
+        - name: model
           in: query
-          description: Threshold, TODO enumerate or provide list of values
+          description: Model type, "cons" or "hmm"
           required: true
           type: string
       responses:
@@ -443,6 +469,17 @@ paths:
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyKaryoImage
+      parameters:
+        - name: nrph
+          in: query
+          description: \"true\" to include only non-redundant profile hits
+          required: true
+          type: boolean
+        - name: part
+          in: query
+          description: Which part to return, one of heatmap, html_map, or img_key
+          required: true
+          type: string
       responses:
         '200':
           description: Success

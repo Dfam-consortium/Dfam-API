@@ -32,7 +32,13 @@ module.exports.readFamilyAssemblyAnnotations = function readFamilyAssemblyAnnota
   var nrph = req.swagger.params['nrph'].value;
   FamilyAssemblies.readFamilyAssemblyAnnotations(id,assembly_id,nrph)
     .then(function (response) {
-      utils.writeJson(res, response);
+      if (response) {
+        res.writeHead(200, { 'Content-Type': response.content_type });
+        res.end(response.data);
+      } else {
+        res.statusCode = 404;
+        res.end();
+      }
     })
     .catch(function (err) {
       next(err);
@@ -42,9 +48,17 @@ module.exports.readFamilyAssemblyAnnotations = function readFamilyAssemblyAnnota
 module.exports.readFamilyAssemblyKaryoImage = function readFamilyAssemblyKaryoImage (req, res, next) {
   var id = req.swagger.params['id'].value;
   var assembly_id = req.swagger.params['assembly_id'].value;
-  FamilyAssemblies.readFamilyAssemblyKaryoImage(id,assembly_id)
+  var nrph = req.swagger.params['nrph'].value;
+  var part = req.swagger.params['part'].value;
+  FamilyAssemblies.readFamilyAssemblyKaryoImage(id,assembly_id,nrph,part)
     .then(function (response) {
-      utils.writeJson(res, response);
+      if (response) {
+        res.writeHead(200, { 'Content-Type': response.content_type });
+        res.end(response.data);
+      } else {
+        res.statusCode = 404;
+        res.end();
+      }
     })
     .catch(function (err) {
       next(err);
@@ -55,8 +69,20 @@ module.exports.readFamilyAssemblyModelCoverage = function readFamilyAssemblyMode
   var id = req.swagger.params['id'].value;
   var assembly_id = req.swagger.params['assembly_id'].value;
   var model = req.swagger.params['model'].value;
-  var threshold = req.swagger.params['threshold'].value;
-  FamilyAssemblies.readFamilyAssemblyModelCoverage(id,assembly_id,model,threshold)
+  FamilyAssemblies.readFamilyAssemblyModelCoverage(id,assembly_id,model)
+    .then(function (response) {
+      utils.writeJson(res, response);
+    })
+    .catch(function (err) {
+      next(err);
+    });
+};
+
+module.exports.readFamilyAssemblyModelConservation = function readFamilyAssemblyModelConservation (req, res, next) {
+  var id = req.swagger.params['id'].value;
+  var assembly_id = req.swagger.params['assembly_id'].value;
+  var model = req.swagger.params['model'].value;
+  FamilyAssemblies.readFamilyAssemblyModelConservation(id,assembly_id,model)
     .then(function (response) {
       utils.writeJson(res, response);
     })

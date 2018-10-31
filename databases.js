@@ -29,4 +29,17 @@ function connect(dbinfo) {
 var dfam_connection = connect(security.dfam_database);
 var users_connection = connect(security.users_database);
 
-module.exports = { "dfam": dfam_connection, "users": users_connection };
+const assemblies = {};
+function getAssembly(schema_name) {
+  if (!assemblies[schema_name]) {
+    assemblies[schema_name] = connect({
+      database: schema_name,
+      username: security.assembly_databases.username,
+      password: security.assembly_databases.password,
+    });
+  }
+
+  return assemblies[schema_name];
+}
+
+module.exports = { "dfam": dfam_connection, "users": users_connection, "getAssembly": getAssembly };
