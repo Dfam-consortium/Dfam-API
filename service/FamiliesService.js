@@ -5,6 +5,7 @@ const Op = Sequelize.Op;
 const conn = require("../databases.js").dfam;
 const winston = require("winston");
 const zlib = require("zlib");
+const mapFields = require("../utils/mapFields.js");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
@@ -64,17 +65,6 @@ async function getClassificationPath(cls_id) {
   return name;
 }
 
-
-function mapFields(source, dest, mapping) {
-  Object.keys(mapping).forEach(function(key) {
-    const newKey = mapping[key];
-    if (source[key]) {
-      dest[newKey] = source[key];
-    }
-  });
-
-  return dest;
-}
 
 async function familyQueryRowToObject(row, format) {
     const obj = mapFields(row, {}, {
