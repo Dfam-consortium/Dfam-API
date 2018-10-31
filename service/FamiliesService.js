@@ -341,12 +341,20 @@ exports.readFamilyHmm = function(id, format) {
     include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
   }).then(function(model) {
     return new Promise(function(resolve, reject) {
-      zlib.gunzip(model[field], function(err, data) {
-        if (err) { reject(err); }
-        else { resolve(data); }
-      });
+      if (model[field]) {
+        zlib.gunzip(model[field], function(err, data) {
+          if (err) { reject(err); }
+          else { resolve(data); }
+        });
+      } else {
+        resolve(null);
+      }
     }).then(function(data) {
-      return { data, content_type };
+      if (data) {
+        return { data, content_type };
+      } else {
+        return null;
+      }
     });
   });
 }
@@ -440,12 +448,20 @@ exports.readFamilySeed = function(id,format) {
       include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
     }).then(function(model) {
       return new Promise(function(resolve, reject) {
-        zlib.gunzip(model.seed, function(err, data) {
-          if (err) { reject(err); }
-          else { resolve(data); }
-        });
+        if (model.seed) {
+          zlib.gunzip(model.seed, function(err, data) {
+            if (err) { reject(err); }
+            else { resolve(data); }
+          });
+        } else {
+          resolve(null);
+        }
       }).then(function(data) {
-        return { data, content_type: "text/plain" };
+        if (data) {
+          return { data, content_type: "text/plain" };
+        } else {
+          return null;
+        }
       });
     });
   } else {

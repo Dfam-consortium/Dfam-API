@@ -124,12 +124,20 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
       where: { "model_accession": id }
     }).then(function(files) {
       return new Promise(function(resolve, reject) {
-        zlib.gunzip(files[column], function(err, data) {
-          if (err) { reject(err); }
-          else { resolve(data); }
-        });
+        if (files[column]) {
+          zlib.gunzip(files[column], function(err, data) {
+            if (err) { reject(err); }
+            else { resolve(data); }
+          });
+        } else {
+          resolve(null);
+        }
       }).then(function(data) {
-        return { data, content_type: "text/plain" };
+        if (data) {
+          return { data, content_type: "text/plain" };
+        } else {
+          return null;
+        }
       });
     });
   });
@@ -170,7 +178,11 @@ exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
       attributes: [ column ],
       where: { "model_accession": id }
     }).then(function(karyotype) {
-      return { data: karyotype[column], content_type: parts[part][1] };
+      if (karyotype[column]) {
+        return { data: karyotype[column], content_type: parts[part][1] };
+      } else {
+        return null;
+      }
     });
   });
 }
