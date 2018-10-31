@@ -35,7 +35,7 @@ exports.readTaxa = function(name,limit,annotated) {
       ],
       limit: limit || 20,
     }).then(function(results) {
-      return { "taxa": results.map(r => ({ "species_name": r.name_txt })) };
+      return { "taxa": results.map(r => ({ "assembly": r.assembly.name, "species_name": r.name_txt })) };
     });
   } else {
     return ncbiTaxonomyNames.findAll({
