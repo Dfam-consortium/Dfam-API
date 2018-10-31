@@ -7,7 +7,6 @@
     "start": "**/*.js"
   },
   "scripts": {
-    "prestart": "npm install",
     "start": "node index.js",
     "watch": "npm-watch"
   },
