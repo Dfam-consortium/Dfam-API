@@ -200,6 +200,11 @@ paths:
           description: Search term for repeat description
           required: false
           type: string
+        - name: keywords
+          in: query
+          description: Keywords to search in text fields
+          required: false
+          type: string
         - name: start
           in: query
           description: Start index ( for range queries )

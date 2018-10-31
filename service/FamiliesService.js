@@ -167,7 +167,7 @@ async function familyQueryRowToObject(row, format) {
  * limit Integer Records to return ( for range queries ) (optional)
  * returns familiesResponse
  **/
-exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,updated_after,updated_before,desc,start,limit) {
+exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
 
   const replacements = {};
 
@@ -217,6 +217,17 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
   if (updated_before) {
     where.push("(date_modified < :where_before OR date_created < :where_before)");
     replacements.where_before = new Date(updated_before);
+  }
+
+  if (keywords) {
+    var i = 0;
+    keywords.split(" ").forEach(function(word) {
+      i++;
+      var key = "where_keywords" + i;
+
+      where.push(`((family.name LIKE :${key}) OR (family.description LIKE :${key}) OR (accession LIKE :${key}) OR (author LIKE :${key}))`);
+      replacements[key] = "%" + word + "%";
+    });
   }
 
   var count_sql = "SELECT COUNT(*) as total_count FROM " + from + " WHERE " + where.join(" AND ");

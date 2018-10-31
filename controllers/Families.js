@@ -14,9 +14,10 @@ module.exports.readFamilies = function readFamilies (req, res, next) {
   var updated_after = req.swagger.params['updated_after'].value;
   var updated_before = req.swagger.params['updated_before'].value;
   var desc = req.swagger.params['desc'].value;
+  var keywords = req.swagger.params['keywords'].value;
   var start = req.swagger.params['start'].value;
   var limit = req.swagger.params['limit'].value;
-  Families.readFamilies(format,sort,name,name_prefix,clade,type,subtype,updated_after,updated_before,desc,start,limit)
+  Families.readFamilies(format,sort,name,name_prefix,clade,type,subtype,updated_after,updated_before,desc,keywords,start,limit)
     .then(function (response) {
       utils.writeJson(res, response);
     })
