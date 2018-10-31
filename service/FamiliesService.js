@@ -47,7 +47,7 @@ async function getClassificationPath(cls_id) {
     return classification_paths[cls_id];
   }
 
-  const cls = await classificationModel.findOne({ where: { id: cls_id } });
+  const cls = await classificationModel.findOne({ attributes: ["parent_id", "name"], where: { id: cls_id } });
   if (!cls) {
     return null;
   }
@@ -338,7 +338,7 @@ exports.readFamilyHmm = function(id, format) {
 
   return modelDataModel.findOne({
     attributes: [ field ],
-    include: [ { model: familyModel, where: { accession: id } } ],
+    include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
   }).then(function(model) {
     return new Promise(function(resolve, reject) {
       zlib.gunzip(model[field], function(err, data) {
@@ -361,8 +361,8 @@ exports.readFamilyHmm = function(id, format) {
 exports.readFamilyRelationships = function(id) {
   return familyOverlapModel.findAll({
     include: [
-      { model: familyModel, as: 'family1' },
-      { model: familyModel, as: 'family2' },
+      { model: familyModel, as: 'family1', attributes: ["name", "accession", "length"] },
+      { model: familyModel, as: 'family2', attributes: ["name", "accession", "length"] },
       overlapSegmentModel,
     ],
     where: {
@@ -423,7 +423,7 @@ exports.readFamilySeed = function(id,format) {
   if (format == "graph") {
     return seedCoverageDataModel.findOne({
       attributes: [ "whisker", "seed" ],
-      include: [ { model: familyModel, where: { accession: id } } ],
+      include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
     }).then(function(coverage_data) {
       return {
         data: JSON.stringify({
@@ -437,7 +437,7 @@ exports.readFamilySeed = function(id,format) {
   } else if (format == "stockholm") {
     return modelDataModel.findOne({
       attributes: [ "seed" ],
-      include: [ { model: familyModel, where: { accession: id } } ],
+      include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
     }).then(function(model) {
       return new Promise(function(resolve, reject) {
         zlib.gunzip(model.seed, function(err, data) {

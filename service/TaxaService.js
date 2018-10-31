@@ -18,12 +18,14 @@ ncbiTaxonomyNames.belongsTo(assembly, { foreignKey: 'tax_id', targetKey: 'dfam_t
 exports.readTaxa = function(name,limit,annotated) {
   if (annotated) {
     return ncbiTaxonomyNames.findAll({
+      attributes: ["name_txt"],
       where: {
         name_class: "scientific name",
         name_txt: { [Sequelize.Op.like]: name + "%" },
       },
       include: {
         model: assembly,
+        attributes: ["name"],
         where: {
           schema_name: { [Sequelize.Op.like]: "_%" },
         }
@@ -37,6 +39,7 @@ exports.readTaxa = function(name,limit,annotated) {
     });
   } else {
     return ncbiTaxonomyNames.findAll({
+      attributes: ["name_txt"],
       where: {
         name_class: "scientific name",
         name_txt: { [Sequelize.Op.like]: name + "%" },

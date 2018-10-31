@@ -40,15 +40,16 @@ function getAssemblyModels(schema_name) {
  **/
 exports.readFamilyAssemblies = function(id) {
   return familyAssemblyDataModel.findAll({
+    attributes: [],
     include: [
-      { model: familyModel, where: { 'accession': id } },
-      { model: assemblyModel, include: [ dfamTaxdbModel ] },
+      { model: familyModel, where: { 'accession': id }, attributes: [] },
+      { model: assemblyModel, include: [ dfamTaxdbModel ], attributes: ["name"] },
     ],
   }).then(function(data) {
     return data.map(function(family_assembly) {
       return {
         id: family_assembly.assembly.name,
-        name: family_assembly.assembly.dfamTaxdb.scientific_name,
+        name: family_assembly.assembly.dfam_taxdb.scientific_name,
       };
     });
   });
@@ -65,8 +66,8 @@ exports.readFamilyAssemblies = function(id) {
 exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
   return familyAssemblyDataModel.findOne({
     include: [
-      { model: familyModel, where: { 'accession': id } },
-      { model: assemblyModel, where: { 'name': assembly_id } },
+      { model: familyModel, where: { 'accession': id }, attributes: [] },
+      { model: assemblyModel, where: { 'name': assembly_id }, attributes: [] },
     ],
   }).then(function(family_assembly) {
     let obj = { };
@@ -106,22 +107,24 @@ exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
  **/
 exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
   return assemblyModel.findOne({
+    attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
     const models = getAssemblyModels(assembly.schema_name);
 
+    var column;
+    if (nrph === true) {
+      column = "nrph_hit_list";
+    } else  {
+      column = "hit_list";
+    }
+
     return models.modelFileModel.findOne({
+      attributes: [ column ],
       where: { "model_accession": id }
     }).then(function(files) {
-      var data;
-      if (nrph === true) {
-        data = files.nrph_hit_list;
-      } else  {
-        data = files.hit_list;
-      }
-
       return new Promise(function(resolve, reject) {
-        zlib.gunzip(data, function(err, data) {
+        zlib.gunzip(files[column], function(err, data) {
           if (err) { reject(err); }
           else { resolve(data); }
         });
@@ -142,29 +145,31 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
  **/
 exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
   return assemblyModel.findOne({
+    attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
     const models = getAssemblyModels(assembly.schema_name);
 
+    const parts = {
+      "heatmap": ["heatmap", "image/png"],
+      "html_map": ["html_map", "text/plain"],
+      "img_key": ["img_key", "text/plain"],
+    };
+
+    if (!parts[part]) {
+      return null;
+    }
+
+    var column = parts[part][0];
+
+    if (nrph === true) {
+      column = "nrph_" + column;
+    }
+
     return models.karyotypeModel.findOne({
+      attributes: [ column ],
       where: { "model_accession": id }
     }).then(function(karyotype) {
-      const parts = {
-        "heatmap": ["heatmap", "image/png"],
-        "html_map": ["html_map", "text/plain"],
-        "img_key": ["img_key", "text/plain"],
-      };
-
-      if (!parts[part]) {
-        return null;
-      }
-
-      var column = parts[part][0];
-
-      if (nrph === true) {
-        column = "nrph_" + column;
-      }
-
       return { data: karyotype[column], content_type: parts[part][1] };
     });
   });

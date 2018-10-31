@@ -15,7 +15,9 @@ function connect(dbinfo) {
       define: {
         timestamps: false,
       },
-      logging: false,
+      logging: function(message, data) {
+        winston.debug(message);
+      },
       operatorsAliases: false,
       pool: {
         max: 5,
