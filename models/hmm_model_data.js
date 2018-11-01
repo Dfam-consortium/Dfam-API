@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('model_data', {
+  return sequelize.define('hmm_model_data', {
     family_id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -19,23 +19,11 @@ module.exports = function(sequelize, DataTypes) {
       type: "LONGBLOB",
       allowNull: true
     },
-    seed: {
-      type: "LONGBLOB",
-      allowNull: true
-    },
-    annotated_hmm: {
-      type: "LONGBLOB",
-      allowNull: true
-    },
-    annotated_seed: {
-      type: "LONGBLOB",
-      allowNull: true
-    },
     hmm_png: {
       type: "LONGBLOB",
       allowNull: true
     }
   }, {
-    tableName: 'model_data'
+    tableName: 'hmm_model_data'
   });
 };

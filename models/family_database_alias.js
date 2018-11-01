@@ -21,9 +21,10 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    other_params: {
-      type: DataTypes.TEXT,
-      allowNull: true
+    deprecated: {
+      type: DataTypes.INTEGER(1),
+      allowNull: true,
+      defaultValue: '0'
     },
     comment: {
       type: DataTypes.TEXT,

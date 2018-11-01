@@ -9,7 +9,7 @@ module.exports = function(sequelize, DataTypes) {
       autoIncrement: true
     },
     parent_id: {
-      type: DataTypes.STRING(45),
+      type: DataTypes.BIGINT,
       allowNull: true
     },
     name: {
@@ -62,6 +62,10 @@ module.exports = function(sequelize, DataTypes) {
     },
     piegu_equiv: {
       type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    lineage: {
+      type: DataTypes.STRING(45),
       allowNull: true
     }
   }, {

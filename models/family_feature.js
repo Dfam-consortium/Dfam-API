@@ -5,11 +5,12 @@ module.exports = function(sequelize, DataTypes) {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     family_id: {
       type: DataTypes.BIGINT,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: 'family',
         key: 'id'
@@ -17,18 +18,19 @@ module.exports = function(sequelize, DataTypes) {
     },
     feature_type: {
       type: DataTypes.STRING(45),
-      allowNull: true,
-      defaultValue: 'Null'
+      allowNull: true
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true
     },
     model_start_pos: {
-      type: DataTypes.STRING(45),
-      allowNull: true,
-      defaultValue: 'Null'
+      type: DataTypes.INTEGER(10).UNSIGNED,
+      allowNull: true
     },
     model_end_pos: {
-      type: DataTypes.STRING(45),
-      allowNull: true,
-      defaultValue: 'Null'
+      type: DataTypes.INTEGER(10).UNSIGNED,
+      allowNull: true
     }
   }, {
     tableName: 'family_feature'

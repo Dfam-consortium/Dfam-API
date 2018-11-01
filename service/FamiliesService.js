@@ -16,7 +16,7 @@ const rmStageModel = require("../models/repeatmasker_stage.js")(conn, Sequelize)
 const familyHasBufferStageModel = require("../models/family_has_buffer_stage.js")(conn, Sequelize);
 const citationModel = require("../models/citation.js")(conn, Sequelize);
 const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
-const modelDataModel = require("../models/model_data.js")(conn, Sequelize);
+const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
 const seedCoverageDataModel = require("../models/seed_coverage_data.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
 const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
@@ -31,7 +31,7 @@ familyModel.belongsToMany(citationModel, { as: 'citations', through: 'family_has
 familyModel.belongsToMany(dfamTaxdbModel, { as: 'clades', through: 'family_clade', foreignKey: 'family_id', otherKey: 'dfam_taxdb_tax_id' });
 classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id', as: 'rm_type' });
 classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtype_id', as: 'rm_subtype' });
-modelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
+hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 seedCoverageDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family1_id', as: 'family1' });
 familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family2_id', as: 'family2' });
@@ -347,19 +347,19 @@ exports.readFamilyHmm = function(id, format) {
     throw new Error("Invalid format: " + format);
   }
 
-  return modelDataModel.findOne({
+  return hmmModelDataModel.findOne({
     attributes: [ field ],
     include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
   }).then(function(model) {
     return new Promise(function(resolve, reject) {
-      if (model[field]) {
-        zlib.gunzip(model[field], function(err, data) {
-          if (err) { reject(err); }
-          else { resolve(data); }
-        });
-      } else {
-        resolve(null);
+      if (!model || !model[field]) {
+        return resolve(null);
       }
+
+      zlib.gunzip(model[field], function(err, data) {
+        if (err) { reject(err); }
+        else { resolve(data); }
+      });
     }).then(function(data) {
       if (data) {
         return { data, content_type };
@@ -458,7 +458,7 @@ exports.readFamilySeed = function(id,format) {
     });
 
   } else if (format == "stockholm") {
-    return modelDataModel.findOne({
+    return hmmModelDataModel.findOne({
       attributes: [ "seed" ],
       include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
     }).then(function(model) {
