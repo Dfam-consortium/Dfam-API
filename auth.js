@@ -14,6 +14,7 @@ var opts = {
   secretOrKey: security.jwt_secret,
 };
 
+// Map JWT tokens to users in our database
 passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
   userModel.findOne({ where: { email: jwt_payload.email } }).then(function(user) {
     done(null, user || false);
@@ -23,17 +24,16 @@ passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
 }));
 
 function swaggerBearerHandler(req, def, scopes, callback) {
-  // TODO: fix the error handling situation
   if (!req.headers.authorization) {
     winston.debug("swaggerBearerHandler - Failed, Authorization header missing.");
     var err = new Error("Missing authentication token. Please login first.");
-    err.statusCode = 401;
+    err.statusCode = 403;
     return callback(err);
   }
 
   return passport.authenticate('jwt', function(err, user, info) {
     var error = new Error("Failed to authenticate.");
-    error.statusCode = 401;
+    error.statusCode = 403;
 
     if (err) {
       return callback(error);

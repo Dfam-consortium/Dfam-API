@@ -56,6 +56,12 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
 
   app.use(middleware.swaggerSecurity(auth.swaggerHandlers));
 
+  // Error handler for security
+  app.use(function(err, req, res, next) {
+    res.statusCode = err.statusCode || 403;
+    res.end(err.message);
+  });
+
   // Validate Swagger requests
   app.use(middleware.swaggerValidator());
 
