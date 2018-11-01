@@ -247,12 +247,12 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
     }
   }
 
-  if (limit) {
+  if (limit !== undefined) {
     sql += " LIMIT :limit";
     replacements.limit = limit;
   }
 
-  if (start) {
+  if (start !== undefined) {
     sql += " OFFSET :offset";
     replacements.offset = start;
   }
@@ -262,34 +262,31 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
     conn.query(sql, { type: "SELECT", replacements }),
   ]).then(function([count_result, rows]) {
     const total_count = count_result[0].total_count;
-    if (rows.length) {
-      return Promise.all(rows.map(function(row) {
-        var replacements = { family_id: row.id };
 
-        return Promise.all([
-          conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }),
-          conn.query("SELECT name FROM family_has_search_stage INNER JOIN repeatmasker_stage ON family_has_search_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }),
-          conn.query("SELECT name, start_pos, end_pos FROM family_has_buffer_stage INNER JOIN repeatmasker_stage ON family_has_buffer_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }),
-          conn.query("SELECT pmid, title, authors, journal, pubdate FROM family_has_citation INNER JOIN citation ON family_has_citation.citation_pmid = citation.pmid WHERE family_id = :family_id", { type: "SELECT", replacements }),
-          conn.query("SELECT scientific_name FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }),
-        ]).then(function([aliases, search_stages, buffer_stages, citations, clades]) {
-          row.aliases = aliases;
-          row.search_stages = search_stages;
-          row.buffer_stages = [];
-          buffer_stages.forEach(function(bs) {
-            row.buffer_stages.push({ name: bs.name, family_has_buffer_stage: { start_pos: bs.start_pos, end_pos: bs.end_pos } });
-          });
-          row.citations = citations;
-          row.clades = clades;
-          row.classification = { id: row.classification_id, rm_type: { name: row.type }, rm_subtype: { name: row.subtype } };
-          return familyQueryRowToObject(row, format);
+    return Promise.all(rows.map(function(row) {
+      var replacements = { family_id: row.id };
+
+      return Promise.all([
+        conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }),
+        conn.query("SELECT name FROM family_has_search_stage INNER JOIN repeatmasker_stage ON family_has_search_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }),
+        conn.query("SELECT name, start_pos, end_pos FROM family_has_buffer_stage INNER JOIN repeatmasker_stage ON family_has_buffer_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }),
+        conn.query("SELECT pmid, title, authors, journal, pubdate FROM family_has_citation INNER JOIN citation ON family_has_citation.citation_pmid = citation.pmid WHERE family_id = :family_id", { type: "SELECT", replacements }),
+        conn.query("SELECT scientific_name FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }),
+      ]).then(function([aliases, search_stages, buffer_stages, citations, clades]) {
+        row.aliases = aliases;
+        row.search_stages = search_stages;
+        row.buffer_stages = [];
+        buffer_stages.forEach(function(bs) {
+          row.buffer_stages.push({ name: bs.name, family_has_buffer_stage: { start_pos: bs.start_pos, end_pos: bs.end_pos } });
         });
-      })).then(function(objs) {
-        return { total_count, results: objs };
+        row.citations = citations;
+        row.clades = clades;
+        row.classification = { id: row.classification_id, rm_type: { name: row.type }, rm_subtype: { name: row.subtype } };
+        return familyQueryRowToObject(row, format);
       });
-    } else {
-      return writer.respondWithCode(404, "");
-    }
+    })).then(function(objs) {
+      return { total_count, results: objs };
+    });
   });
 };
 
