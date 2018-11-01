@@ -70,6 +70,10 @@ exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
       { model: assemblyModel, where: { 'name': assembly_id }, attributes: [] },
     ],
   }).then(function(family_assembly) {
+    if (!family_assembly) {
+      return null;
+    }
+
     let obj = { };
 
     if (family_assembly.hmm_GA_nrph_hit_count !== null) {
@@ -110,6 +114,10 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
+    if (!assembly) {
+      return null;
+    }
+
     const models = getAssemblyModels(assembly.schema_name);
 
     var column;
@@ -124,14 +132,14 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
       where: { "model_accession": id }
     }).then(function(files) {
       return new Promise(function(resolve, reject) {
-        if (files[column]) {
-          zlib.gunzip(files[column], function(err, data) {
-            if (err) { reject(err); }
-            else { resolve(data); }
-          });
-        } else {
-          resolve(null);
+        if (!files || !files[column]) {
+          return resolve(null);
         }
+
+        zlib.gunzip(files[column], function(err, data) {
+          if (err) { reject(err); }
+          else { resolve(data); }
+        });
       }).then(function(data) {
         if (data) {
           return { data, content_type: "text/plain" };
@@ -156,6 +164,10 @@ exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
+    if (!assembly) {
+      return null;
+    }
+
     const models = getAssemblyModels(assembly.schema_name);
 
     const parts = {
@@ -178,7 +190,7 @@ exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
       attributes: [ column ],
       where: { "model_accession": id }
     }).then(function(karyotype) {
-      if (karyotype[column]) {
+      if (karyotype && karyotype[column]) {
         return { data: karyotype[column], content_type: parts[part][1] };
       } else {
         return null;
@@ -201,6 +213,10 @@ exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
+    if (!assembly) {
+      return null;
+    }
+
     const models = getAssemblyModels(assembly.schema_name);
 
     return models.coverageDataModel.findOne({
@@ -233,6 +249,10 @@ exports.readFamilyAssemblyModelConservation = function(id,assembly_id,model) {
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
+    if (!assembly) {
+      return null;
+    }
+
     const models = getAssemblyModels(assembly.schema_name);
 
     return models.percentageIdModel.findAll({

@@ -444,6 +444,10 @@ exports.readFamilySeed = function(id,format) {
       attributes: [ "whisker", "seed" ],
       include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
     }).then(function(coverage_data) {
+      if (!coverage_data) {
+        return null;
+      }
+
       return {
         data: JSON.stringify({
           whisker: JSON.parse(coverage_data.whisker),
@@ -459,7 +463,7 @@ exports.readFamilySeed = function(id,format) {
       include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
     }).then(function(model) {
       return new Promise(function(resolve, reject) {
-        if (model.seed) {
+        if (model && model.seed) {
           zlib.gunzip(model.seed, function(err, data) {
             if (err) { reject(err); }
             else { resolve(data); }
