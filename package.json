@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node index.js",
+    "lint": "eslint .; true",
     "watch": "npm-watch"
   },
   "keywords": [
@@ -28,6 +29,7 @@
     "winston": "^3.1.0"
   },
   "devDependencies": {
+    "eslint": "^5.8.0",
     "mysql": "^2.16.0",
     "npm-watch": "^0.4.0",
     "sequelize-auto": "^0.4.29"

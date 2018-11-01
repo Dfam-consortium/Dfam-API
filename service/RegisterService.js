@@ -1,7 +1,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const winston = require('winston');
 
 const Sequelize = require('sequelize');
 const auth = require('../auth');
@@ -55,7 +54,7 @@ exports.register = function(email,name,password) {
       });
     });
   });
-}
+};
 
 
 /**
@@ -83,5 +82,5 @@ exports.verifyEmail = function(token) {
       });
     }
   });
-}
+};
 

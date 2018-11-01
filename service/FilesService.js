@@ -25,7 +25,7 @@ exports.checkFileOrChunk = function(userId,flowChunkNumber,flowChunkSize,flowCur
       resolve();
     }
   });
-}
+};
 
 
 /**
@@ -44,7 +44,7 @@ exports.getSubmittedFiles = function(userId) {
       resolve();
     }
   });
-}
+};
 
 
 /**
@@ -78,5 +78,5 @@ exports.uploadFileOrChunk = function(userId,guid,title,description,citations,fil
       resolve();
     }
   });
-}
+};
 

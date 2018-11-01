@@ -30,5 +30,5 @@ exports.authenticate = function(email,password) {
 
     throw new Error("Invalid username or password.");
   });
-}
+};
 

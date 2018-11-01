@@ -1,8 +1,8 @@
 'use strict';
 
-var fs = require('fs'),
-    path = require('path'),
-    http = require('http');
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
 
 const winston = require('winston');
 const format = winston.format;
@@ -66,8 +66,8 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
 
   // Start the server
   http.createServer(app).listen(serverPort, function () {
-    console.log('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
-    console.log('Swagger-ui is available on http://localhost:%d/docs', serverPort);
+    winston.info('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
+    winston.info('Swagger-ui is available on http://localhost:%d/docs', serverPort);
   });
 
 });

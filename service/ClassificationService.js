@@ -4,8 +4,6 @@ const winston = require('winston');
 
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
-const classificationModel = require("../models/classification.js")(conn, Sequelize);
-const writer = require("../utils/writer.js");
 
 
 /**
@@ -80,5 +78,5 @@ exports.readClassification = function() {
   }).catch(function(err) {
     winston.debug(err.toString());
   });
-}
+};
 

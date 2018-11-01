@@ -4,11 +4,9 @@ const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const conn = require("../databases.js").dfam;
 const getAssemblyModels = require("../databases.js").getAssemblyModels;
-const winston = require("winston");
 const mapFields = require("../utils/mapFields.js");
 
 const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
-const writer = require("../utils/writer.js");
 
 /**
  * Retrieve annotations for a given assembly in a given range.
@@ -56,5 +54,5 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
       });
     });
   });
-}
+};
 

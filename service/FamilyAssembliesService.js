@@ -1,10 +1,8 @@
 'use strict';
 
 const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
 const conn = require("../databases.js").dfam;
 const getAssemblyModels = require("../databases.js").getAssemblyModels;
-const winston = require("winston");
 const zlib = require("zlib");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
@@ -39,7 +37,7 @@ exports.readFamilyAssemblies = function(id) {
       };
     });
   });
-}
+};
 
 
 /**
@@ -80,11 +78,11 @@ exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
         trusted_nonredundant: family_assembly.cons_TC_nrph_hit_count,
         trusted_all: family_assembly.cons_TC_hit_count,
       };
-    };
+    }
 
     return obj;
   });
-}
+};
 
 
 /**
@@ -135,7 +133,7 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
       });
     });
   });
-}
+};
 
 
 /**
@@ -183,7 +181,7 @@ exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
       }
     });
   });
-}
+};
 
 
 /**
@@ -220,7 +218,7 @@ exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
       }
     });
   });
-}
+};
 
 /**
  * Retrieve a family's conservation data for a given assembly
@@ -256,5 +254,5 @@ exports.readFamilyAssemblyModelConservation = function(id,assembly_id,model) {
       });
     });
   });
-}
+};
 

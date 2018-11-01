@@ -1,9 +1,7 @@
 'use strict';
 
 const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
 const conn = require("../databases.js").dfam;
-const winston = require("winston");
 const zlib = require("zlib");
 const mapFields = require("../utils/mapFields.js");
 
@@ -67,87 +65,87 @@ async function getClassificationPath(cls_id) {
 
 
 async function familyQueryRowToObject(row, format) {
-    const obj = mapFields(row, {}, {
-      "accession": "accession",
-      "name": "name",
-      "description": "description",
-      "length": "length",
-    });
+  const obj = mapFields(row, {}, {
+    "accession": "accession",
+    "name": "name",
+    "description": "description",
+    "length": "length",
+  });
 
-    if (row.classification) {
-      obj.classification = await getClassificationPath(row.classification.id);
-      if (row.classification.rm_type) {
-        obj.repeat_type_name = row.classification.rm_type.name;
-      }
-      if (row.classification.rm_subtype) {
-        obj.repeat_subtype_name = row.classification.rm_subtype.name;
-      }
+  if (row.classification) {
+    obj.classification = await getClassificationPath(row.classification.id);
+    if (row.classification.rm_type) {
+      obj.repeat_type_name = row.classification.rm_type.name;
     }
-
-    if (format == "summary") {
-      return obj;
+    if (row.classification.rm_subtype) {
+      obj.repeat_subtype_name = row.classification.rm_subtype.name;
     }
+  }
 
-    mapFields(row, obj, {
-      "consensus": "consensus_sequence",
-      "author": "author",
-      "date_created": "date_created",
-      "date_modified": "date_modified",
-      "target_site_cons": "target_site_cons",
-      "refineable": "refineable",
-      "disabled": "disabled",
-    });
-
-    const aliases = obj["aliases"] = [];
-    if (row.aliases) {
-      row.aliases.forEach(function(alias) {
-        aliases.push(mapFields(alias, {}, { "db_id": "database", "db_link": "alias" }));
-      });
-    }
-
-    // TODO: Can this be flattened into an Array<String>?
-    const search_stages = obj["search_stages"] = [];
-    if (row.search_stages) {
-      row.search_stages.forEach(function(ss) {
-        search_stages.push({ name: ss.name });
-      });
-    }
-
-    const buffer_stages = obj["buffer_stages"] = [];
-    if (row.buffer_stages) {
-      row.buffer_stages.forEach(function(bs) {
-        buffer_stages.push({
-          name: bs.name,
-          start: bs.family_has_buffer_stage.start_pos,
-          end: bs.family_has_buffer_stage.end_pos,
-        });
-      });
-    }
-
-    const citations = obj["citations"] = [];
-    if (row.citations) {
-      row.citations.forEach(function(c) {
-        citations.push(mapFields(c, {}, {
-          "pmid": "pmid",
-          "title": "title",
-          "authors": "authors",
-          "journal": "journal",
-          "pubdate": "pubdate",
-        }));
-      });
-    }
-
-    // TODO: Can this be flattened into an Array<String>?
-    const clades = obj["clades"] = [];
-    if (row.clades) {
-      row.clades.forEach(function(cl) {
-        clades.push(mapFields(cl, {}, { "scientific_name": "name" }));
-      });
-    }
-
-    // TODO: assembly_annots
-
+  if (format == "summary") {
     return obj;
+  }
+
+  mapFields(row, obj, {
+    "consensus": "consensus_sequence",
+    "author": "author",
+    "date_created": "date_created",
+    "date_modified": "date_modified",
+    "target_site_cons": "target_site_cons",
+    "refineable": "refineable",
+    "disabled": "disabled",
+  });
+
+  const aliases = obj["aliases"] = [];
+  if (row.aliases) {
+    row.aliases.forEach(function(alias) {
+      aliases.push(mapFields(alias, {}, { "db_id": "database", "db_link": "alias" }));
+    });
+  }
+
+  // TODO: Can this be flattened into an Array<String>?
+  const search_stages = obj["search_stages"] = [];
+  if (row.search_stages) {
+    row.search_stages.forEach(function(ss) {
+      search_stages.push({ name: ss.name });
+    });
+  }
+
+  const buffer_stages = obj["buffer_stages"] = [];
+  if (row.buffer_stages) {
+    row.buffer_stages.forEach(function(bs) {
+      buffer_stages.push({
+        name: bs.name,
+        start: bs.family_has_buffer_stage.start_pos,
+        end: bs.family_has_buffer_stage.end_pos,
+      });
+    });
+  }
+
+  const citations = obj["citations"] = [];
+  if (row.citations) {
+    row.citations.forEach(function(c) {
+      citations.push(mapFields(c, {}, {
+        "pmid": "pmid",
+        "title": "title",
+        "authors": "authors",
+        "journal": "journal",
+        "pubdate": "pubdate",
+      }));
+    });
+  }
+
+  // TODO: Can this be flattened into an Array<String>?
+  const clades = obj["clades"] = [];
+  if (row.clades) {
+    row.clades.forEach(function(cl) {
+      clades.push(mapFields(cl, {}, { "scientific_name": "name" }));
+    });
+  }
+
+  // TODO: assembly_annots
+
+  return obj;
 }
 
 /**
@@ -245,7 +243,6 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
       }
     });
     if (orderBy.length) {
-      console.log(orderBy);
       sql += " ORDER BY " + orderBy.join(",");
     }
   }
@@ -294,7 +291,7 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
       return writer.respondWithCode(404, "");
     }
   });
-}
+};
 
 
 /**
@@ -323,7 +320,7 @@ exports.readFamilyById = function(id) {
       return writer.respondWithCode(404, "");
     }
   });
-}
+};
 
 
 /**
@@ -368,7 +365,7 @@ exports.readFamilyHmm = function(id, format) {
       }
     });
   });
-}
+};
 
 
 /**
@@ -426,7 +423,7 @@ exports.readFamilyRelationships = function(id) {
 
     return all_overlaps;
   });
-}
+};
 
 
 /**
@@ -437,8 +434,6 @@ exports.readFamilyRelationships = function(id) {
  * no response value expected for this operation
  **/
 exports.readFamilySeed = function(id,format) {
-  var field;
-  var content_type;
   if (format == "graph") {
     return seedCoverageDataModel.findOne({
       attributes: [ "whisker", "seed" ],
@@ -483,5 +478,5 @@ exports.readFamilySeed = function(id,format) {
     throw new Error("Invalid format: " + format);
   }
 
-}
+};
 

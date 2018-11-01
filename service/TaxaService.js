@@ -4,7 +4,6 @@ const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const assembly = require("../models/assembly.js")(conn, Sequelize);
 const ncbiTaxonomyNames = require("../models/ncbi_taxdb_names.js")(conn, Sequelize);
-const ncbiTaxonomyNodes = require("../models/ncbi_taxdb_nodes.js")(conn, Sequelize);
 
 ncbiTaxonomyNames.belongsTo(assembly, { foreignKey: 'tax_id', targetKey: 'dfam_taxdb_tax_id' });
 
@@ -49,5 +48,5 @@ exports.readTaxa = function(name,limit,annotated) {
       return { "taxa": results.map(r => ({ "species_name": r.name_txt })) };
     });
   }
-}
+};
 
