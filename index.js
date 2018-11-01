@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const process = require('process');
 const http = require('http');
 
 const winston = require('winston');
@@ -34,7 +35,7 @@ const auth = require('./auth');
 var app = require('connect')();
 var swaggerTools = require('swagger-tools');
 var jsyaml = require('js-yaml');
-var serverPort = 9925;
+var serverPort = process.env.DFAM_API_PORT || 9925;
 
 // swaggerRouter configuration
 var options = {
@@ -66,8 +67,8 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
 
   // Start the server
   http.createServer(app).listen(serverPort, function () {
-    winston.info('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
-    winston.info('Swagger-ui is available on http://localhost:%d/docs', serverPort);
+    winston.info(`Your server is listening on port ${serverPort} (http://localhost:${serverPort})`);
+    winston.info(`Swagger-ui is available on http://localhost:${serverPort}/docs`);
   });
 
 });
