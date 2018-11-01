@@ -6,7 +6,7 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: false
     },
-    family_accession: {
+    accession: {
       type: DataTypes.STRING(20),
       allowNull: false
     },
@@ -59,6 +59,6 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     }
   }, {
-    tableName: 'hmm_full_region'
+    tableName: 'full_region'
   });
 };

@@ -3,7 +3,7 @@
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const conn = require("../databases.js").dfam;
-const getAssembly = require("../databases.js").getAssembly;
+const getAssemblyModels = require("../databases.js").getAssemblyModels;
 const winston = require("winston");
 const zlib = require("zlib");
 
@@ -17,20 +17,6 @@ const mapFields = require("../utils/mapFields.js");
 familyAssemblyDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 familyAssemblyDataModel.belongsTo(assemblyModel, { foreignKey: 'assembly_id' });
 assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
-
-const assemblyModels = {};
-function getAssemblyModels(schema_name) {
-  if (!assemblyModels[schema_name]) {
-    const models = assemblyModels[schema_name] = {};
-    const conn = models.conn = getAssembly(schema_name);
-    models.modelFileModel = require("../models/assembly/model_file.js")(conn, Sequelize);
-    models.karyotypeModel = require("../models/assembly/karyotype.js")(conn, Sequelize);
-    models.coverageDataModel = require("../models/assembly/coverage_data.js")(conn, Sequelize);
-    models.percentageIdModel = require("../models/assembly/percentage_id.js")(conn, Sequelize);
-  }
-
-  return assemblyModels[schema_name];
-}
 
 /**
  * Retrieve an individual Dfam family's list of linked annotated assemblies
