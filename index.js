@@ -62,6 +62,17 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
   // Route validated requests to appropriate controller
   app.use(middleware.swaggerRouter(options));
 
+  // Error handler for routes
+  app.use(function(err, req, res, next) {
+    if (err.stack) {
+      winston.error(err.stack);
+    } else {
+      winston.error(err.toString());
+    }
+    res.statusCode = 500;
+    res.end("Unhandled server error.");
+  });
+
   // Serve the Swagger documents and Swagger UI
   app.use(middleware.swaggerUi());
 
