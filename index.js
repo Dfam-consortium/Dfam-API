@@ -35,7 +35,14 @@ const auth = require('./auth');
 var app = require('connect')();
 var swaggerTools = require('swagger-tools');
 var jsyaml = require('js-yaml');
+var cors = require('cors');
 var serverPort = process.env.DFAM_API_PORT || 9925;
+
+// global middleware configuration
+
+// CORS configuration. The default is Access-Control-Allow-Origin: *, which
+// might not be sufficient for some requests we support in the future.
+app.use(cors());
 
 // swaggerRouter configuration
 var options = {
