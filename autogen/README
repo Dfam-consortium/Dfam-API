@@ -7,6 +7,20 @@ wget http://central.maven.org/maven2/io/swagger/swagger-codegen-cli/2.3.1/swagge
                 -i ../api/swagger/swagger.yaml \
                 -l nodejs-server -o output
 
+Pay special attention to the controllers/*.js files. The swagger-codegen
+template's default error handling strategy is suboptimal; the following
+pattern is better (note the `catch` callback):
+
+```
+  Families.readFamilyById(id)
+    .then(function (response) {
+      utils.writeJson(res, response);
+    })
+    .catch(function (err) {
+      next(err);
+    });
+```
+
 Auto-generate initial Sequelize models:
 
 mkdir models

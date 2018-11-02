@@ -7,6 +7,16 @@ exports.respondWithCode = function(code, payload) {
   return new ResponsePayload(code, payload);
 };
 
+// Convenience method for JSON endpoints.
+// 'response' is the node.js response object.
+//
+// If 'arg1' is ResponsePayload, its code and payload will be used.
+// Otherwise, 'arg1' will be taken to be a payload and 'arg2' as
+// a status code. If no status code is explicitly, it will be '200'
+// when arg1 is truthy and 404 otherwise.
+//
+// Finally, object payloads are serialized to JSON, the application/json
+// Content-Type is set, and the payload is sent to the client.
 var writeJson = exports.writeJson = function(response, arg1, arg2) {
   var code;
   var payload;
