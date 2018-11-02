@@ -35,36 +35,7 @@ familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family1_id', as: 'famil
 familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family2_id', as: 'family2' });
 familyOverlapModel.hasMany(overlapSegmentModel, { foreignKey: 'family_overlap_id' });
 
-// TODO: Implement per-search cache or cache invalidation
-const classification_paths = {};
-
-// getClassificationPath builds a ;-delimited path, for example
-// root;Interspersed_Repeat;Transposable_Element;...
-async function getClassificationPath(cls_id) {
-  if (classification_paths[cls_id]) {
-    return classification_paths[cls_id];
-  }
-
-  const cls = await classificationModel.findOne({ attributes: ["parent_id", "name"], where: { id: cls_id } });
-  if (!cls) {
-    return null;
-  }
-
-  const par_id = cls.parent_id;
-  var name;
-  if (par_id) {
-    const par_name = await getClassificationPath(par_id);
-    name = par_name + ";" + cls.name;
-  } else {
-    name = cls.name;
-  }
-
-  classification_paths[cls_id] = name;
-  return name;
-}
-
-
-async function familyQueryRowToObject(row, format) {
+function familyQueryRowToObject(row, format) {
   const obj = mapFields(row, {}, {
     "accession": "accession",
     "name": "name",
@@ -73,7 +44,7 @@ async function familyQueryRowToObject(row, format) {
   });
 
   if (row.classification) {
-    obj.classification = await getClassificationPath(row.classification.id);
+    obj.classification = row.classification.lineage;
     if (row.classification.rm_type) {
       obj.repeat_type_name = row.classification.rm_type.name;
     }

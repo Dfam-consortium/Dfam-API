@@ -13,7 +13,7 @@ const conn = require("../databases.js").dfam;
  **/
 exports.readClassification = function() {
   return conn.query(
-    "SELECT c.id AS id, c.parent_id AS parent_id, c.name AS name, tooltip, c.description AS description, hyperlink, repbase_equiv, wicker_equiv, curcio_derbyshire_equiv, piegu_equiv, type.name AS repeatmasker_type, subtype.name AS repeatmasker_subtype, (SELECT COUNT(*) FROM family WHERE classification_id = c.id) AS count FROM classification AS c LEFT JOIN repeatmasker_type AS type ON type.id = repeatmasker_type_id LEFT JOIN repeatmasker_subtype AS subtype ON subtype.id = repeatmasker_subtype_id", { type: Sequelize.QueryTypes.SELECT }
+    "SELECT c.id AS id, c.parent_id AS parent_id, c.name AS name, tooltip, c.description AS description, hyperlink, repbase_equiv, wicker_equiv, curcio_derbyshire_equiv, piegu_equiv, lineage, type.name AS repeatmasker_type, subtype.name AS repeatmasker_subtype, (SELECT COUNT(*) FROM family WHERE classification_id = c.id) AS count FROM classification AS c LEFT JOIN repeatmasker_type AS type ON type.id = repeatmasker_type_id LEFT JOIN repeatmasker_subtype AS subtype ON subtype.id = repeatmasker_subtype_id", { type: Sequelize.QueryTypes.SELECT }
   ).then(function(classifications) {
     const objs = {};
 
@@ -31,7 +31,7 @@ exports.readClassification = function() {
         }
       });
 
-      obj.full_name = "";
+      obj.full_name = cls.lineage;
       obj.parent = cls.parent_id;
     });
 
@@ -60,23 +60,7 @@ exports.readClassification = function() {
     const root_id = roots[0];
     winston.silly(`Using root node ${root_id}`);
 
-    // Traverse the tree "downward" to build up the full_name field
-    const traverse = [objs[root_id]];
-    while (traverse.length) {
-      const next = traverse.pop();
-      next.full_name += next.name;
-
-      if (next.children) {
-        next.children.forEach(function(child) {
-          child.full_name = next.full_name + ";";
-          traverse.push(child);
-        });
-      }
-    }
-
     return objs[root_id];
-  }).catch(function(err) {
-    winston.debug(err.toString());
   });
 };
 
