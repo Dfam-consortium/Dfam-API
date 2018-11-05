@@ -11,10 +11,7 @@
     "lint": "eslint .; true",
     "watch": "npm-watch"
   },
-  "keywords": [
-    "swagger"
-  ],
-  "license": "",
+  "license": "CC0-1.0",
   "private": true,
   "dependencies": {
     "connect": "^3.2.0",
