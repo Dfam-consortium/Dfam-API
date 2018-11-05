@@ -67,6 +67,14 @@ function familyQueryRowToObject(row, format) {
     "disabled": "disabled",
   });
 
+  if (obj.refineable !== undefined) {
+    obj.refineable = Boolean(obj.refineable);
+  }
+
+  if (obj.disabled !== undefined) {
+    obj.disabled = Boolean(obj.disabled);
+  }
+
   const aliases = obj["aliases"] = [];
   if (row.aliases) {
     row.aliases.forEach(function(alias) {
@@ -74,7 +82,6 @@ function familyQueryRowToObject(row, format) {
     });
   }
 
-  // TODO: Can this be flattened into an Array<String>?
   const search_stages = obj["search_stages"] = [];
   if (row.search_stages) {
     row.search_stages.forEach(function(ss) {
@@ -106,12 +113,9 @@ function familyQueryRowToObject(row, format) {
     });
   }
 
-  // TODO: Can this be flattened into an Array<String>?
-  const clades = obj["clades"] = [];
+  obj["clades"] = [];
   if (row.clades) {
-    row.clades.forEach(function(cl) {
-      clades.push(mapFields(cl, {}, { "scientific_name": "name" }));
-    });
+    obj["clades"] = row.clades.map(cl => cl.scientific_name);
   }
 
   // TODO: assembly_annots
@@ -243,8 +247,8 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
         subqueries.push(conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }).then(a => row.aliases = a));
         subqueries.push(conn.query("SELECT name FROM family_has_search_stage INNER JOIN repeatmasker_stage ON family_has_search_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(ss => row.search_stages = ss));
         subqueries.push(conn.query("SELECT name, start_pos, end_pos FROM family_has_buffer_stage INNER JOIN repeatmasker_stage ON family_has_buffer_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(function(buffer_stages) {
-          buffer_stages.forEach(function(bs) {
-            row.buffer_stages.push({ name: bs.name, family_has_buffer_stage: { start_pos: bs.start_pos, end_pos: bs.end_pos } });
+          row.buffer_stages = buffer_stages.map(function(bs) {
+            return { name: bs.name, family_has_buffer_stage: { start_pos: bs.start_pos, end_pos: bs.end_pos } };
           });
         }));
         subqueries.push(conn.query("SELECT pmid, title, authors, journal, pubdate FROM family_has_citation INNER JOIN citation ON family_has_citation.citation_pmid = citation.pmid WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cit => row.citations = cit));
@@ -413,34 +417,18 @@ exports.readFamilySeed = function(id,format) {
 
       return {
         data: JSON.stringify({
-          whisker: JSON.parse(coverage_data.whisker),
-          seed: JSON.parse(coverage_data.seed),
+          whisker: coverage_data.whisker.toString(),
+          seed: coverage_data.seed.toString(),
         }),
         content_type: "application/json",
       };
     });
 
   } else if (format == "stockholm") {
-    return hmmModelDataModel.findOne({
-      attributes: [ "seed" ],
-      include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
-    }).then(function(model) {
-      return new Promise(function(resolve, reject) {
-        if (model && model.seed) {
-          zlib.gunzip(model.seed, function(err, data) {
-            if (err) { reject(err); }
-            else { resolve(data); }
-          });
-        } else {
-          resolve(null);
-        }
-      }).then(function(data) {
-        if (data) {
-          return { data, content_type: "text/plain" };
-        } else {
-          return null;
-        }
-      });
+    // TODO: Generate this from the seed_region table
+    return Promise.resolve({
+      data: "Sorry, stockholm format is not currently available.",
+      content_type: "text/plain"
     });
   } else {
     throw new Error("Invalid format: " + format);

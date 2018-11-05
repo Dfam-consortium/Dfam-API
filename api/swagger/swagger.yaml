@@ -265,9 +265,14 @@ paths:
           description: The desired output format, "hmm" or "logo"
           required: true
           type: string
+      produces:
+        - text/plain
+        - application/json
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -291,9 +296,14 @@ paths:
           description: The desired output format, "graph" or "stockholm"
           required: true
           type: string
+      produces:
+        - text/plain
+        - application/json
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -314,6 +324,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -334,6 +346,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            $ref: '#/definitions/familyAssembliesResponse'
         default:
           description: Error
           schema:
@@ -365,6 +379,15 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: object
+            properties:
+              nrph:
+                type: string
+              all:
+                type: string
+              "false":
+                type: string
         default:
           description: Error
           schema:
@@ -396,6 +419,19 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                threshold:
+                  type: string
+                max_insert:
+                  type: integer
+                num_seqs:
+                  type: integer
+                graph:
+                  type: string
         default:
           description: Error
           schema:
@@ -424,9 +460,13 @@ paths:
           description: \"true\" to include only non-redundant profile hits
           required: true
           type: boolean
+      produces:
+        - text/plain
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -452,6 +492,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            $ref: '#/definitions/familyAssemblyAnnotationStatsResponse'
         default:
           description: Error
           schema:
@@ -485,9 +527,14 @@ paths:
           description: Which part to return, one of heatmap, html_map, or img_key
           required: true
           type: string
+      produces:
+        - image/png
+        - text/plain
       responses:
         '200':
           description: Success
+          schema:
+            type: file
         default:
           description: Error
           schema:
@@ -767,8 +814,11 @@ definitions:
         type: array
         items:
           type: object
+          required: [ "species_name" ]
           properties:
             species_name:
+              type: string
+            assembly:
               type: string
   classesResponse:
     required:
@@ -790,7 +840,7 @@ definitions:
         type: string
       repeatmasker_subtype:
         type: string
-      dfam_count:
+      count:
         type: string
       repbase_equiv:
         type: string
@@ -806,63 +856,51 @@ definitions:
           $ref: '#/definitions/classesResponse'
   familiesResponse:
     required:
-      - totalHits
+      - total_count
       - results
     properties:
-      totalHits:
+      total_count:
         type: integer
       results:
         type: array
         items:
-          type: object
-          properties:
-            name:
-              type: string
-            description:
-              type: string
-            aliases:
-              type: array
-              items:
-                type: object
-                required:
-                  - database
-                  - alias
-                properties:
-                  database:
-                    type: string
-                  alias:
-                    type: string
-            source_species_name:
-              type: string
-            clade_names:
-              type: string
-            repeat_type_name:
-              type: string
-            repeat_type_confidence:
-              type: string
-              format: binary
-            repeat_subtype_name:
-              type: string
-            repeat_subtype_confidence:
-              type: string
-              format: binary
-            date_modified:
-              type: string
-            date_created:
-              type: string
-            repeat_disabled:
-              type: string
+          $ref: '#/definitions/familyResponse'
   familyResponse:
     required:
-      - id
+      - accession
       - name
+    additionalProperties: false
     properties:
-      id:
-        type: integer
-      classification:
+      accession:
         type: string
       name:
         type: string
+      description:
+        type: string
+      length:
+        type: integer
+      classification:
+        type: string
+      repeat_type_name:
+        type: [ "string", "null" ]
+      repeat_subtype_name:
+        type: [ "string", "null" ]
+
+      consensus_sequence:
+        type: string
+      author:
+        type: string
+      date_created:
+        type: string
+      date_modified:
+        type: string
+      target_site_cons:
+        type: string
+      refineable:
+        type: boolean
+      disabled:
+        type: boolean
+
       aliases:
         type: array
         items:
@@ -874,39 +912,6 @@ definitions:
             database:
               type: string
             alias:
-              type: string
-      repeat_type_name:
-        type: string
-      repeat_type_confidence:
-        type: string
-      repeat_subtype_name:
-        type: string
-      repeat_subtype_confidence:
-        type: string
-      source_species_name:
-        type: string
-      date_created:
-        type: string
-      date_modified:
-        type: string
-      target_site_cons:
-        type: string
-      repeat_refineable:
-        type: string
-      repeat_disabled:
-        type: string
-      description:
-        type: string
-      sequence:
-        type: string
-      clades:
-        type: array
-        items:
-          type: object
-          required:
-            - name
-          properties:
-            name:
               type: string
       search_stages:
         type: array
@@ -929,48 +934,68 @@ definitions:
             name:
               type: string
             start:
-              type: string
+              type: integer
             end:
-              type: string
-      assembly_annots:
-        type: array
-        items:
-          type: object
-          required:
-            - assembly_name
-            - species_name
-          properties:
-            assembly_name:
-              type: string
-            species_name:
-              type: string
-            cons_derived_divergence:
-              type: string
-            cons_derived_kimura_divergence:
-              type: string
-            cons_derived_copies:
-              type: string
-      author:
-        type: string
-      dfam_consensus:
-        type: string
-      seed_alignment:
-        type: string
+              type: integer
       citations:
         type: array
         items:
           type: object
-          required:
-            - pmid
           properties:
             pmid:
-              type: string
+              type: integer
             title:
               type: string
-            author:
+            authors:
               type: string
             journal:
               type: string
+            pubdate:
+              type: string
+      clades:
+        type: array
+        items:
+          type: string
+  familyAssembliesResponse:
+    type: array
+    items:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+  familyAssemblyAnnotationStatsResponse:
+    properties:
+      hmm:
+        type: object
+        properties:
+          divergence:
+            type: ["null", "number"]
+          gathering_nonredundant:
+            type: integer
+          gathering_all:
+            type: integer
+          trusted_nonredundant:
+            type: integer
+          trusted_all:
+            type: integer
+      cons:
+        type: object
+        properties:
+          divergence:
+            type: ["null", "number"]
+          gathering_nonredundant:
+            type: integer
+          gathering_all:
+            type: integer
+          trusted_nonredundant:
+            type: integer
+          trusted_all:
+            type: integer
   versionResponse:
     required:
       - major

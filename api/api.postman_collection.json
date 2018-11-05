@@ -210,6 +210,150 @@
 			"response": []
 		},
 		{
+			"name": "families",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families?format=summary&limit=10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "summary"
+						},
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "A",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "SINE",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "10"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "families keywords",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families?format=summary&keywords=hAT auto&limit=20",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "summary"
+						},
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "keywords",
+							"value": "hAT auto"
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
 			"name": "family",
 			"request": {
 				"auth": {
@@ -285,41 +429,6 @@
 			"response": []
 		},
 		{
-			"name": "family relationships",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {},
-				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/relationships",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "9925",
-					"path": [
-						"families",
-						"DF0000001",
-						"relationships"
-					]
-				},
-				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
-			},
-			"response": []
-		},
-		{
 			"name": "family seed",
 			"request": {
 				"auth": {
@@ -361,8 +470,11 @@
 			"response": []
 		},
 		{
-			"name": "families",
+			"name": "family relationships",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
 				"header": [
 					{
@@ -376,76 +488,267 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families?format=summary&name_prefix=M&limit=20",
+					"raw": "http://localhost:9925/families/DF0000001/relationships",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "9925",
 					"path": [
-						"families"
+						"families",
+						"DF0000001",
+						"relationships"
+					]
+				},
+				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
+			},
+			"response": []
+		},
+		{
+			"name": "family assemblies",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/assemblies",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"assemblies"
+					]
+				},
+				"description": "Retrieve a family's list of assemblies it has annotations on."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly annotations",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/assemblies/hg38/annotations?nrph=false",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"assemblies",
+						"hg38",
+						"annotations"
 					],
 					"query": [
 						{
-							"key": "format",
-							"value": "summary"
-						},
-						{
-							"key": "sort",
-							"value": "repeat_type_name:asc",
-							"disabled": true
-						},
-						{
-							"key": "name",
-							"value": "Charlie",
-							"disabled": true
-						},
-						{
-							"key": "name_prefix",
-							"value": "M"
-						},
-						{
-							"key": "clade",
-							"value": "sapiens",
-							"disabled": true
-						},
-						{
-							"key": "type",
-							"value": "SINE",
-							"disabled": true
-						},
-						{
-							"key": "subtype",
-							"value": "hAT-Charlie",
-							"disabled": true
-						},
-						{
-							"key": "updated_after",
-							"value": "2017-01-01",
-							"disabled": true
-						},
-						{
-							"key": "updated_before",
-							"value": "2013-01-01",
-							"disabled": true
-						},
-						{
-							"key": "desc",
-							"value": "Charlie",
-							"disabled": true
-						},
-						{
-							"key": "start",
-							"value": "0",
-							"disabled": true
-						},
-						{
-							"key": "limit",
-							"value": "20"
+							"key": "nrph",
+							"value": "false"
 						}
 					]
 				},
-				"description": "Returns a list of Dfam families optionally filtered and sorted."
+				"description": "Retrieve a family's annotation data for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly annotation_stats",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/assemblies/mm10/annotation_stats",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"assemblies",
+						"mm10",
+						"annotation_stats"
+					]
+				},
+				"description": "Retrieve a family's annotation statistics for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly karyoimage",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/assemblies/mm10/karyoimage?part=img_key&nrph=true",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"assemblies",
+						"mm10",
+						"karyoimage"
+					],
+					"query": [
+						{
+							"key": "part",
+							"value": "img_key"
+						},
+						{
+							"key": "nrph",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Retrieve a family's karyotype image data for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly model_coverage",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/assemblies/mm10/model_coverage?model=hmm",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"assemblies",
+						"mm10",
+						"model_coverage"
+					],
+					"query": [
+						{
+							"key": "model",
+							"value": "hmm"
+						}
+					]
+				},
+				"description": "Retrieve a family's coverage data for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly model_conservation Copy",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:9925/families/DF0000001/assemblies/mm10/model_conservation?model=hmm",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"families",
+						"DF0000001",
+						"assemblies",
+						"mm10",
+						"model_conservation"
+					],
+					"query": [
+						{
+							"key": "model",
+							"value": "hmm"
+						}
+					]
+				},
+				"description": "Retrieve a family's conservation data for a given assembly."
 			},
 			"response": []
 		},
@@ -520,6 +823,52 @@
 			"response": []
 		},
 		{
+			"name": "annotations",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9925/annotations?assembly=hg38&chrom=chr1&start=168180000&end=168130000&nrph=true",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9925",
+					"path": [
+						"annotations"
+					],
+					"query": [
+						{
+							"key": "assembly",
+							"value": "hg38"
+						},
+						{
+							"key": "chrom",
+							"value": "chr1"
+						},
+						{
+							"key": "start",
+							"value": "168180000"
+						},
+						{
+							"key": "end",
+							"value": "168130000"
+						},
+						{
+							"key": "nrph",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Retrieve annotations for a given assembly in a given range."
+			},
+			"response": []
+		},
+		{
 			"name": "annotated taxa",
 			"request": {
 				"method": "GET",
@@ -579,14 +928,16 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/submittedFiles",
+					"raw": "http://localhost:9925/users/1/files",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "9925",
 					"path": [
-						"submittedFiles"
+						"users",
+						"1",
+						"files"
 					]
 				},
 				"description": "Get details on submitted and unproccesed files"

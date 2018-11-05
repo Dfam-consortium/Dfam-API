@@ -82,8 +82,11 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
     } else {
       winston.error(err.toString());
     }
-    res.statusCode = 500;
-    res.end("Unhandled server error.");
+    if (!res.headersSent) {
+      res.statusCode = 500;
+      res.setHeader("Content-Type", "application/json");
+    }
+    res.end(JSON.stringify({ message: "Unhandled server error." }));
   });
 
   // Serve the Swagger documents and Swagger UI

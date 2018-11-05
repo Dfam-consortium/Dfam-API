@@ -197,7 +197,7 @@ exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
-    if (!assembly) {
+    if (!assembly || model != "hmm") {
       return null;
     }
 
@@ -209,9 +209,9 @@ exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
     }).then(function(coverage) {
       if (coverage) {
         return {
-          "nrph": JSON.parse(coverage.nrph),
-          "all": JSON.parse(coverage.forward),
-          "false": JSON.parse(coverage.reversed),
+          "nrph": coverage.nrph.toString(),
+          "all": coverage.forward.toString(),
+          "false": coverage.reversed.toString(),
         };
       } else {
         return writer.respondWithCode(404, "");
@@ -233,7 +233,7 @@ exports.readFamilyAssemblyModelConservation = function(id,assembly_id,model) {
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
-    if (!assembly) {
+    if (!assembly || model != "hmm") {
       return null;
     }
 
@@ -248,7 +248,7 @@ exports.readFamilyAssemblyModelConservation = function(id,assembly_id,model) {
           "max_insert": "max_insert",
           "num_seqs": "num_seqs",
         });
-        obj.graph = JSON.parse(cons.graph_json);
+        obj.graph = cons.graph_json.toString();
 
         return obj;
       });
