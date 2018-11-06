@@ -20,32 +20,17 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(45),
       allowNull: true
     },
-    user_name: {
+    full_name: {
       type: DataTypes.STRING(45),
-      allowNull: true
+      allowNull: false
     },
     email: {
       type: DataTypes.STRING(128),
-      allowNull: true
-    },
-    first_name: {
-      type: DataTypes.STRING(45),
-      allowNull: true
-    },
-    last_name: {
-      type: DataTypes.STRING(45),
-      allowNull: true
-    },
-    display_name: {
-      type: DataTypes.STRING(45),
-      allowNull: true
+      allowNull: false,
+      unique: true
     },
     image: {
       type: "BLOB",
-      allowNull: true
-    },
-    email_verified_date: {
-      type: DataTypes.DATE,
       allowNull: true
     },
     account_disabled: {
@@ -63,6 +48,14 @@ module.exports = function(sequelize, DataTypes) {
     },
     api_role: {
       type: DataTypes.STRING(45),
+      allowNull: false
+    },
+    registration_date: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    email_verified_date: {
+      type: DataTypes.DATE,
       allowNull: true
     },
     email_verify_token: {

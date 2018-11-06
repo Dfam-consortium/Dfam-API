@@ -22,7 +22,7 @@ const transporter = require('nodemailer').createTransport({
  **/
 exports.register = function(email,name,password) {
   if (email.indexOf("@") == -1) {
-    return Promise.reject(writer.respondWithCode(400, {
+    return Promise.resolve(writer.respondWithCode(400, {
       message: "Email must contain an @ sign."
     }));
   }
@@ -30,27 +30,35 @@ exports.register = function(email,name,password) {
   const { salt, hash } = auth.hashPassword(password);
   const emailToken = crypto.randomBytes(16).toString('hex');
 
-  return userModel.create({
-    display_name: name,
-    email,
-    email_verify_token: emailToken,
-    pw_hash: hash,
-    salt,
-  }).then(function(user) {
-    return new Promise(function(resolve, reject) {
-      transporter.sendMail({
-        from: "dfam@repeatmasker.org",
-        to: email,
-        subject: "Dfam API registration",
-        // TODO: Build hyperlink properly
-        // TODO: Prettier (HTML) email
-        text: "To verify your email address, please visit: http://localhost:9925/verify?token=" + emailToken,
-      }, function(err, info) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ message: "Verification email sent." });
-        }
+  return userModel.count({ where: { email } }).then(function(count) {
+    if (count) {
+      return writer.respondWithCode(400, { message: "Email is already registered." });
+    }
+
+    return userModel.create({
+      full_name: name,
+      email,
+      email_verify_token: emailToken,
+      pw_hash: hash,
+      salt,
+      api_role: "reader",
+      registration_date: new Date(),
+    }).then(function(user) {
+      return new Promise(function(resolve, reject) {
+        transporter.sendMail({
+          from: "dfam@repeatmasker.org",
+          to: email,
+          subject: "Dfam API registration",
+          // TODO: Build hyperlink properly
+          // TODO: Prettier (HTML) email
+          text: "To verify your email address, please visit: http://localhost:9925/verify?token=" + emailToken,
+        }, function(err, info) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({ message: "Verification email sent." });
+          }
+        });
       });
     });
   });
