@@ -900,6 +900,10 @@ definitions:
         type: boolean
       disabled:
         type: boolean
+      model_mask:
+        type: string
+      hmm_general_nc:
+        type: number
 
       aliases:
         type: array
@@ -968,6 +972,12 @@ definitions:
           type: string
         name:
           type: string
+        hmm_hit_ga:
+          type: number
+        hmm_hit_tc:
+          type: number
+        hmm_fdr:
+          type: number
   familyAssemblyAnnotationStatsResponse:
     properties:
       hmm:

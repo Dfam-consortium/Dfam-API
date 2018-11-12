@@ -5,7 +5,8 @@ module.exports = function(sequelize, DataTypes) {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     product: {
       type: DataTypes.STRING(45),
@@ -73,6 +74,18 @@ module.exports = function(sequelize, DataTypes) {
     },
     right_unaligned: {
       type: DataTypes.INTEGER(11),
+      allowNull: true
+    },
+    classification_id: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    align_data: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    description: {
+      type: DataTypes.STRING(256),
       allowNull: true
     }
   }, {

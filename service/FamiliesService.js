@@ -72,6 +72,8 @@ function familyQueryRowToObject(row, format) {
     "target_site_cons": "target_site_cons",
     "refineable": "refineable",
     "disabled": "disabled",
+    "model_mask": "model_mask",
+    "hmm_general_nc": "hmm_general_nc",
   });
 
   if (obj.refineable !== undefined) {
@@ -158,7 +160,7 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
   const where = ["1"];
 
   if (format != "summary") {
-    selects = selects.concat([ "consensus", "author", "date_created", "date_modified", "target_site_cons", "refineable", "disabled" ]);
+    selects = selects.concat([ "consensus", "author", "date_created", "date_modified", "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_nc" ]);
   }
 
   if (name) {

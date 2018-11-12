@@ -24,7 +24,7 @@ assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
  **/
 exports.readFamilyAssemblies = function(id) {
   return familyAssemblyDataModel.findAll({
-    attributes: [],
+    attributes: ["hmm_hit_GA", "hmm_hit_TC", "hmm_fdr"],
     include: [
       { model: familyModel, where: { 'accession': id }, attributes: [] },
       { model: assemblyModel, include: [ dfamTaxdbModel ], attributes: ["name"] },
@@ -34,6 +34,9 @@ exports.readFamilyAssemblies = function(id) {
       return {
         id: family_assembly.assembly.name,
         name: family_assembly.assembly.dfam_taxdb.scientific_name,
+        hmm_hit_ga: family_assembly.hmm_hit_GA,
+        hmm_hit_tc: family_assembly.hmm_hit_TC,
+        hmm_fdr: family_assembly.hmm_fdr,
       };
     });
   });

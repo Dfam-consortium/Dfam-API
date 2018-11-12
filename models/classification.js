@@ -65,7 +65,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     lineage: {
-      type: DataTypes.STRING(45),
+      type: DataTypes.TEXT,
       allowNull: true
     }
   }, {
