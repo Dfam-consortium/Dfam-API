@@ -19,6 +19,7 @@ const seedCoverageDataModel = require("../models/seed_coverage_data.js")(conn, S
 const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
 const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
+const escape = require("../utils/escape.js");
 const writer = require("../utils/writer.js");
 
 seedRegionModel.removeAttribute('id');
@@ -58,6 +59,11 @@ function familyQueryRowToObject(row, format) {
     if (row.classification.rm_subtype) {
       obj.repeat_subtype_name = row.classification.rm_subtype.name;
     }
+  }
+
+  obj["clades"] = [];
+  if (row.clades) {
+    obj["clades"] = row.clades.map(cl => cl.scientific_name);
   }
 
   if (format == "summary") {
@@ -122,11 +128,6 @@ function familyQueryRowToObject(row, format) {
     });
   }
 
-  obj["clades"] = [];
-  if (row.clades) {
-    obj["clades"] = row.clades.map(cl => cl.scientific_name);
-  }
-
   // TODO: assembly_annots
 
   return obj;
@@ -139,6 +140,7 @@ function familyQueryRowToObject(row, format) {
  * sort String A string containing the ordered sort columns (optional)
  * name String Search term for repeat identifier (optional)
  * name_prefix String Search term for repeat name prefix ( overriden by \"name\" search ) (optional)
+ * classification String Search term for classification (optional)
  * clade String Search term for repeat clade (optional)
  * type String Search term for repeat type (optional)
  * subtype String Search term for repeat subtype (optional)
@@ -149,11 +151,11 @@ function familyQueryRowToObject(row, format) {
  * limit Integer Records to return ( for range queries ) (optional)
  * returns familiesResponse
  **/
-exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
+exports.readFamilies = function(format,sort,name,name_prefix,classification,clade,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
 
   const replacements = {};
 
-  var selects = [ "family.id AS id", "family.accession", "family.name AS name", "length", "family.description AS description", "classification.id AS classification_id", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
+  var selects = [ "family.id AS id", "family.accession", "family.name AS name", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
   const from = "family LEFT JOIN classification ON family.classification_id = classification.id" +
 " LEFT JOIN repeatmasker_type ON classification.repeatmasker_type_id = repeatmasker_type.id" +
 " LEFT JOIN repeatmasker_subtype ON classification.repeatmasker_subtype_id = repeatmasker_subtype.id";
@@ -164,21 +166,26 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
   }
 
   if (name) {
-    where.push("family.name LIKE :where_name");
-    replacements.where_name = "%" + name + "%";
+    where.push("family.name LIKE :where_name ESCAPE '#'");
+    replacements.where_name = "%" + escape.escape_sql_like(name, '#') + "%";
   } else if (name_prefix) {
-    where.push("family.name LIKE :where_name");
-    replacements.where_name = name_prefix + "%";
+    where.push("family.name LIKE :where_name ESCAPE '#'");
+    replacements.where_name = escape.escape_sql_like(name_prefix, '#') + "%";
+  }
+
+  if (classification) {
+    where.push("classification.lineage LIKE :where_classification ESCAPE '#'");
+    replacements.where_classification = "%" + escape.escape_sql_like(classification, '#') + "%";
   }
 
   if (clade) {
-    where.push("(SELECT COUNT(*) FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = family.id AND scientific_name LIKE :where_clade) > 0");
-    replacements.where_clade = "%" + clade + "%";
+    where.push("(SELECT COUNT(*) FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = family.id AND lineage LIKE :where_clade ESCAPE '#') > 0");
+    replacements.where_clade = "%" + escape.escape_sql_like(clade, '#') + "%";
   }
 
   if (desc) {
-    where.push("family.description LIKE :where_desc");
-    replacements.where_desc = "%" + desc + "%";
+    where.push("family.description LIKE :where_desc ESCAPE '#'");
+    replacements.where_desc = "%" + escape.escape_sql_like(desc, '#') + "%";
   }
 
   if (type) {
@@ -207,8 +214,8 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
       i++;
       var key = "where_keywords" + i;
 
-      where.push(`((family.name LIKE :${key}) OR (family.description LIKE :${key}) OR (accession LIKE :${key}) OR (author LIKE :${key}))`);
-      replacements[key] = "%" + word + "%";
+      where.push(`((family.name LIKE :${key} ESCAPE '#') OR (family.description LIKE :${key} ESCAPE '#') OR (accession LIKE :${key} ESCAPE '#') OR (author LIKE :${key} ESCAPE '#'))`);
+      replacements[key] = "%" + escape.escape_sql_like(word, '#') + "%";
     });
   }
 
@@ -216,13 +223,13 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
   var sql = "SELECT " + selects.join(",") + " FROM " + from + " WHERE " + where.join(" AND ");
 
   // TODO: Implement more complex sort keys
-  const sortKeys = [ "name", "type", "subtype", "date_created", "date_modified" ];
+  const sortKeys = [ "accession", "name", "length", "type", "subtype", "date_created", "date_modified" ];
 
   const orderBy = [];
   if (sort) {
     sort.split(",").forEach(function(term) {
       const match = /(\S+):(asc|desc)/.exec(term);
-      if (match && sortKeys[match[1]]) {
+      if (match && sortKeys.find(sk => sk == match[1])) {
         orderBy.push(match[1] + " " + match[2]);
       }
     });
@@ -252,6 +259,8 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
 
       const subqueries = [];
 
+      subqueries.push(conn.query("SELECT scientific_name FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
+
       if (format != "summary") {
         subqueries.push(conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }).then(a => row.aliases = a));
         subqueries.push(conn.query("SELECT name FROM family_has_search_stage INNER JOIN repeatmasker_stage ON family_has_search_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(ss => row.search_stages = ss));
@@ -261,11 +270,15 @@ exports.readFamilies = function(format,sort,name,name_prefix,clade,type,subtype,
           });
         }));
         subqueries.push(conn.query("SELECT pmid, title, authors, journal, pubdate FROM family_has_citation INNER JOIN citation ON family_has_citation.citation_pmid = citation.pmid WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cit => row.citations = cit));
-        subqueries.push(conn.query("SELECT scientific_name FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
       }
 
       return Promise.all(subqueries).then(function() {
-        row.classification = { id: row.classification_id, rm_type: { name: row.type }, rm_subtype: { name: row.subtype } };
+        row.classification = {
+          id: row.classification_id,
+          lineage: row.classification_lineage,
+          rm_type: { name: row.type },
+          rm_subtype: { name: row.subtype }
+        };
         return familyQueryRowToObject(row, format);
       });
     })).then(function(objs) {

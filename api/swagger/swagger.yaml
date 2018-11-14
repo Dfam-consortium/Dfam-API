@@ -168,6 +168,11 @@ paths:
           in: query
           description: Search term for repeat name prefix ( overriden by "name" search )
           type: string
+        - name: classification
+          in: query
+          description: Search term for repeat classification
+          required: false
+          type: string
         - name: clade
           in: query
           description: Search term for repeat clade
@@ -286,7 +291,7 @@ paths:
         required: true
         type: string
     get:
-      description: Retrieve an individual Dfam family's HMM data
+      description: Retrieve an individual Dfam family's seed alignment data
       tags:
         - families
       operationId: readFamilySeed
