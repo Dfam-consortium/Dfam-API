@@ -267,7 +267,7 @@ paths:
       parameters:
         - name: format
           in: query
-          description: The desired output format, "hmm" or "logo"
+          description: The desired output format, "hmm" or "logo" or "image"
           required: true
           type: string
       produces:

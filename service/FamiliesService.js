@@ -4,6 +4,7 @@ const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
 const mapFields = require("../utils/mapFields.js");
+const child_process = require('child_process');
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
@@ -321,7 +322,7 @@ exports.readFamilyById = function(id) {
  * Retrieve an individual Dfam family's HMM data
  *
  * id String The Dfam family name
- * format String The desired output format, \"hmm\" or \"logo\"
+ * format String The desired output format, \"hmm\" or \"logo\" or \"image\"
  * no response value expected for this operation
  **/
 exports.readFamilyHmm = function(id, format) {
@@ -334,6 +335,9 @@ exports.readFamilyHmm = function(id, format) {
   } else if (format == "logo") {
     field = "hmm_logo";
     content_type = "application/json";
+  } else if (format == "image") {
+    field = "hmm";
+    content_type = "image/png";
   } else {
     throw new Error("Invalid format: " + format);
   }
@@ -347,10 +351,37 @@ exports.readFamilyHmm = function(id, format) {
         return resolve(null);
       }
 
+      // TODO: Consider a streaming approach with 'data'
+
       zlib.gunzip(model[field], function(err, data) {
         if (err) { reject(err); }
         else { resolve(data); }
       });
+    }).then(function(data) {
+      if (format == "image") {
+
+        return new Promise(function(resolve, reject) {
+          // TODO: configurable HMM_Logos script location
+          const proc = child_process.spawn('/usr/local/HMM_Logos/webGenLogoImage.pl',
+            { stdio: ['pipe', 'pipe', 'inherit'] }
+          );
+
+          const chunks = [];
+          proc.stdout.on('data', chunk => chunks.push(chunk));
+          proc.on('close', function(code) {
+            if (code == 0) {
+              resolve(Buffer.concat(chunks));
+            } else {
+              reject(new Error("Error converting HMM to PNG image."));
+            }
+          });
+
+          proc.stdin.write(data);
+          proc.stdin.end();
+        });
+      } else {
+        return data;
+      }
     }).then(function(data) {
       if (data) {
         return { data, content_type };
