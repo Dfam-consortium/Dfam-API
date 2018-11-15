@@ -295,15 +295,8 @@ paths:
       tags:
         - families
       operationId: readFamilySeed
-      parameters:
-        - name: format
-          in: query
-          description: The desired output format, "graph" or "stockholm"
-          required: true
-          type: string
       produces:
         - text/plain
-        - application/json
       responses:
         '200':
           description: Success

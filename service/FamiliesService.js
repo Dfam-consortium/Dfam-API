@@ -16,7 +16,6 @@ const familyHasBufferStageModel = require("../models/family_has_buffer_stage.js"
 const citationModel = require("../models/citation.js")(conn, Sequelize);
 const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
-const seedCoverageDataModel = require("../models/seed_coverage_data.js")(conn, Sequelize);
 const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
 const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
@@ -37,8 +36,6 @@ classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id',
 classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtype_id', as: 'rm_subtype' });
 
 hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
-
-seedCoverageDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 
 familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family1_id', as: 'family1' });
 familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family2_id', as: 'family2' });
@@ -528,50 +525,26 @@ function seedRegionsToStockholm(family) {
 }
 
 /**
- * Retrieve an individual Dfam family's HMM data
+ * Retrieve an individual Dfam family's seed alignment data
  *
  * id String The Dfam family name
- * format String The desired output format, \"graph\" or \"stockholm\"
  * no response value expected for this operation
  **/
 exports.readFamilySeed = function(id,format) {
-  if (format == "graph") {
-    return seedCoverageDataModel.findOne({
-      attributes: [ "whisker", "seed" ],
-      include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
-    }).then(function(coverage_data) {
-      if (!coverage_data) {
-        return null;
-      }
-
+  return familyModel.findOne({
+    attributes: [ "id", "name", "description" ],
+    where: { accession: id },
+  }).then(function(family) {
+    return seedRegionModel.findAll({
+      attributes: [ "a2m_seq", "seq_id" ],
+      where: { family_id: family.id },
+    }).then(function(seed_regions) {
+      family.seed_regions = seed_regions;
       return {
-        data: JSON.stringify({
-          whisker: coverage_data.whisker.toString(),
-          seed: coverage_data.seed.toString(),
-        }),
-        content_type: "application/json",
+        data: seedRegionsToStockholm(family),
+        content_type: "text/plain",
       };
     });
-
-  } else if (format == "stockholm") {
-    return familyModel.findOne({
-      attributes: [ "id", "name", "description" ],
-      where: { accession: id },
-    }).then(function(family) {
-      return seedRegionModel.findAll({
-        attributes: [ "a2m_seq", "seq_id" ],
-        where: { family_id: family.id },
-      }).then(function(seed_regions) {
-        family.seed_regions = seed_regions;
-        return {
-          data: seedRegionsToStockholm(family),
-          content_type: "text/plain",
-        };
-      });
-    });
-  } else {
-    throw new Error("Invalid format: " + format);
-  }
-
+  });
 };
 
