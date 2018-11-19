@@ -116,7 +116,7 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
 
     return models.modelFileModel.findOne({
       attributes: [ column ],
-      where: { "model_accession": id }
+      where: { "family_accession": id }
     }).then(function(files) {
       return new Promise(function(resolve, reject) {
         if (!files || !files[column]) {
@@ -175,7 +175,7 @@ exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
 
     return models.karyotypeModel.findOne({
       attributes: [ column ],
-      where: { "model_accession": id }
+      where: { "family_accession": id }
     }).then(function(karyotype) {
       if (karyotype && karyotype[column]) {
         return { data: karyotype[column], content_type: parts[part][1] };
@@ -208,7 +208,7 @@ exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
 
     return models.coverageDataModel.findOne({
       attributes: [ "reversed", "forward", "nrph" ],
-      where: { "model_accession": id }
+      where: { "family_accession": id }
     }).then(function(coverage) {
       if (coverage) {
         return {
@@ -243,7 +243,7 @@ exports.readFamilyAssemblyModelConservation = function(id,assembly_id,model) {
     const models = getAssemblyModels(assembly.schema_name);
 
     return models.percentageIdModel.findAll({
-      where: { "model_accession": id }
+      where: { "family_accession": id }
     }).then(function(conservations) {
       return conservations.map(function(cons) {
         const obj = mapFields(cons, {}, {

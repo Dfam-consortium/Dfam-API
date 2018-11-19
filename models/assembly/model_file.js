@@ -2,7 +2,7 @@
 
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('model_file', {
-    model_accession: {
+    family_accession: {
       type: DataTypes.STRING(20),
       allowNull: false,
       primaryKey: true
@@ -16,6 +16,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
-    tableName: 'model_files'
+    tableName: 'model_file'
   });
 };

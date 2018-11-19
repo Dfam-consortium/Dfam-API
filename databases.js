@@ -50,6 +50,9 @@ function getAssemblyModels(schema_name) {
     models.hmmFullRegionModel.removeAttribute('id');
 
     models.hmmFullRegionModel.belongsTo(models.sequenceModel, { foreignKey: 'seq_accession' });
+    models.maskModel = require("./models/assembly/mask.js")(conn, Sequelize);
+    models.maskModel.removeAttribute('id');
+    models.maskModel.belongsTo(models.sequenceModel, { foreignKey: 'seq_accession' });
   }
 
   return assemblyModels[schema_name];

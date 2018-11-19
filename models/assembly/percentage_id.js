@@ -2,7 +2,7 @@
 
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('percentage_id', {
-    model_accession: {
+    family_accession: {
       type: DataTypes.STRING(20),
       allowNull: false,
       primaryKey: true
