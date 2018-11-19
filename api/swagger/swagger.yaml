@@ -21,7 +21,7 @@ info:
 
     Copyright 2016-2018 Institute for Systems Biology
   termsOfService: 'http://creativecommons.org/licenses/by/4.0/'
-host: 'localhost:9925'
+host: 'localhost:10011'
 basePath: /
 schemes:
   - http

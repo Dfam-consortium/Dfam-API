@@ -36,7 +36,7 @@ var app = require('connect')();
 var swaggerTools = require('swagger-tools');
 var jsyaml = require('js-yaml');
 var cors = require('cors');
-var serverPort = process.env.DFAM_API_PORT || 9925;
+var serverPort = process.env.DFAM_API_PORT || 10011;
 
 // global middleware configuration
 

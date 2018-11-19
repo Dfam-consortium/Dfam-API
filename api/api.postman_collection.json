@@ -40,12 +40,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/version",
+					"raw": "http://localhost:10011/version",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"version"
 					]
@@ -101,12 +101,12 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:9925/authenticate",
+					"raw": "http://localhost:10011/authenticate",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"authenticate"
 					]
@@ -165,12 +165,12 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:9925/register",
+					"raw": "http://localhost:10011/register",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"register"
 					]
@@ -189,12 +189,12 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:9925/verify?token=02cc651e965b138e33ebaebdaaa895e8",
+					"raw": "http://localhost:10011/verify?token=02cc651e965b138e33ebaebdaaa895e8",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"verify"
 					],
@@ -225,12 +225,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families?format=summary&limit=10",
+					"raw": "http://localhost:10011/families?format=summary&limit=10",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families"
 					],
@@ -315,12 +315,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families?format=summary&keywords=hAT auto&limit=20",
+					"raw": "http://localhost:10011/families?format=summary&keywords=hAT auto&limit=20",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families"
 					],
@@ -372,12 +372,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001",
+					"raw": "http://localhost:10011/families/DF0000001",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001"
@@ -406,12 +406,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/hmm?format=hmm",
+					"raw": "http://localhost:10011/families/DF0000001/hmm?format=hmm",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -447,12 +447,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/seed?format=graph",
+					"raw": "http://localhost:10011/families/DF0000001/seed?format=graph",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -488,12 +488,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/relationships",
+					"raw": "http://localhost:10011/families/DF0000001/relationships",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -523,12 +523,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/assemblies",
+					"raw": "http://localhost:10011/families/DF0000001/assemblies",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -558,12 +558,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/assemblies/hg38/annotations?nrph=false",
+					"raw": "http://localhost:10011/families/DF0000001/assemblies/hg38/annotations?nrph=false",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -601,12 +601,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/assemblies/mm10/annotation_stats",
+					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/annotation_stats",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -638,12 +638,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/assemblies/mm10/karyoimage?part=img_key&nrph=true",
+					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/karyoimage?part=img_key&nrph=true",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -685,12 +685,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/assemblies/mm10/model_coverage?model=hmm",
+					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/model_coverage?model=hmm",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -728,12 +728,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/families/DF0000001/assemblies/mm10/model_conservation?model=hmm",
+					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/model_conservation?model=hmm",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"families",
 						"DF0000001",
@@ -768,12 +768,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/classes",
+					"raw": "http://localhost:10011/classes",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"classes"
 					]
@@ -798,12 +798,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/taxa?name=Homo sapiens&limit=20",
+					"raw": "http://localhost:10011/taxa?name=Homo sapiens&limit=20",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"taxa"
 					],
@@ -832,12 +832,12 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:9925/annotations?assembly=hg38&chrom=chr1&start=168180000&end=168130000&nrph=true",
+					"raw": "http://localhost:10011/annotations?assembly=hg38&chrom=chr1&start=168180000&end=168130000&nrph=true",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"annotations"
 					],
@@ -884,12 +884,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/taxa?name=&limit=20&annotated=true",
+					"raw": "http://localhost:10011/taxa?name=&limit=20&annotated=true",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"taxa"
 					],
@@ -928,12 +928,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/users/1/files",
+					"raw": "http://localhost:10011/users/1/files",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"users",
 						"1",
@@ -960,12 +960,12 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:9925/fileSubmission?flowChunkNumber={{flowChunkNumber}}&flowChunkSize={{flowChunkSize}}&flowCurrentChunkSize={{flowCurrentChunkSize}}&flowTotalSize={{flowTotalSize}}&flowIdentifier={{flowIdentifier}}&flowFilename={{flowFilename}}&flowRelativePath={{flowRelativePath}}&flowTotalChunks={{flowTotalChunks}}",
+					"raw": "http://localhost:10011/fileSubmission?flowChunkNumber={{flowChunkNumber}}&flowChunkSize={{flowChunkSize}}&flowCurrentChunkSize={{flowCurrentChunkSize}}&flowTotalSize={{flowTotalSize}}&flowIdentifier={{flowIdentifier}}&flowFilename={{flowFilename}}&flowRelativePath={{flowRelativePath}}&flowTotalChunks={{flowTotalChunks}}",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"fileSubmission"
 					],
@@ -1103,12 +1103,12 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:9925/fileSubmission",
+					"raw": "http://localhost:10011/fileSubmission",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "9925",
+					"port": "10011",
 					"path": [
 						"fileSubmission"
 					]
