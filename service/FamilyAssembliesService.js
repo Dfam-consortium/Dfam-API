@@ -20,7 +20,7 @@ assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
  * Retrieve an individual Dfam family's list of linked annotated assemblies
  *
  * id String The Dfam family name
- * no response value expected for this operation
+ * returns familyAssembliesResponse
  **/
 exports.readFamilyAssemblies = function(id) {
   return familyAssemblyDataModel.findAll({
@@ -48,7 +48,7 @@ exports.readFamilyAssemblies = function(id) {
  *
  * id String The Dfam family name
  * assembly_id String The assembly name
- * no response value expected for this operation
+ * returns familyAssemblyAnnotationStatsResponse
  **/
 exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
   return familyAssemblyDataModel.findOne({
@@ -93,8 +93,8 @@ exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
  *
  * id String The Dfam family name
  * assembly_id String The assembly name
- * nrph Boolean \\\"true\\\" to include only non-redundant profile hits
- * no response value expected for this operation
+ * nrph Boolean \"true\" to include only non-redundant profile hits
+ * returns String
  **/
 exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
   return assemblyModel.findOne({
@@ -144,7 +144,9 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
  *
  * id String The Dfam family name
  * assembly_id String The assembly name
- * no response value expected for this operation
+ * nrph Boolean \"true\" to include only non-redundant profile hits
+ * part String Which part to return, one of heatmap, html_map, or img_key
+ * returns File
  **/
 exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
   return assemblyModel.findOne({

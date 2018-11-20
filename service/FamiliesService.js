@@ -138,13 +138,14 @@ function familyQueryRowToObject(row, format) {
  * sort String A string containing the ordered sort columns (optional)
  * name String Search term for repeat identifier (optional)
  * name_prefix String Search term for repeat name prefix ( overriden by \"name\" search ) (optional)
- * classification String Search term for classification (optional)
+ * classification String Search term for repeat classification (optional)
  * clade String Search term for repeat clade (optional)
  * type String Search term for repeat type (optional)
  * subtype String Search term for repeat subtype (optional)
  * updated_after date Filter by \"updated on or after\" date (optional)
  * updated_before date Filter by \"updated on or before\" date (optional)
  * desc String Search term for repeat description (optional)
+ * keywords String Keywords to search in text fields (optional)
  * start Integer Start index ( for range queries ) (optional)
  * limit Integer Records to return ( for range queries ) (optional)
  * returns familiesResponse
@@ -320,7 +321,7 @@ exports.readFamilyById = function(id) {
  *
  * id String The Dfam family name
  * format String The desired output format, \"hmm\" or \"logo\" or \"image\"
- * no response value expected for this operation
+ * returns String
  **/
 exports.readFamilyHmm = function(id, format) {
   var field;
@@ -394,7 +395,7 @@ exports.readFamilyHmm = function(id, format) {
  * Retrieve an individual Dfam family's relationship information
  *
  * id String The Dfam family name
- * no response value expected for this operation
+ * returns String
  **/
 exports.readFamilyRelationships = function(id) {
   return familyOverlapModel.findAll({
@@ -524,11 +525,12 @@ function seedRegionsToStockholm(family) {
   return stockholmStr;
 }
 
+
 /**
  * Retrieve an individual Dfam family's seed alignment data
  *
  * id String The Dfam family name
- * no response value expected for this operation
+ * returns String
  **/
 exports.readFamilySeed = function(id,format) {
   return familyModel.findOne({

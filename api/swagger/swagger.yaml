@@ -455,7 +455,7 @@ paths:
       parameters:
         - name: nrph
           in: query
-          description: \"true\" to include only non-redundant profile hits
+          description: "\"true\" to include only non-redundant profile hits"
           required: true
           type: boolean
       produces:
@@ -517,7 +517,7 @@ paths:
       parameters:
         - name: nrph
           in: query
-          description: \"true\" to include only non-redundant profile hits
+          description: "\"true\" to include only non-redundant profile hits"
           required: true
           type: boolean
         - name: part
@@ -620,9 +620,49 @@ paths:
           type: string
         - name: nrph
           in: query
-          description: \"true\" to exclude redundant profile hits
+          description: "\"true\" to exclude redundant profile hits"
           required: false
           type: boolean
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /alignment:
+    x-swagger-router-controller: Alignment
+    get:
+      description: Query the alignment of a family to an assembly
+      tags:
+        - alignment
+      operationId: readAlignment
+      parameters:
+        - name: assembly
+          in: query
+          description: Assembly to search
+          required: true
+          type: string
+        - name: chrom
+          in: query
+          description: Chromosome to search
+          required: true
+          type: string
+        - name: start
+          in: query
+          description: Start of the sequence range.
+          required: true
+          type: integer
+        - name: end
+          in: query
+          description: End of the sequence range.
+          required: true
+          type: integer
+        - name: family
+          in: query
+          description: The family to align against
+          required: true
+          type: string
       responses:
         '200':
           description: Success
