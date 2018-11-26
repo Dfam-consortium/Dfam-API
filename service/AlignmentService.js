@@ -33,32 +33,77 @@ function execFileAsync(file, args, options) {
   });
 }
 
-function formatAlignment(seqID, ordStart, ordEnd, nhmmer_out, startPos) {
+function formatAlignment(seqID, ordStart, ordEnd, nhmmer_out) {
   var alignRec = {};
 
-  console.log(`nhmmer_out: ${nhmmer_out}`);
+//  console.log(`nhmmer_out: ${nhmmer_out}`);
+  let lines = nhmmer_out.split(/[\r\n]/);
+  let lineIndex = 0;
+
+  function advanceAndMatch(regex) {
+    let match;
+    while (!match && lineIndex < lines.length) {
+      match = regex.exec(lines[lineIndex]);
+      lineIndex += 1;
+    }
+
+    return match;
+  }
+
+  // Pick out the query identifier ( Dfam family ) from the output.  E.g
+  //      Query:       ORR1A2  [M=327]
+  let qryMatchRE = new RegExp('Query:\\s+(\\S+)\\s+\\[');
+  let qryMatch = advanceAndMatch(qryMatchRE);
+  if ( ! qryMatch || qryMatch.length != 2 ) {
+    throw new Error('Error parsing nhmmer output.  Could not find Query identifier.');
+  }
+  let queryID = qryMatch[1];
+
+  // Match the model (family) alignment sequence E.g:
+  //       ORR1A2   1 tgtgatggttt....aaccctaactaagac 326
+  //                  tgtg  ggttt....aa c taa+ aagac 
+  let mdlMatchRE = new RegExp('^(\\s+\\S+\\s+(\\d+)\\s+)(\\S+)\\s+(\\d+)\\s*$');
+  let mdlMatch = advanceAndMatch(mdlMatchRE);
+  if ( ! mdlMatch || mdlMatch.length != 5 ) {
+    throw new Error('Error parsing nhmmer output.  Could not find Model alignment sequence and match.');
+  }
+
+  // The start of the model string will be in the same
+  // column as the start of the match string
+  let matchStrOffset = mdlMatch[0].indexOf(mdlMatch[3]);
+
+  let mstart = parseInt(mdlMatch[2]);
+  let mSeqStr = mdlMatch[3];
+  let mend = parseInt(mdlMatch[4]);
+  let matchStr = lines[lineIndex].substring(matchStrOffset);
+  alignRec['hmm'] = {
+    'start': mstart,
+    'end': mend,
+    'id': queryID,
+    'string': mSeqStr
+  };
+  alignRec['match'] = { 'string': matchStr  };
 
   // Match the genomic sequence line E.g
   //      chr1:35700145-35700469 324 TGTGATGGTTTGTATA...AAAACCCTAACTAAGAC 1  
-  let genMatchRE = new RegExp('(\\s+' + seqID + ':' + ordStart + '-' + ordEnd + '\\s+(\\d+)\\s+)(\\S+)\\s+(\\d+)\\s*[\\n\\r]+\\s+(\\S[^\\n\\r]+)');
-  let genMatch = genMatchRE.exec(nhmmer_out);
+  let genMatchRE = new RegExp('(\\s+\\S+:\\d+-\\d+\\s+(\\d+)\\s+)(\\S+)\\s+(\\d+)\\s*');
+  let genMatch = advanceAndMatch(genMatchRE);
 
-  if ( ! genMatch || genMatch.length != 6 ) {
+  if ( ! genMatch || genMatch.length != 5 ) {
     throw new Error('Error parsing nhmmer output.  Could not find alignment data for genomic sequence.');
   }
+
+  // The start of the genome string will be in the same
+  // column as the start of the pp string
+  let ppStrOffset = genMatch[0].indexOf(genMatch[3]);
 
   let sstart = parseInt(genMatch[2]);
   let seqStr = genMatch[3];
   let send = parseInt(genMatch[4]);
-  let ppStr = genMatch[5];
+  let ppStr = lines[lineIndex].substring(ppStrOffset).replace(" PP", "");
   let sstrand = send > sstart ? '+' : '-';
-  if ( sstrand == '+' ) {
-    sstart = startPos + sstart - 1;
-    send = startPos + send - 1;
-  } else {
-    sstart = startPos - sstart + 1;
-    send = startPos - send + 1;
-  }
+  sstart = ordStart + sstart - 1;
+  send = ordStart + send - 1;
   alignRec['seq'] = {
     'start': sstart,
     'end': send,
@@ -68,36 +113,6 @@ function formatAlignment(seqID, ordStart, ordEnd, nhmmer_out, startPos) {
   alignRec['pp'] = {
     'string': ppStr,
   };
-
-  // Pick out the query identifier ( Dfam family ) from the output.  E.g
-  //      Query:       ORR1A2  [M=327]
-  let qryMatchRE = new RegExp('Query:\\s+(\\S+)\\s+\\[');
-  let qryMatch = qryMatchRE.exec(nhmmer_out);
-  if ( ! qryMatch || qryMatch.length != 2 ) {
-    throw new Error('Error parsing nhmmer output.  Could not find Query identifier.');
-  }
-  let queryID = qryMatch[1];
-
-  // Match the model (family) alignment sequence *AND* the PP line E.g:
-  //       ORR1A2   1 tgtgatggttt....aaccctaactaagac 326
-  //                  tgtg  ggttt....aa c taa+ aagac 
-  let mdlMatchRE = new RegExp('(\\s+' + queryID + '\\s+(\\d+)\\s+)(\\S+)\\s+(\\d+)\\s*[\\n\\r]+\\s+(\\S[^\\n\\r]+)');
-  let mdlMatch = mdlMatchRE.exec(nhmmer_out);
-  if ( ! mdlMatch || mdlMatch.length != 6 ) {
-    throw new Error('Error parsing nhmmer output.  Could not find Model alignment sequence and PP.');
-  }
-
-  let mstart = parseInt(mdlMatch[2]);
-  let mSeqStr = mdlMatch[3];
-  let mend = parseInt(mdlMatch[4]);
-  let matchStr = mdlMatch[5];
-  alignRec['hmm'] = {
-    'start': mstart,
-    'end': mend,
-    'id': queryID,
-    'string': mSeqStr
-  };
-  alignRec['match'] = { 'string': matchStr  };
 
   return alignRec;
 }
@@ -127,9 +142,9 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, startPos, endPos, hmmData
     orient = '-';
   }
 
-  // Make twoBitToFa location configurable
+  // TODO: Make twoBitToFa location configurable
   const twoBitToFa = '/usr/local/bin/twoBitToFa';
-  const search = twoBitFile + ':' + seqID + ':' + ordStart + '-' + ordEnd;
+  const search = twoBitFile + ':' + seqID + ':' + (ordStart-1) + '-' + ordEnd;
 
   // Grab sequence data from twoBit format
   const writeFastaFile = execFileAsync(twoBitToFa, [search, 'stdout']).then(function(fasta) {

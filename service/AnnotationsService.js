@@ -106,9 +106,6 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
         });
         hit.sequence = region.sequence.id;
 
-        hit.start -= start;
-        hit.end -= start;
-
         return hit;
       });
 
