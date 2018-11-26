@@ -44,9 +44,6 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
       }
     };
 
-    if (family) {
-      query_hmm.where.family_accession = family;
-    }
     if (nrph !== null) {
       query_hmm.where.nrph_hit = nrph;
     }
@@ -91,6 +88,12 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
             hit.query = family.name;
           });
         });
+
+        if (family) {
+          nhmmer = nhmmer.filter(function(hit) {
+            return hit.query === family || hit.family_accession === family;
+          });
+        }
 
         return nhmmer;
       });
