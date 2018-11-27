@@ -928,6 +928,8 @@ definitions:
         type: string
       author:
         type: string
+      submitter:
+        type: string
       date_created:
         type: string
       date_modified:

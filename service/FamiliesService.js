@@ -20,6 +20,10 @@ const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
 const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
 const curationStateModel = require("../models/curation_state.js")(conn, Sequelize);
+
+const conn_users = require('../databases').users;
+const userModel = require('../models/auth/user')(conn_users, Sequelize);
+
 const escape = require("../utils/escape.js");
 const writer = require("../utils/writer.js");
 
@@ -73,6 +77,7 @@ function familyQueryRowToObject(row, format) {
   mapFields(row, obj, {
     "consensus": "consensus_sequence",
     "author": "author",
+    "submitter": "submitter",
     "date_created": "date_created",
     "date_modified": "date_modified",
     "target_site_cons": "target_site_cons",
@@ -169,7 +174,12 @@ exports.readFamilies = function(format,sort,name,name_prefix,classification,clad
 
   if (format != "summary") {
     from += " LEFT JOIN curation_state ON family.curation_state_id = curation_state.id ";
-    selects = selects.concat([ "consensus", "author", "date_created", "date_modified", "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_nc", "curation_state.name AS curation_state_name", "curation_state.description AS curation_state_description" ]);
+    selects = selects.concat([
+      "consensus", "author", "deposited_by_id", "date_created", "date_modified",
+      "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_nc",
+      "curation_state.name AS curation_state_name",
+      "curation_state.description AS curation_state_description"
+    ]);
   }
 
   if (name) {
@@ -277,6 +287,11 @@ exports.readFamilies = function(format,sort,name,name_prefix,classification,clad
           });
         }));
         subqueries.push(conn.query("SELECT pmid, title, authors, journal, pubdate FROM family_has_citation INNER JOIN citation ON family_has_citation.citation_pmid = citation.pmid WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cit => row.citations = cit));
+        subqueries.push(userModel.findOne({ where: { id: row.deposited_by_id }, attributes: [ 'full_name' ] }).then(function(user) {
+          if (user) {
+            row.submitter = user.full_name;
+          }
+        }));
       }
 
       return Promise.all(subqueries).then(function() {
@@ -321,7 +336,16 @@ exports.readFamilyById = function(id) {
     ]
   }).then(function(row) {
     if (row) {
-      return familyQueryRowToObject(row);
+      return userModel.findOne({
+        where: { id: row.deposited_by_id },
+        attributes: [ 'full_name' ],
+      }).then(function(user) {
+        if (user) {
+          row.submitter = user.full_name;
+        }
+
+        return familyQueryRowToObject(row);
+      });
     } else {
       return writer.respondWithCode(404, "");
     }
