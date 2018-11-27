@@ -10,7 +10,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     product: {
       type: DataTypes.STRING(45),
-      allowNull: false
+      allowNull: false,
+      unique: true
     },
     translation: {
       type: DataTypes.TEXT,
@@ -45,7 +46,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     external_reference: {
-      type: DataTypes.STRING(45),
+      type: DataTypes.STRING(128),
       allowNull: true
     },
     reverse: {
@@ -85,7 +86,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     description: {
-      type: DataTypes.STRING(256),
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    protein_type: {
+      type: DataTypes.STRING(45),
       allowNull: true
     }
   }, {

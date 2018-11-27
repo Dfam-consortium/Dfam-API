@@ -65,21 +65,25 @@ exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
 
     if (family_assembly.hmm_GA_nrph_hit_count !== null) {
       obj.hmm = {
-        divergence: family_assembly.hmm_genome_avg_kimura_div,
+        avg_hit_length: family_assembly.hmm_avg_hit_length,
         gathering_nonredundant: family_assembly.hmm_GA_nrph_hit_count,
         gathering_all: family_assembly.hmm_GA_hit_count,
+        gathering_divergence: family_assembly.hmm_genome_avg_kimura_div_GA,
         trusted_nonredundant: family_assembly.hmm_TC_nrph_hit_count,
         trusted_all: family_assembly.hmm_TC_hit_count,
+        trusted_divergence: family_assembly.hmm_genome_avg_kimura_div_TC,
       };
     }
 
     if (family_assembly.cons_GA_nrph_hit_count !== null) {
       obj.cons = {
-        divergence: family_assembly.cons_genome_avg_kimura_div,
+        avg_hit_length: family_assembly.cons_avg_hit_length,
         gathering_nonredundant: family_assembly.cons_GA_nrph_hit_count,
         gathering_all: family_assembly.cons_GA_hit_count,
+        gathering_divergence: family_assembly.cons_genome_avg_kimura_div_GA,
         trusted_nonredundant: family_assembly.cons_TC_nrph_hit_count,
         trusted_all: family_assembly.cons_TC_hit_count,
+        trusted_divergence: family_assembly.cons_genome_avg_kimura_div_TC,
       };
     }
 

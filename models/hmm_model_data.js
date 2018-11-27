@@ -18,10 +18,6 @@ module.exports = function(sequelize, DataTypes) {
     hmm: {
       type: "LONGBLOB",
       allowNull: true
-    },
-    hmm_png: {
-      type: "LONGBLOB",
-      allowNull: true
     }
   }, {
     tableName: 'hmm_model_data'

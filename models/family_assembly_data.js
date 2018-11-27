@@ -20,19 +20,19 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    cons_genome_avg_kimura_div: {
+    cons_genome_avg_kimura_div_GA: {
       type: DataTypes.FLOAT,
       allowNull: true
     },
-    cons_genome_avg_kimura_div_cpgadj: {
+    cons_genome_avg_kimura_div_TC: {
       type: DataTypes.FLOAT,
       allowNull: true
     },
-    hmm_genome_avg_kimura_div: {
+    hmm_genome_avg_kimura_div_GA: {
       type: DataTypes.FLOAT,
       allowNull: true
     },
-    hmm_genome_avg_kimura_div_cpgadj: {
+    hmm_genome_avg_kimura_div_TC: {
       type: DataTypes.FLOAT,
       allowNull: true
     },
@@ -97,7 +97,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     hmm_method_id: {
-      type: DataTypes.INTEGER(10),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_fdr: {
@@ -105,51 +105,59 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     cons_method_id: {
-      type: DataTypes.INTEGER(10),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_35GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_37GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_39GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_41GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_43GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_45GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_47GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_49GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_51GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_53GC_GA: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     },
     cons_matrix_div: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
+      allowNull: true
+    },
+    hmm_avg_hit_length: {
+      type: DataTypes.INTEGER(10).UNSIGNED,
+      allowNull: true
+    },
+    cons_avg_hit_length: {
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
     }
   }, {
