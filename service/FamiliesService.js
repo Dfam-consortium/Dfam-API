@@ -19,6 +19,7 @@ const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize
 const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
 const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
+const curationStateModel = require("../models/curation_state.js")(conn, Sequelize);
 const escape = require("../utils/escape.js");
 const writer = require("../utils/writer.js");
 
@@ -26,6 +27,7 @@ seedRegionModel.removeAttribute('id');
 
 familyModel.hasMany(aliasModel, { foreignKey: 'family_id', as: 'aliases' });
 familyModel.hasMany(seedRegionModel, { foreignKey: 'family_id' });
+familyModel.belongsTo(curationStateModel, { foreignKey: 'curation_state_id', as: 'curation_state' });
 familyModel.belongsTo(classificationModel, { foreignKey: 'classification_id', as: 'classification' });
 familyModel.belongsToMany(rmStageModel, { as: 'search_stages', through: 'family_has_search_stage', foreignKey: 'family_id', otherKey: 'repeatmasker_stage_id' });
 familyModel.belongsToMany(rmStageModel, { as: 'buffer_stages', through: familyHasBufferStageModel, foreignKey: 'family_id', otherKey: 'repeatmasker_stage_id' });
@@ -86,6 +88,11 @@ function familyQueryRowToObject(row, format) {
 
   if (obj.disabled !== undefined) {
     obj.disabled = Boolean(obj.disabled);
+  }
+
+  if (row.curation_state) {
+    obj.curation_state_name = row.curation_state.name;
+    obj.curation_state_description = row.curation_state.description;
   }
 
   const aliases = obj["aliases"] = [];
@@ -155,13 +162,14 @@ exports.readFamilies = function(format,sort,name,name_prefix,classification,clad
   const replacements = {};
 
   var selects = [ "family.id AS id", "family.accession", "family.name AS name", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
-  const from = "family LEFT JOIN classification ON family.classification_id = classification.id" +
+  let from = "family LEFT JOIN classification ON family.classification_id = classification.id" +
 " LEFT JOIN repeatmasker_type ON classification.repeatmasker_type_id = repeatmasker_type.id" +
-" LEFT JOIN repeatmasker_subtype ON classification.repeatmasker_subtype_id = repeatmasker_subtype.id";
+" LEFT JOIN repeatmasker_subtype ON classification.repeatmasker_subtype_id = repeatmasker_subtype.id ";
   const where = ["1"];
 
   if (format != "summary") {
-    selects = selects.concat([ "consensus", "author", "date_created", "date_modified", "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_nc" ]);
+    from += " LEFT JOIN curation_state ON family.curation_state_id = curation_state.id ";
+    selects = selects.concat([ "consensus", "author", "date_created", "date_modified", "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_nc", "curation_state.name AS curation_state_name", "curation_state.description AS curation_state_description" ]);
   }
 
   if (name) {
@@ -278,6 +286,10 @@ exports.readFamilies = function(format,sort,name,name_prefix,classification,clad
           rm_type: { name: row.type },
           rm_subtype: { name: row.subtype }
         };
+        row.curation_state = {
+          name: row.curation_state_name,
+          description: row.curation_state_description,
+        };
         return familyQueryRowToObject(row, format);
       });
     })).then(function(objs) {
@@ -299,6 +311,7 @@ exports.readFamilyById = function(id) {
     include: [
       'aliases',
       { model: classificationModel, as: 'classification', include: [ 'rm_type', 'rm_subtype' ] },
+      { model: curationStateModel, as: 'curation_state', },
       { model: rmStageModel, as: 'search_stages' },
       { model: rmStageModel, as: 'buffer_stages', through: {
         attributes: [ 'start_pos', 'end_pos'],
