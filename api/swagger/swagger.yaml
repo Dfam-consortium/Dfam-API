@@ -141,6 +141,22 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+  /assemblies:
+    x-swagger-router-controller: Assemblies
+    get:
+      description: Retrieve a list of annotated assemblies in Dfam
+      tags:
+        - assemblies
+      operationId: readAssemblies
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/assembliesResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   /families:
     x-swagger-router-controller: Families
     get:
@@ -844,6 +860,18 @@ definitions:
     properties:
       token:
         type: string
+  assembliesResponse:
+    type: array
+    items:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
   taxaResponse:
     required:
       - taxa
