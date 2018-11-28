@@ -20,6 +20,9 @@ const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
 const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
 const curationStateModel = require("../models/curation_state.js")(conn, Sequelize);
+const familyFeatureModel = require("../models/family_feature.js")(conn, Sequelize);
+const featureAttributeModel = require("../models/feature_attribute.js")(conn, Sequelize);
+const codingSequenceModel = require("../models/coding_sequence.js")(conn, Sequelize);
 
 const conn_users = require('../databases').users;
 const userModel = require('../models/auth/user')(conn_users, Sequelize);
@@ -37,6 +40,9 @@ familyModel.belongsToMany(rmStageModel, { as: 'search_stages', through: 'family_
 familyModel.belongsToMany(rmStageModel, { as: 'buffer_stages', through: familyHasBufferStageModel, foreignKey: 'family_id', otherKey: 'repeatmasker_stage_id' });
 familyModel.belongsToMany(citationModel, { as: 'citations', through: 'family_has_citation', foreignKey: 'family_id', otherKey: 'citation_pmid' });
 familyModel.belongsToMany(dfamTaxdbModel, { as: 'clades', through: 'family_clade', foreignKey: 'family_id', otherKey: 'dfam_taxdb_tax_id' });
+familyModel.hasMany(familyFeatureModel, { foreignKey: 'family_id', as: 'features' });
+familyFeatureModel.hasMany(featureAttributeModel, { foreignKey: 'family_feature_id', as: 'feature_attributes' });
+familyModel.hasMany(codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
 
 classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id', as: 'rm_type' });
 classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtype_id', as: 'rm_subtype' });
@@ -138,7 +144,58 @@ function familyQueryRowToObject(row, format) {
     });
   }
 
-  // TODO: assembly_annots
+  const features = obj["features"] = [];
+  if (row.features) {
+    row.features.forEach(function(f) {
+      const feature = mapFields(f, {}, {
+        "feature_type": "type",
+        "description": "description",
+        "model_start_pos": "model_start_pos",
+        "model_end_pos": "model_end_pos",
+      });
+      feature.attributes = [];
+      f.feature_attributes.forEach(function(a) {
+        feature.attributes.push(mapFields(a, {}, {
+          "feature_name": "key",
+          "feature_value": "value",
+        }));
+      });
+      features.push(feature);
+    });
+  }
+
+  const coding_seqs = obj["coding_seqs"] = [];
+  if (row.coding_sequences) {
+    row.coding_sequences.forEach(function(cs) {
+      const cds = mapFields(cs, {}, {
+        "product": "product",
+        "translation": "translation",
+        "cds_start": "start",
+        "cds_end": "end",
+        "exon_count": "exon_count",
+        "external_reference": "external_reference",
+        "reverse": "reverse",
+        "stop_codons": "stop_codons",
+        "frameshifts": "frameshifts",
+        "gaps": "gaps",
+        "percent_identity": "percent_identity",
+        "left_unaligned": "left_unaligned",
+        "right_unaligned": "right_unaligned",
+        "classification_id": "classification_id",
+        "align_data": "align_data",
+        "description": "description",
+      });
+
+      if (cs.exon_starts) {
+        cds.exon_starts = cs.exon_starts.toString().split(",").map(x => parseInt(x));
+      }
+      if (cs.exon_ends) {
+        cds.exon_ends = cs.exon_ends.toString().split(",").map(x => parseInt(x));
+      }
+
+      coding_seqs.push(cds);
+    });
+  }
 
   return obj;
 }
@@ -292,6 +349,14 @@ exports.readFamilies = function(format,sort,name,name_prefix,classification,clad
             row.submitter = user.full_name;
           }
         }));
+        subqueries.push(familyFeatureModel.findAll({
+          where: { family_id: row.id },
+          include: [
+            { model: featureAttributeModel, as: 'feature_attributes' }
+          ] }).then(function(features) { row.features = features; }));
+        subqueries.push(codingSequenceModel.findAll({
+          where: { family_id: row.id }
+        }).then(function(coding_sequences) { row.coding_sequences = coding_sequences; }));
       }
 
       return Promise.all(subqueries).then(function() {
@@ -333,6 +398,10 @@ exports.readFamilyById = function(id) {
       } },
       { model: citationModel, as: 'citations' },
       { model: dfamTaxdbModel, as: 'clades' },
+      { model: familyFeatureModel, as: 'features', include: [
+        { model: featureAttributeModel, as: 'feature_attributes' }
+      ] },
+      { model: codingSequenceModel, as: 'coding_sequences' },
     ]
   }).then(function(row) {
     if (row) {
