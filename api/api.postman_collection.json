@@ -210,6 +210,42 @@
 			"response": []
 		},
 		{
+			"name": "assemblies",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:10011/assemblies",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "10011",
+					"path": [
+						"assemblies"
+					]
+				},
+				"description": "Retrieve a list of annotated assemblies in Dfam"
+			},
+			"response": []
+		},
+		{
 			"name": "families",
 			"request": {
 				"method": "GET",
@@ -447,7 +483,7 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:10011/families/DF0000001/seed?format=graph",
+					"raw": "http://localhost:10011/families/DF0000001/seed?format=stockholm",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -461,7 +497,7 @@
 					"query": [
 						{
 							"key": "format",
-							"value": "graph"
+							"value": "stockholm"
 						}
 					]
 				},
@@ -710,7 +746,7 @@
 			"response": []
 		},
 		{
-			"name": "family assembly model_conservation Copy",
+			"name": "family assembly model_conservation",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -823,6 +859,53 @@
 			"response": []
 		},
 		{
+			"name": "annotated taxa",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:10011/taxa?name&limit=20&annotated=true",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "10011",
+					"path": [
+						"taxa"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": null
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						},
+						{
+							"key": "annotated",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Query the local copy of the NCBI taxonomy database"
+			},
+			"response": []
+		},
+		{
 			"name": "annotations",
 			"request": {
 				"method": "GET",
@@ -832,7 +915,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:10011/annotations?assembly=hg38&chrom=chr1&start=168180000&end=168130000&nrph=true",
+					"raw": "http://localhost:10011/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -852,11 +935,11 @@
 						},
 						{
 							"key": "start",
-							"value": "168180000"
+							"value": "168130000"
 						},
 						{
 							"key": "end",
-							"value": "168130000"
+							"value": "168180000"
 						},
 						{
 							"key": "nrph",
@@ -869,46 +952,137 @@
 			"response": []
 		},
 		{
-			"name": "annotated taxa",
+			"name": "alignment ",
 			"request": {
 				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {},
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
-					"raw": "http://localhost:10011/taxa?name=&limit=20&annotated=true",
+					"raw": "http://localhost:10011/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF0004191",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "10011",
 					"path": [
-						"taxa"
+						"alignment"
 					],
 					"query": [
 						{
-							"key": "name",
-							"value": ""
+							"key": "assembly",
+							"value": "mm10"
 						},
 						{
-							"key": "limit",
-							"value": "20"
+							"key": "chrom",
+							"value": "chr1"
 						},
 						{
-							"key": "annotated",
-							"value": "true"
+							"key": "start",
+							"value": "35640910"
+						},
+						{
+							"key": "end",
+							"value": "35641251"
+						},
+						{
+							"key": "family",
+							"value": "DF0004191"
 						}
 					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "alignment2",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
 				},
-				"description": "Query the local copy of the NCBI taxonomy database"
+				"url": {
+					"raw": "http://localhost:10011/alignment?assembly=mm10&chrom=chr1&start=35700469&end=35700145&family=DF0004191",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "10011",
+					"path": [
+						"alignment"
+					],
+					"query": [
+						{
+							"key": "assembly",
+							"value": "mm10"
+						},
+						{
+							"key": "chrom",
+							"value": "chr1"
+						},
+						{
+							"key": "start",
+							"value": "35700469"
+						},
+						{
+							"key": "end",
+							"value": "35700145"
+						},
+						{
+							"key": "family",
+							"value": "DF0004191"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "alignment3",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:10011/alignment?assembly=hg38&chrom=chr3&start=147747582&end=147747419&family=DF0000147",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "10011",
+					"path": [
+						"alignment"
+					],
+					"query": [
+						{
+							"key": "assembly",
+							"value": "hg38"
+						},
+						{
+							"key": "chrom",
+							"value": "chr3"
+						},
+						{
+							"key": "start",
+							"value": "147747582"
+						},
+						{
+							"key": "end",
+							"value": "147747419"
+						},
+						{
+							"key": "family",
+							"value": "DF0000147"
+						}
+					]
+				}
 			},
 			"response": []
 		},
