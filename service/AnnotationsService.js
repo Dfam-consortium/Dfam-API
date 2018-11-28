@@ -7,7 +7,12 @@ const getAssemblyModels = require("../databases.js").getAssemblyModels;
 const mapFields = require("../utils/mapFields.js");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
+const classificationModel = require("../models/classification.js")(conn, Sequelize);
+const rmTypeModel = require("../models/repeatmasker_type.js")(conn, Sequelize);
 const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
+
+familyModel.belongsTo(classificationModel, { foreignKey: 'classification_id' });
+classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id' });
 
 /**
  * Retrieve annotations for a given assembly in a given range.
@@ -67,25 +72,27 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
         });
         hit.sequence = region.sequence.id;
 
-        // Accumulate accessions whose names we need to retrieve
+        // Accumulate accessions whose names and types we need to retrieve
         if (!family_name_mappings[hit.accession]) {
           family_name_mappings[hit.accession] = [];
         }
         family_name_mappings[hit.accession].push(hit);
 
-        // TODO: rework the colors system
-        hit.color = "#990000";
         return hit;
       });
 
-      // Retrieve the names of all matched families
+      // Retrieve the names and types of all matched families
       return familyModel.findAll({
-        attributes: ["name", "accession"],
         where: { accession: { [Op.in]: Object.keys(family_name_mappings) } },
+        attributes: ["name", "accession"],
+        include: [ { model: classificationModel, include: [
+          { model: rmTypeModel, attributes: ["name"] }
+        ] } ],
       }).then(function(families) {
         families.forEach(function(family) {
           family_name_mappings[family.accession].forEach(function(hit) {
             hit.query = family.name;
+            hit.type = family.classification.repeatmasker_type.name;
           });
         });
 
