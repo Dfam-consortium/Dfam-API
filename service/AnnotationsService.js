@@ -92,13 +92,18 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
         families.forEach(function(family) {
           family_name_mappings[family.accession].forEach(function(hit) {
             hit.query = family.name;
-            hit.type = family.classification.repeatmasker_type.name;
+            hit.type = null;
+            if (family.classification) {
+              if (family.classification.repeatmasker_type) {
+                hit.type = family.classification.repeatmasker_type.name;
+              }
+            }
           });
         });
 
         if (family) {
           nhmmer = nhmmer.filter(function(hit) {
-            return hit.query === family || hit.family_accession === family;
+            return hit.query === family || hit.accession === family;
           });
         }
 
