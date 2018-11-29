@@ -512,7 +512,7 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-  '/families/{id}/assemblies/{assembly_id}/karyoimage':
+  '/families/{id}/assemblies/{assembly_id}/karyotype':
     x-swagger-router-controller: FamilyAssemblies
     parameters:
       - name: id
@@ -526,29 +526,13 @@ paths:
         required: true
         type: string
     get:
-      description: Retrieve a family's karyotype image data for a given assembly
+      description: Retrieve a family's karyotype data for a given assembly
       tags:
         - familyAssemblies
-      operationId: readFamilyAssemblyKaryoImage
-      parameters:
-        - name: nrph
-          in: query
-          description: "\"true\" to include only non-redundant profile hits"
-          required: true
-          type: boolean
-        - name: part
-          in: query
-          description: Which part to return, one of heatmap, html_map, or img_key
-          required: true
-          type: string
-      produces:
-        - image/png
-        - text/plain
+      operationId: readFamilyAssemblyKaryotype
       responses:
         '200':
           description: Success
-          schema:
-            type: file
         default:
           description: Error
           schema:

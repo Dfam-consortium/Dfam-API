@@ -45,20 +45,12 @@ module.exports.readFamilyAssemblyAnnotations = function readFamilyAssemblyAnnota
     });
 };
 
-module.exports.readFamilyAssemblyKaryoImage = function readFamilyAssemblyKaryoImage (req, res, next) {
+module.exports.readFamilyAssemblyKaryotype = function readFamilyAssemblyKaryotype (req, res, next) {
   var id = req.swagger.params['id'].value;
   var assembly_id = req.swagger.params['assembly_id'].value;
-  var nrph = req.swagger.params['nrph'].value;
-  var part = req.swagger.params['part'].value;
-  FamilyAssemblies.readFamilyAssemblyKaryoImage(id,assembly_id,nrph,part)
+  FamilyAssemblies.readFamilyAssemblyKaryotype(id,assembly_id)
     .then(function (response) {
-      if (response) {
-        res.writeHead(200, { 'Content-Type': response.content_type });
-        res.end(response.data);
-      } else {
-        res.statusCode = 404;
-        res.end();
-      }
+      utils.writeJson(res, response);
     })
     .catch(function (err) {
       next(err);

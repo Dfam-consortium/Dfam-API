@@ -144,15 +144,13 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
 
 
 /**
- * Retrieve a family's karyotype image data for a given assembly
+ * Retrieve a family's karyotype data for a given assembly
  *
  * id String The Dfam family name
  * assembly_id String The assembly name
- * nrph Boolean \"true\" to include only non-redundant profile hits
- * part String Which part to return, one of heatmap, html_map, or img_key
  * returns File
  **/
-exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
+exports.readFamilyAssemblyKaryotype = function(id,assembly_id) {
   return assemblyModel.findOne({
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
@@ -163,28 +161,12 @@ exports.readFamilyAssemblyKaryoImage = function(id,assembly_id,nrph,part) {
 
     const models = getAssemblyModels(assembly.schema_name);
 
-    const parts = {
-      "heatmap": ["heatmap", "image/png"],
-      "html_map": ["html_map", "text/plain"],
-      "img_key": ["img_key", "text/plain"],
-    };
-
-    if (!parts[part]) {
-      return null;
-    }
-
-    var column = parts[part][0];
-
-    if (nrph === true) {
-      column = "nrph_" + column;
-    }
-
-    return models.karyotypeModel.findOne({
-      attributes: [ column ],
+    return models.coverageDataModel.findOne({
+      attributes: [ "karyotype" ],
       where: { "family_accession": id }
-    }).then(function(karyotype) {
-      if (karyotype && karyotype[column]) {
-        return { data: karyotype[column], content_type: parts[part][1] };
+    }).then(function(data) {
+      if (data.karyotype) {
+        return data.karyotype.toString();
       } else {
         return null;
       }

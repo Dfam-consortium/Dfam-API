@@ -30,6 +30,10 @@ module.exports = function(sequelize, DataTypes) {
     num_rev: {
       type: DataTypes.INTEGER(6),
       allowNull: true
+    },
+    karyotype: {
+      type: "LONGBLOB",
+      allowNull: false
     }
   }, {
     tableName: 'coverage_data'
