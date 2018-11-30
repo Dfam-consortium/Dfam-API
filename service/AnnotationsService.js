@@ -132,8 +132,8 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
         offset: start,
         length: Math.abs(end - start),
         query: `${chrom}:${start}-${end}`,
-        nhmmer,
-        trf,
+        hits: nhmmer,
+        tandem_repeats: trf,
       };
     });
   });
