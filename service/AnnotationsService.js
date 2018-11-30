@@ -49,8 +49,8 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
       }
     };
 
-    if (nrph !== null) {
-      query_hmm.where.nrph_hit = nrph;
+    if (nrph === true) {
+      query_hmm.where.nrph_hit = true;
     }
 
     const nhmmerResults = models.hmmFullRegionModel.findAll(query_hmm).then(function(regions) {
