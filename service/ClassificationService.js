@@ -53,6 +53,19 @@ exports.readClassification = function() {
       delete obj.parent;
     });
 
+    Object.keys(objs).forEach(function(id) {
+      const obj = objs[id];
+      if (obj.children) {
+        obj.children.sort(function(a, b) {
+          if (a.sort_order < b.sort_order) { return -1; }
+          else if (a.sort_order > b.sort_order) { return 1; }
+          else if (a.name < b.name) { return -1; }
+          else if (a.name > b.name) { return 1; }
+          else { return 0; }
+        });
+      }
+    });
+
     if (roots.length != 1) {
       winston.warn("Expected a single root classification node");
     }
