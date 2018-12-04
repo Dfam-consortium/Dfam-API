@@ -20,7 +20,7 @@ exports.readTaxa = function(name,limit,annotated) {
       attributes: ["name_txt"],
       where: {
         name_class: "scientific name",
-        name_txt: { [Sequelize.Op.like]: name + "%" },
+        name_txt: { [Sequelize.Op.like]: "%" + name + "%" },
       },
       include: {
         model: assembly,
@@ -41,7 +41,7 @@ exports.readTaxa = function(name,limit,annotated) {
       attributes: ["name_txt"],
       where: {
         name_class: "scientific name",
-        name_txt: { [Sequelize.Op.like]: name + "%" },
+        name_txt: { [Sequelize.Op.like]: "%" + name + "%" },
       },
       limit: limit || 20,
     }).then(function(results) {

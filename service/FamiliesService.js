@@ -248,13 +248,13 @@ exports.readFamilies = function(format,sort,name,name_prefix,classification,clad
   }
 
   if (classification) {
-    where.push("classification.lineage LIKE :where_classification ESCAPE '#'");
-    replacements.where_classification = "%" + escape.escape_sql_like(classification, '#') + "%";
+    where.push("classification.lineage = :where_classification");
+    replacements.where_classification = classification;
   }
 
   if (clade) {
-    where.push("(SELECT COUNT(*) FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = family.id AND lineage LIKE :where_clade ESCAPE '#') > 0");
-    replacements.where_clade = "%" + escape.escape_sql_like(clade, '#') + "%";
+    where.push("(SELECT COUNT(*) FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = family.id AND scientific_name = :where_clade) > 0");
+    replacements.where_clade = clade;
   }
 
   if (desc) {

@@ -544,6 +544,12 @@ paths:
       tags:
         - classification
       operationId: readClassification
+      parameters:
+        - name: name
+          in: query
+          description: Classification name to search for
+          required: false
+          type: string
       responses:
         '200':
           description: Success
@@ -574,7 +580,7 @@ paths:
         - name: limit
           in: query
           description: Only return up to a maximum number of hits
-          required: true
+          required: false
           type: integer
       responses:
         '200':
