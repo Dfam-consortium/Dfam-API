@@ -80,7 +80,7 @@ function familyQueryRowToObject(row, format) {
 
   obj["clades"] = [];
   if (row.clades) {
-    obj["clades"] = row.clades.map(cl => cl.scientific_name);
+    obj["clades"] = row.clades.map(cl => cl.lineage);
   }
 
   if (format == "summary") {
@@ -416,7 +416,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,classificatio
 
       const subqueries = [];
 
-      subqueries.push(conn.query("SELECT scientific_name FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
+      subqueries.push(conn.query("SELECT lineage FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
 
       if (format != "summary") {
         subqueries.push(conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }).then(a => row.aliases = a));
