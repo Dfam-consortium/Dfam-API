@@ -15,6 +15,8 @@ const rmStageModel = require("../models/repeatmasker_stage.js")(conn, Sequelize)
 const familyHasBufferStageModel = require("../models/family_has_buffer_stage.js")(conn, Sequelize);
 const citationModel = require("../models/citation.js")(conn, Sequelize);
 const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
+const ncbiTaxdbNamesModel = require("../models/ncbi_taxdb_names.js")(conn, Sequelize);
+const ncbiTaxdbNodesModel = require("../models/ncbi_taxdb_nodes.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
 const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
@@ -43,6 +45,11 @@ familyModel.belongsToMany(dfamTaxdbModel, { as: 'clades', through: 'family_clade
 familyModel.hasMany(familyFeatureModel, { foreignKey: 'family_id', as: 'features' });
 familyFeatureModel.hasMany(featureAttributeModel, { foreignKey: 'family_feature_id', as: 'feature_attributes' });
 familyModel.hasMany(codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
+
+ncbiTaxdbNamesModel.belongsTo(ncbiTaxdbNodesModel, { foreignKey: 'tax_id' });
+ncbiTaxdbNamesModel.belongsTo(dfamTaxdbModel, { foreignKey: 'tax_id' });
+
+ncbiTaxdbNodesModel.hasMany(ncbiTaxdbNamesModel, { foreignKey: 'tax_id' });
 
 classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id', as: 'rm_type' });
 classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtype_id', as: 'rm_subtype' });
@@ -200,6 +207,68 @@ function familyQueryRowToObject(row, format) {
   return obj;
 }
 
+// Helper function for collecting ancestor/descendant clade information
+// Returns a promise.
+// If the specified clade is not present, the result is null.
+// Otherwise, result.ids is a list of IDs (self + ancestors) and
+// result.lineage is a lineage string (useful for searching descendants).
+// result.ids will only contain ancestors if clade_relatives is "ancestors" or "both"
+function collectClades(clade, clade_relatives) {
+  const result = { ids: [], lineage: null };
+
+  return ncbiTaxdbNamesModel.findOne({
+    where: { name_class: 'scientific name', name_txt: clade },
+    attributes: [ 'tax_id', 'name_txt' ],
+    include: [
+      { model: ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
+    ],
+  }).then(function(record) {
+    if (!record) {
+      return null;
+    }
+
+    // Primary results: the given ID and its lineage
+    console.log(record);
+    result.ids.push(record.tax_id);
+    result.lineage = record.name_txt;
+
+    // Secondary query: parent IDs
+    const recurseParents = function(parent_id) {
+      return ncbiTaxdbNodesModel.findOne({
+        where: { tax_id: parent_id },
+        include: [
+          { model: ncbiTaxdbNamesModel, where: { name_class: 'scientific name' } },
+        ]
+      }).then(function(parent) {
+        if (parent) {
+          if (clade_relatives === "ancestors" || clade_relatives === "both") {
+            result.ids.push(parent.tax_id);
+          }
+
+          let parent_name = "";
+          if (parent.ncbi_taxdb_names.length) {
+            parent_name = parent.ncbi_taxdb_names[0].name_txt;
+          }
+          result.lineage = parent_name + ";" + result.lineage;
+
+          if (parent_id !== 1) {
+            return recurseParents(parent.parent_id);
+          }
+        }
+      });
+    }
+
+    let recurseParentsResult;
+    if (record.tax_id !== 1) {
+      recurseParentsResult = recurseParents(record.ncbi_taxdb_node.parent_id);
+    } else {
+      recurseParentsResult = Promise.resolve();
+    }
+
+    return recurseParentsResult.then(function() { return result; });
+  });
+}
+
 /**
  * Returns a list of Dfam families optionally filtered and sorted.
  *
@@ -209,6 +278,7 @@ function familyQueryRowToObject(row, format) {
  * name_prefix String Search term for repeat name prefix ( overriden by \"name\" search ) (optional)
  * classification String Search term for repeat classification (optional)
  * clade String Search term for repeat clade (optional)
+ * clade_relatives String Relatives of the requested clade to include: 'ancestors', 'descendants', or 'both' (optional)
  * type String Search term for repeat type (optional)
  * subtype String Search term for repeat subtype (optional)
  * updated_after date Filter by \"updated on or after\" date (optional)
@@ -219,7 +289,9 @@ function familyQueryRowToObject(row, format) {
  * limit Integer Records to return ( for range queries ) (optional)
  * returns familiesResponse
  **/
-exports.readFamilies = function(format,sort,name,name_prefix,classification,clade,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
+exports.readFamilies = async function(format,sort,name,name_prefix,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
+
+  const clade_info = await collectClades(clade, clade_relatives);
 
   const replacements = {};
 
@@ -252,9 +324,20 @@ exports.readFamilies = function(format,sort,name,name_prefix,classification,clad
     replacements.where_classification = classification;
   }
 
-  if (clade) {
-    where.push("(SELECT COUNT(*) FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = family.id AND scientific_name = :where_clade) > 0");
-    replacements.where_clade = clade;
+  if (clade_info) {
+    const clade_where = [];
+
+    clade_where.push("family_clade.dfam_taxdb_tax_id IN (:where_ancestors)");
+    from += "LEFT JOIN family_clade ON family_clade.family_id = family.id ";
+    replacements.where_ancestors = clade_info.ids;
+
+    if (clade_relatives === "descendants" || clade_relatives === "both") {
+      clade_where.push("dfam_taxdb.lineage LIKE :where_lineage ESCAPE '#'");
+      from += "LEFT JOIN dfam_taxdb ON dfam_taxdb.tax_id = family_clade.dfam_taxdb_tax_id ";
+      replacements.where_lineage = escape.escape_sql_like(clade_info.lineage, '#') + "%";
+    }
+
+    where.push("( " + clade_where.join(" OR ") + " )");
   }
 
   if (desc) {
@@ -293,8 +376,8 @@ exports.readFamilies = function(format,sort,name,name_prefix,classification,clad
     });
   }
 
-  var count_sql = "SELECT COUNT(*) as total_count FROM " + from + " WHERE " + where.join(" AND ");
-  var sql = "SELECT " + selects.join(",") + " FROM " + from + " WHERE " + where.join(" AND ");
+  var count_sql = "SELECT COUNT(DISTINCT family.id) as total_count FROM " + from + " WHERE " + where.join(" AND ");
+  var sql = "SELECT DISTINCT " + selects.join(",") + " FROM " + from + " WHERE " + where.join(" AND ");
 
   // TODO: Implement more complex sort keys
   const sortKeys = [ "accession", "name", "length", "type", "subtype", "date_created", "date_modified" ];

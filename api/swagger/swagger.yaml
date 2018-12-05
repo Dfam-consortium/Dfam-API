@@ -194,6 +194,11 @@ paths:
           description: Search term for repeat clade
           required: false
           type: string
+        - name: clade_relatives
+          in: query
+          description: "Relatives of the requested clade to include: 'ancestors', 'descendants', or 'both'"
+          required: false
+          type: string
         - name: type
           in: query
           description: Search term for repeat type
