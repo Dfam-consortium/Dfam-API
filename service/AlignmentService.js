@@ -1,9 +1,8 @@
 'use strict';
 
 const fs = require('fs');
-const tmp = require('tmp');
-const execFile = require('child_process').execFile;
 const promisify = require('util').promisify;
+const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
@@ -13,27 +12,7 @@ const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize
 
 hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 
-// Wrapper around tmp.file that returns a Promise
-function tmpFileAsync() {
-  return new Promise(function(resolve, reject) {
-    tmp.file(function(err, path, fd, cleanup) {
-      if (err) { reject(err); }
-      else { resolve({ path, fd, cleanup }); }
-    });
-  });
-}
-
-// Wrapper around child_process.execFile that returns a Promise
-function execFileAsync(file, args, options) {
-  return new Promise(function(resolve, reject) {
-    execFile(file, args, options, function(error, stdout, stderr) {
-      if (error) { return reject(error); }
-      else { return resolve({ stdout, stderr }); }
-    });
-  });
-}
-
-function formatAlignment(seqID, ordStart, ordEnd, nhmmer_out) {
+exports.formatAlignment = function(seqID, ordStart, ordEnd, nhmmer_out) {
   var alignRec = {};
 
 //  console.log(`nhmmer_out: ${nhmmer_out}`);
@@ -165,7 +144,7 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, startPos, endPos, hmmData
   hmmFile.cleanup();
   seqFile.cleanup();
 
-  return formatAlignment(seqID, ordStart, ordEnd, nhmmer_out.stdout, startPos);
+  return exports.formatAlignment(seqID, ordStart, ordEnd, nhmmer_out.stdout, startPos);
 }
 
 /**

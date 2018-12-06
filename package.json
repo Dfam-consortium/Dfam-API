@@ -16,8 +16,10 @@
   "dependencies": {
     "connect": "^3.2.0",
     "cors": "^2.8.4",
+    "dateformat": "^3.0.3",
     "js-yaml": "^3.3.0",
     "jsonwebtoken": "^8.3.0",
+    "md5": "^2.2.1",
     "mysql2": "^1.6.1",
     "nodemailer": "^4.6.8",
     "passport": "^0.4.0",
@@ -25,6 +27,7 @@
     "sequelize": "^4.39.1",
     "swagger-tools": "0.10.1",
     "tmp": "0.0.33",
+    "uuid": "^3.3.2",
     "winston": "^3.1.0"
   },
   "devDependencies": {

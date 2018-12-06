@@ -196,7 +196,9 @@ paths:
           type: string
         - name: clade_relatives
           in: query
-          description: "Relatives of the requested clade to include: 'ancestors', 'descendants', or 'both'"
+          description: >-
+            Relatives of the requested clade to include: 'ancestors',
+            'descendants', or 'both'
           required: false
           type: string
         - name: type
@@ -288,7 +290,7 @@ paths:
       parameters:
         - name: format
           in: query
-          description: The desired output format, "hmm" or "logo" or "image"
+          description: 'The desired output format, "hmm" or "logo" or "image"'
           required: true
           type: string
       produces:
@@ -392,7 +394,7 @@ paths:
       parameters:
         - name: model
           in: query
-          description: Model type, "cons" or "hmm"
+          description: 'Model type, "cons" or "hmm"'
           required: true
           type: string
       responses:
@@ -405,7 +407,7 @@ paths:
                 type: string
               all:
                 type: string
-              "false":
+              'false':
                 type: string
         default:
           description: Error
@@ -432,7 +434,7 @@ paths:
       parameters:
         - name: model
           in: query
-          description: Model type, "cons" or "hmm"
+          description: 'Model type, "cons" or "hmm"'
           required: true
           type: string
       responses:
@@ -476,7 +478,7 @@ paths:
       parameters:
         - name: nrph
           in: query
-          description: "\"true\" to include only non-redundant profile hits"
+          description: '"true" to include only non-redundant profile hits'
           required: true
           type: boolean
       produces:
@@ -631,7 +633,7 @@ paths:
           type: string
         - name: nrph
           in: query
-          description: "\"true\" to exclude redundant profile hits"
+          description: '"true" to exclude redundant profile hits'
           required: false
           type: boolean
       responses:
@@ -657,6 +659,107 @@ paths:
         - name: chrom
           in: query
           description: Chromosome to search
+          required: true
+          type: string
+        - name: start
+          in: query
+          description: Start of the sequence range.
+          required: true
+          type: integer
+        - name: end
+          in: query
+          description: End of the sequence range.
+          required: true
+          type: integer
+        - name: family
+          in: query
+          description: The family to align against
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /searches:
+    x-swagger-router-controller: Searches
+    post:
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      description: Submit a sequence search request
+      tags:
+        - searches
+      operationId: submitSearch
+      parameters:
+        - name: sequence
+          in: formData
+          description: Sequence data to search
+          required: true
+          type: string
+        - name: organism
+          in: formData
+          description: Source organism of the sequence, used for determining search thresholds
+          required: false
+          type: string
+        - name: cutoff
+          in: formData
+          description: Type of cutoff to use, 'curated' or 'evalue'
+          required: true
+          type: string
+        - name: evalue
+          in: formData
+          description: E-value cutoff to use in the search
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/submitSearchResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/searches/{id}':
+    x-swagger-router-controller: Searches
+    get:
+      description: Retrieve the results of a sequence search
+      tags:
+        - searches
+      operationId: readSearchResults
+      parameters:
+        - name: id
+          in: path
+          description: A result set ID matching a previous search submission
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  '/searches/{id}/alignment':
+    x-swagger-router-controller: Searches
+    get:
+      description: Retrieve an alignment from a sequence search result
+      tags:
+        - searches
+      operationId: readSearchResultAlignment
+      parameters:
+        - name: id
+          in: path
+          description: A result set ID matching a previous search submission
+          required: true
+          type: string
+        - name: sequence
+          in: query
+          description: Name of the input sequence to align
           required: true
           type: string
         - name: start
@@ -875,7 +978,8 @@ definitions:
         type: array
         items:
           type: object
-          required: [ "species_name" ]
+          required:
+            - species_name
           properties:
             species_name:
               type: string
@@ -943,10 +1047,13 @@ definitions:
       classification:
         type: string
       repeat_type_name:
-        type: [ "string", "null" ]
+        type:
+          - string
+          - 'null'
       repeat_subtype_name:
-        type: [ "string", "null" ]
-
+        type:
+          - string
+          - 'null'
       consensus_sequence:
         type: string
       author:
@@ -967,7 +1074,6 @@ definitions:
         type: string
       hmm_general_nc:
         type: number
-
       aliases:
         type: array
         items:
@@ -1047,7 +1153,9 @@ definitions:
         type: object
         properties:
           divergence:
-            type: ["null", "number"]
+            type:
+              - 'null'
+              - number
           gathering_nonredundant:
             type: integer
           gathering_all:
@@ -1060,7 +1168,9 @@ definitions:
         type: object
         properties:
           divergence:
-            type: ["null", "number"]
+            type:
+              - 'null'
+              - number
           gathering_nonredundant:
             type: integer
           gathering_all:
@@ -1069,6 +1179,12 @@ definitions:
             type: integer
           trusted_all:
             type: integer
+  submitSearchResponse:
+    required:
+      - id
+    properties:
+      id:
+        type: string
   versionResponse:
     required:
       - major
