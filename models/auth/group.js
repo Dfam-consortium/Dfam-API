@@ -3,7 +3,7 @@
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('group', {
     id: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: false,
       primaryKey: true
     },

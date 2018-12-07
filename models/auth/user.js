@@ -3,7 +3,7 @@
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('user', {
     id: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
@@ -47,8 +47,12 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     api_role: {
-      type: DataTypes.STRING(45),
-      allowNull: false
+      type: DataTypes.INTEGER(10).UNSIGNED,
+      allowNull: false,
+      references: {
+        model: 'role_type',
+        key: 'id'
+      }
     },
     registration_date: {
       type: DataTypes.DATE,

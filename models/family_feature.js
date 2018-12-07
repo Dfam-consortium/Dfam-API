@@ -31,6 +31,10 @@ module.exports = function(sequelize, DataTypes) {
     model_end_pos: {
       type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
+    },
+    label: {
+      type: DataTypes.STRING(45),
+      allowNull: true
     }
   }, {
     tableName: 'family_feature'

@@ -159,12 +159,13 @@ function familyQueryRowToObject(row, format) {
         "description": "description",
         "model_start_pos": "model_start_pos",
         "model_end_pos": "model_end_pos",
+        "label": "label",
       });
       feature.attributes = [];
       f.feature_attributes.forEach(function(a) {
         feature.attributes.push(mapFields(a, {}, {
-          "feature_name": "key",
-          "feature_value": "value",
+          "attribute": "attribute",
+          "value": "value",
         }));
       });
       features.push(feature);

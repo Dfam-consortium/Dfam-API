@@ -11,12 +11,12 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    feature_name: {
+    attribute: {
       type: DataTypes.STRING(45),
       allowNull: false,
       primaryKey: true
     },
-    feature_value: {
+    value: {
       type: DataTypes.STRING(45),
       allowNull: true
     }
