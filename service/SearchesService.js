@@ -193,7 +193,7 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
   } else {
     evalue = parseFloat(evalue);
     if (!isNaN(evalue)) {
-      optStr = optStr + ",-E," + evalue;
+      optStr = optStr + ",-E," + Math.min(evalue, 1000);
     }
   }
 
@@ -447,7 +447,7 @@ async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
   // Do the search
   // TODO: Make nhmmer location configurable
   const nhmmer = '/usr/local/hmmer/bin/nhmmer';
-  const nhmmer_out = await execFileAsync(nhmmer, ['--max', '-Z', '3102', '-E', '10', '--notextw', hmmFile.path, seqFile.path]);
+  const nhmmer_out = await execFileAsync(nhmmer, ['--max', '-Z', '3102', '-E', '1000', '--notextw', hmmFile.path, seqFile.path]);
 
   hmmFile.cleanup();
   seqFile.cleanup();
