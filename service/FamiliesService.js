@@ -236,9 +236,10 @@ function collectClades(clade, clade_relatives) {
     // Secondary query: parent IDs
     const recurseParents = function(parent_id) {
       return ncbiTaxdbNodesModel.findOne({
+        attributes: [ 'tax_id', 'parent_id' ],
         where: { tax_id: parent_id },
         include: [
-          { model: ncbiTaxdbNamesModel, where: { name_class: 'scientific name' } },
+          { model: ncbiTaxdbNamesModel, where: { name_class: 'scientific name' }, attributes: [ 'name_txt' ] },
         ]
       }).then(function(parent) {
         if (parent) {
