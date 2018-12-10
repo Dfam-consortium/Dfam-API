@@ -231,11 +231,13 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
 };
 
 function sanitizeFASTAInput(sequence) {
-  const validFASTAHeader = /^>(\S+)*$/;
+  const validFASTAHeader = /^>(\S*).*$/;
   const validFASTASequence = /^\s*([ACGTUMRWSYKVHDBN]+)\s*$/;
   const toleratedFASTABlankLine = /^\s*$/;
 
   var lines = sequence.split(/\r\n|\n/);
+
+  var used_IDs = [];
 
   let matches;
   var newSequence = "";
@@ -244,9 +246,17 @@ function sanitizeFASTAInput(sequence) {
   lines.forEach(function(line) {
     if ((matches = line.match(validFASTAHeader)) != null) {
       if ( recID != "" && recSeq != "" ) {
-        newSequence = newSequence + recID + recSeq + "\n";
+        newSequence = newSequence + ">" + recID + "\n" + recSeq + "\n";
       }
-      recID = ">" + matches[1] + "\n";
+
+      // Add first of _1, _2, etc. that makes the recID unambiguous
+      recID = matches[1];
+      var inc = 1;
+      while (used_IDs.indexOf(recID) !== -1) {
+        recID = matches[1] + "_" + inc;
+        inc += 1;
+      }
+      used_IDs.push(recID);
       recSeq = "";
     } else {
       line.replace(/[\s\n\r]+/g,'');
@@ -261,7 +271,7 @@ function sanitizeFASTAInput(sequence) {
       }
     }
   });
-  newSequence = newSequence + recID + recSeq + "\n";
+  newSequence = newSequence + ">" + recID + "\n" + recSeq + "\n";
   return newSequence;
 }
 
