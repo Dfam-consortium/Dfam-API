@@ -8,6 +8,7 @@ module.exports.readFamilies = function readFamilies (req, res, next) {
   var sort = req.swagger.params['sort'].value;
   var name = req.swagger.params['name'].value;
   var name_prefix = req.swagger.params['name_prefix'].value;
+  var name_accession = req.swagger.params['name_accession'].value;
   var classification = req.swagger.params['classification'].value;
   var clade = req.swagger.params['clade'].value;
   var clade_relatives = req.swagger.params['clade_relatives'].value;
@@ -19,7 +20,7 @@ module.exports.readFamilies = function readFamilies (req, res, next) {
   var keywords = req.swagger.params['keywords'].value;
   var start = req.swagger.params['start'].value;
   var limit = req.swagger.params['limit'].value;
-  Families.readFamilies(format,sort,name,name_prefix,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit)
+  Families.readFamilies(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit)
     .then(function (response) {
       utils.writeJson(res, response);
     })

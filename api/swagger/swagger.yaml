@@ -184,6 +184,11 @@ paths:
           in: query
           description: Search term for repeat name prefix ( overriden by "name" search )
           type: string
+        - name: name_accession
+          in: query
+          description: Search term for repeat name or accession
+          required: false
+          type: string
         - name: classification
           in: query
           description: Search term for repeat classification

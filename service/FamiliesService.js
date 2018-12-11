@@ -278,6 +278,7 @@ function collectClades(clade, clade_relatives) {
  * sort String A string containing the ordered sort columns (optional)
  * name String Search term for repeat identifier (optional)
  * name_prefix String Search term for repeat name prefix ( overriden by \"name\" search ) (optional)
+ * name_accession String Search term for repeat name or accession (optional)
  * classification String Search term for repeat classification (optional)
  * clade String Search term for repeat clade (optional)
  * clade_relatives String Relatives of the requested clade to include: 'ancestors', 'descendants', or 'both' (optional)
@@ -291,7 +292,7 @@ function collectClades(clade, clade_relatives) {
  * limit Integer Records to return ( for range queries ) (optional)
  * returns familiesResponse
  **/
-exports.readFamilies = async function(format,sort,name,name_prefix,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
+exports.readFamilies = async function(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
 
   const clade_info = await collectClades(clade, clade_relatives);
 
@@ -319,6 +320,9 @@ exports.readFamilies = async function(format,sort,name,name_prefix,classificatio
   } else if (name_prefix) {
     where.push("family.name LIKE :where_name ESCAPE '#'");
     replacements.where_name = escape.escape_sql_like(name_prefix, '#') + "%";
+  } else if (name_accession) {
+    where.push("family.name LIKE :where_name_acc ESCAPE '#' OR family.accession LIKE :where_name_acc ESCAPE '#'");
+    replacements.where_name_acc = "%" + escape.escape_sql_like(name_accession, '#') + "%";
   }
 
   if (classification) {
