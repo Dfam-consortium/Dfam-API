@@ -42,9 +42,28 @@ exports.readSearchResults = function(id) {
   // build the data directory path.
   return jobModel.findOne({ where: { uuid: id } }).then(function(jobRec) {
     if (jobRec.status === "PEND") {
-      return { status: "PEND", message: "Search pending." };
+      return jobModel.count({
+        where: {
+          "status": { [Op.in]: [ "RUNNING", "PEND" ] },
+          "opened": { [Op.lt]: jobRec.opened }
+        },
+      }).then(function(count) {
+        return {
+          status: "PEND",
+          message: `Search pending. There are ${count} jobs ahead of this one.`
+        };
+      });
+    } else if (jobRec.status === "RUNNING") {
+      return {
+        status: "RUNNING",
+        message: `Search running since ${jobRec.started}.`
+      };
     } else if (jobRec.status === "ERROR") {
       return { status: "ERROR", message: "Search failed." };
+    } else if (jobRec.status === "DONE") {
+      // handled below
+    } else {
+      return { status: jobRec.status, message: "Unknown status." };
     }
 
     var startedDate = new Date(jobRec.started);
