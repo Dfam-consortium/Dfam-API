@@ -7,9 +7,6 @@ const conn = require("../databases.js").dfam;
 const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
 const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
 
-const writer = require("../utils/writer.js");
-const mapFields = require("../utils/mapFields.js");
-
 assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
 
 /**
@@ -27,4 +24,4 @@ exports.readAssemblies = function() {
       return { id: row.name, name: row.dfam_taxdb.scientific_name };
     });
   });
-}
+};

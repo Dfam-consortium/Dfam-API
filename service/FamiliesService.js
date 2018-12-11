@@ -229,7 +229,6 @@ function collectClades(clade, clade_relatives) {
     }
 
     // Primary results: the given ID and its lineage
-    console.log(record);
     result.ids.push(record.tax_id);
     result.lineage = record.name_txt;
 
@@ -258,7 +257,7 @@ function collectClades(clade, clade_relatives) {
           }
         }
       });
-    }
+    };
 
     let recurseParentsResult;
     if (record.tax_id !== 1) {

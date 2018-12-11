@@ -15,7 +15,7 @@ hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 exports.formatAlignment = function(seqID, ordStart, ordEnd, nhmmer_out) {
   var alignRec = {};
 
-//  console.log(`nhmmer_out: ${nhmmer_out}`);
+  // console.log(`nhmmer_out: ${nhmmer_out}`);
   let lines = nhmmer_out.split(/[\r\n]/);
   let lineIndex = 0;
 
@@ -94,7 +94,7 @@ exports.formatAlignment = function(seqID, ordStart, ordEnd, nhmmer_out) {
   };
 
   return alignRec;
-}
+};
 
 // Given genomic coordinates in the form of a twoBit file, sequence identifier,
 // start and end position along with the data for a pHMM, run nhmmer and

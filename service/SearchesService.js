@@ -2,7 +2,7 @@
 
 const promisify = require('util').promisify;
 const child_process = require('child_process');
-const { tmpFileAsync, execAsync, execFileAsync } = require('../utils/async');
+const { tmpFileAsync, execFileAsync } = require('../utils/async');
 const fs = require('fs');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
