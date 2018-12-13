@@ -71,7 +71,8 @@ module.exports.readFamilyRelationships = function readFamilyRelationships (req, 
 
 module.exports.readFamilySeed = function readFamilySeed (req, res, next) {
   var id = req.swagger.params['id'].value;
-  Families.readFamilySeed(id)
+  var format = req.swagger.params['format'].value;
+  Families.readFamilySeed(id,format)
     .then(function (response) {
       if (response) {
         res.writeHead(200, { 'Content-Type': response.content_type });

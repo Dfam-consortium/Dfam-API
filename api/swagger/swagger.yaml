@@ -325,6 +325,12 @@ paths:
       operationId: readFamilySeed
       produces:
         - text/plain
+      parameters:
+        - name: format
+          in: query
+          description: The format to return, one of 'stockholm' or 'alignment_summary'
+          required: true
+          type: string
       responses:
         '200':
           description: Success

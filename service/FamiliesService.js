@@ -31,6 +31,7 @@ const userModel = require('../models/auth/user')(conn_users, Sequelize);
 
 const escape = require("../utils/escape.js");
 const writer = require("../utils/writer.js");
+const DfamSeedAlignment = require("Dfam-js/dist/Dfam-js");
 
 seedRegionModel.removeAttribute('id');
 
@@ -736,10 +737,26 @@ exports.readFamilySeed = function(id,format) {
       where: { family_id: family.id },
     }).then(function(seed_regions) {
       family.seed_regions = seed_regions;
-      return {
-        data: seedRegionsToStockholm(family),
-        content_type: "text/plain",
-      };
+
+      let stockholm = seedRegionsToStockholm(family);
+
+      if (format == "stockholm") {
+        return {
+          data: stockholm,
+          content_type: "text/plain",
+        };
+      } else if (format == "alignment_summary") {
+        let alignment = new DfamSeedAlignment();
+        alignment.parseStockholm(stockholm);
+        let summary = alignment.toAlignmentSummary();
+
+        return {
+          data: JSON.stringify(summary),
+          content_type: "application/json",
+        };
+      } else {
+        return null;
+      }
     });
   });
 };
