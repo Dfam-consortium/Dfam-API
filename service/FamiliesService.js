@@ -644,9 +644,24 @@ exports.readFamilyRelationships = function(id) {
 };
 
 // TODO: Move this to Dfam-js
+//
+// Converts a DFAM family to Stockholm data.
+// Expected format: family = {
+//  "name": "Name",
+//  "description: "Description",
+//  "seed_regions": [
+//    { a2m_seq: "sequence1" },
+//    { a2m_seq: "sequence2" },
+//    ...
+//  ],
+// }
+//
+// Returns a promise that resolves to a single string, the stockholm-formatted output.
 function seedRegionsToStockholm(family) {
-  if (family == null || family.seed_regions == null || family.seed_regions.length == 0)
-    return;
+  if (family == null || family.seed_regions == null || family.seed_regions.length == 0) {
+    return Promise.resolve(null);
+  }
+
   var seedRegions = family.seed_regions;
 
   var insLocs = {};
@@ -654,70 +669,113 @@ function seedRegionsToStockholm(family) {
   var matches;
   var matchColCnt = -1;
   var stockholmSeqs = [];
-  seedRegions.forEach(function(region) {
-    stockholmSeqs.push(region.a2m_seq);
-    // Create a non-gap RF line with the correct match column length
-    if (matchColCnt < 0)
-      matchColCnt = (region.a2m_seq.match(/[A-Z-]/g) || []).length;
-    var prevLen = 0;
-    while ((matches = insRE.exec(region.a2m_seq)) != null) {
-      var len = matches[1].length;
-      var idx = insRE.lastIndex - len - prevLen;
-      if (insLocs[idx] == null || insLocs[idx] < len)
-        insLocs[idx] = len;
-      prevLen += len;
-    }
-  });
 
-  var stockholmStr = "# STOCKHOLM 1.0\n" +
-    "#=GF ID " + family.name + "\n";
-  if (family.description != null)
-    stockholmStr += "#=GF CC " + family.description + "\n";
-  stockholmStr += "#=GF SQ " + seedRegions.length + "\n";
-
-  // Sort highest indexes first so we can insert without affecting
-  // future indices.
-  var RF = "";
-  RF += "X".repeat(matchColCnt);
-  var sortedIdxs = Object.keys(insLocs).sort(function(a, b) {
-    return b - a;
-  });
-  sortedIdxs.forEach(function(idx) {
-    var insStr = "";
-    insStr += ".".repeat(insLocs[idx]);
-    RF = RF.substring(0, idx) + insStr + RF.substring(idx);
-  });
-
-  stockholmStr += "#=GC RF " + RF + "\n";
-
-  for (var i = 0; i < stockholmSeqs.length; i++) {
-    var seq = stockholmSeqs[i];
-    var j = 0;
-    var refPos = 0;
-    var tmpSeq = "";
-    while (j < seq.length) {
-      var ref = RF.substring(refPos, refPos + 1);
-      var seqBase = seq.substring(j, j + 1);
-      if (ref == ".") {
-        if (/[A-Z-]/.test(seqBase)) {
-          // emit a placeholder "."
-          tmpSeq += '.';
-        } else {
-          // else keep the current character
-          tmpSeq += seqBase;
-          j++;
+  return new Promise(function(resolve, reject) {
+    // TODO: Compatibility with non-node environments
+    function schedule(fn) {
+      setImmediate(function() {
+        try {
+          fn();
+        } catch(err) {
+          reject(err);
         }
-      } else {
-        tmpSeq += seqBase;
-        j++;
-      }
-      refPos++;
+      });
     }
-    stockholmSeqs[i] = tmpSeq.replace(/-/g, ".").toUpperCase();
-    stockholmStr += seedRegions[i].seq_id + "  " + stockholmSeqs[i] + "\n";
-  }
-  stockholmStr += "//\n";
-  return stockholmStr;
+
+    var i = 0;
+
+    var readNextRegion = function() {
+      if (!(i < seedRegions.length)) {
+        schedule(buildStockholm);
+        return;
+      }
+
+      var region = seedRegions[i];
+      stockholmSeqs.push(region.a2m_seq);
+      // Create a non-gap RF line with the correct match column length
+      if (matchColCnt < 0)
+        matchColCnt = (region.a2m_seq.match(/[A-Z-]/g) || []).length;
+      var prevLen = 0;
+      while ((matches = insRE.exec(region.a2m_seq)) != null) {
+        var len = matches[1].length;
+        var idx = insRE.lastIndex - len - prevLen;
+        if (insLocs[idx] == null || insLocs[idx] < len)
+          insLocs[idx] = len;
+        prevLen += len;
+      }
+
+      i++;
+      schedule(readNextRegion);
+    };
+
+    schedule(readNextRegion);
+
+    var buildStockholm = function() {
+      var stockholmStr = "# STOCKHOLM 1.0\n" +
+        "#=GF ID " + family.name + "\n";
+      if (family.description != null)
+        stockholmStr += "#=GF CC " + family.description + "\n";
+      stockholmStr += "#=GF SQ " + seedRegions.length + "\n";
+
+      // Sort highest indexes first so we can insert without affecting
+      // future indices.
+      var RF = "";
+      RF += "X".repeat(matchColCnt);
+      var sortedIdxs = Object.keys(insLocs).sort(function(a, b) {
+        return b - a;
+      });
+      sortedIdxs.forEach(function(idx) {
+        var insStr = "";
+        insStr += ".".repeat(insLocs[idx]);
+        RF = RF.substring(0, idx) + insStr + RF.substring(idx);
+      });
+
+      stockholmStr += "#=GC RF " + RF + "\n";
+
+      var i = 0;
+      var buildNextLine = function() {
+        if (!(i < stockholmSeqs.length)) {
+          schedule(finish);
+          return;
+        }
+
+        var seq = stockholmSeqs[i];
+        var j = 0;
+        var refPos = 0;
+        var tmpSeq = "";
+        while (j < seq.length) {
+          var ref = RF[refPos];
+          var seqBase = seq[j];
+          if (ref == ".") {
+            if (seqBase == "-" || (seqBase >= 'A' && seqBase <= 'Z')) {
+              // emit a placeholder "."
+              tmpSeq += '.';
+            } else {
+              // else keep the current character
+              tmpSeq += seqBase;
+              j++;
+            }
+          } else {
+            tmpSeq += seqBase;
+            j++;
+          }
+          refPos++;
+        }
+        stockholmSeqs[i] = tmpSeq.replace(/-/g, ".").toUpperCase();
+        stockholmStr += seedRegions[i].seq_id + "  " + stockholmSeqs[i] + "\n";
+
+        i++;
+        schedule(buildNextLine);
+      };
+
+      schedule(buildNextLine);
+
+      var finish = function () {
+        stockholmStr += "//\n";
+        resolve(stockholmStr);
+      };
+    };
+  });
 }
 
 
@@ -738,25 +796,26 @@ exports.readFamilySeed = function(id,format) {
     }).then(function(seed_regions) {
       family.seed_regions = seed_regions;
 
-      let stockholm = seedRegionsToStockholm(family);
+      return seedRegionsToStockholm(family).then(function(stockholm) {
+        if (format == "stockholm") {
+          return {
+            data: stockholm,
+            content_type: "text/plain",
+          };
+        } else if (format == "alignment_summary") {
+          // TODO: cache summary data
+          let alignment = new DfamSeedAlignment();
+          alignment.parseStockholm(stockholm);
+          let summary = alignment.toAlignmentSummary();
 
-      if (format == "stockholm") {
-        return {
-          data: stockholm,
-          content_type: "text/plain",
-        };
-      } else if (format == "alignment_summary") {
-        let alignment = new DfamSeedAlignment();
-        alignment.parseStockholm(stockholm);
-        let summary = alignment.toAlignmentSummary();
-
-        return {
-          data: JSON.stringify(summary),
-          content_type: "application/json",
-        };
-      } else {
-        return null;
-      }
+          return {
+            data: JSON.stringify(summary),
+            content_type: "application/json",
+          };
+        } else {
+          return null;
+        }
+      });
     });
   });
 };
