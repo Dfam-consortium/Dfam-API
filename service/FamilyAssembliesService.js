@@ -195,14 +195,17 @@ exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
     const models = getAssemblyModels(assembly.schema_name);
 
     return models.coverageDataModel.findOne({
-      attributes: [ "reversed", "forward", "nrph" ],
+      attributes: [ "reversed", "forward", "nrph", "num_rev", "num_full", "num_full_nrph" ],
       where: { "family_accession": id }
     }).then(function(coverage) {
       if (coverage) {
         return {
           "nrph": coverage.nrph.toString(),
+          "nrph_hits": coverage.num_full_nrph,
           "all": coverage.forward.toString(),
+          "all_hits": coverage.num_full,
           "false": coverage.reversed.toString(),
+          "false_hits": coverage.num_rev,
         };
       } else {
         return writer.respondWithCode(404, "");
