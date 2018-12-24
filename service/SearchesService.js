@@ -423,12 +423,10 @@ async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
 
   var ordStart = startPos;
   var ordEnd = endPos;
-  var orient = '+';
   if (ordEnd < ordStart)
   {
     ordStart = endPos;
     ordEnd = startPos;
-    orient = '-';
   }
 
   // TODO: Make location configurable

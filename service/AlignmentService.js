@@ -80,7 +80,6 @@ exports.formatAlignment = function(seqID, ordStart, ordEnd, nhmmer_out) {
   let seqStr = genMatch[3];
   let send = parseInt(genMatch[4]);
   let ppStr = lines[lineIndex].substring(ppStrOffset).replace(" PP", "");
-  let sstrand = send > sstart ? '+' : '-';
   sstart = ordStart + sstart - 1;
   send = ordStart + send - 1;
   alignRec['seq'] = {
@@ -113,12 +112,10 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, startPos, endPos, hmmData
 
   var ordStart = startPos;
   var ordEnd = endPos;
-  var orient = '+';
   if (ordEnd < ordStart)
   {
     ordStart = endPos;
     ordEnd = startPos;
-    orient = '-';
   }
 
   // TODO: Make twoBitToFa location configurable
