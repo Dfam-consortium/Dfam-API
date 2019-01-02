@@ -195,6 +195,9 @@ function familyQueryRowToObject(row, format) {
         "description": "description",
       });
 
+      // 'reverse' is stored as an integer
+      cds.reverse = !!cds.reverse;
+
       if (cs.exon_starts) {
         cds.exon_starts = cs.exon_starts.toString().split(",").map(x => parseInt(x));
       }
@@ -421,6 +424,10 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
       var replacements = { family_id: row.id };
 
       const subqueries = [];
+
+      // TODO: This runs a few subqueries (many in non-summary mode) per family.
+      // Consider changing "WHERE family.id = ..." to "WHERE family.id IN (...)"
+      // and merging the results if it performs better than the individual queries.
 
       subqueries.push(conn.query("SELECT lineage FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
 

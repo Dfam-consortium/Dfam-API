@@ -115,6 +115,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -137,6 +139,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -551,6 +555,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -650,6 +656,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -690,6 +698,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -751,6 +761,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -791,6 +803,8 @@ paths:
       responses:
         '200':
           description: Success
+          schema:
+            type: string
         default:
           description: Error
           schema:
@@ -1076,13 +1090,13 @@ definitions:
       date_modified:
         type: string
       target_site_cons:
-        type: string
+        type: [ 'string', 'null' ]
       refineable:
         type: boolean
       disabled:
         type: boolean
       model_mask:
-        type: string
+        type: [ 'string', 'null' ]
       hmm_general_nc:
         type: number
       aliases:
@@ -1135,11 +1149,81 @@ definitions:
             journal:
               type: string
             pubdate:
-              type: string
+              type: [ 'string', 'null' ]
       clades:
         type: array
         items:
           type: string
+      coding_seqs:
+        type: array
+        items:
+          type: object
+          properties:
+            product:
+              type: string
+            translation:
+              type: string
+            cds_start:
+              type: integer
+            cds_end:
+              type: integer
+            exon_count:
+              type: integer
+            exon_starts:
+              type: array
+              items:
+                type: integer
+            exon_ends:
+              type: array
+              items:
+                type: integer
+            external_reference:
+              type: [ 'string', 'null' ]
+            reverse:
+              type: boolean
+            stop_codons:
+              type: integer
+            frameshifts:
+              type: integer
+            gaps:
+              type: integer
+            percent_identity:
+              type: number
+            left_unaligned:
+              type: integer
+            right_unaligned:
+              type: integer
+            classification_id:
+              type: integer
+            align_data:
+              type: [ 'string', 'null' ]
+            description:
+              type: string
+      features:
+        type: array
+        items:
+          type: object
+          properties:
+            type:
+              type: string
+            description:
+              type: string
+            model_start_pos:
+              type: integer
+            model_end_pos:
+              type: integer
+            label:
+              type: string
+            attributes:
+              type: array
+              items:
+                type: object
+                properties:
+                  attribute:
+                    type: string
+                  value:
+                    type: string
+
   familyAssembliesResponse:
     type: array
     items:
