@@ -43,9 +43,15 @@ module.exports.readFamilyById = function readFamilyById (req, res, next) {
 module.exports.readFamilyHmm = function readFamilyHmm (req, res, next) {
   var id = req.swagger.params['id'].value;
   var format = req.swagger.params['format'].value;
+  var download = req.swagger.params['download'].value;
   Families.readFamilyHmm(id,format)
     .then(function (response) {
       if (response) {
+        if (download) {
+          const extensions = { 'hmm': '.hmm', 'logo': '.json', 'image': '.png' };
+          const filename = id + extensions[format];
+          res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+        }
         res.writeHead(200, { 'Content-Type': response.content_type });
         res.end(response.data);
       } else {
@@ -72,9 +78,15 @@ module.exports.readFamilyRelationships = function readFamilyRelationships (req, 
 module.exports.readFamilySeed = function readFamilySeed (req, res, next) {
   var id = req.swagger.params['id'].value;
   var format = req.swagger.params['format'].value;
+  var download = req.swagger.params['download'].value;
   Families.readFamilySeed(id,format)
     .then(function (response) {
       if (response) {
+        if (download) {
+          const extensions = { 'stockholm': '.stk', 'alignment_summary': '.json' };
+          const filename = id + extensions[format];
+          res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+        }
         res.writeHead(200, { 'Content-Type': response.content_type });
         res.end(response.data);
       } else {

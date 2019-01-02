@@ -30,9 +30,14 @@ module.exports.readFamilyAssemblyAnnotations = function readFamilyAssemblyAnnota
   var id = req.swagger.params['id'].value;
   var assembly_id = req.swagger.params['assembly_id'].value;
   var nrph = req.swagger.params['nrph'].value;
+  var download = req.swagger.params['download'].value;
   FamilyAssemblies.readFamilyAssemblyAnnotations(id,assembly_id,nrph)
     .then(function (response) {
       if (response) {
+        if (download) {
+          const filename = id + '.' + assembly_id + (nrph ? '.nr-hits' : '.hits') + '.tsv';
+          res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+        }
         res.writeHead(200, { 'Content-Type': response.content_type });
         res.end(response.data);
       } else {

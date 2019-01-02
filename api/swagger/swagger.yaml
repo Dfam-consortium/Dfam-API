@@ -302,6 +302,11 @@ paths:
           description: 'The desired output format, "hmm" or "logo" or "image"'
           required: true
           type: string
+        - name: download
+          in: query
+          description: If true, adds headers to trigger a browser download
+          required: false
+          type: boolean
       produces:
         - text/plain
         - application/json
@@ -335,6 +340,11 @@ paths:
           description: The format to return, one of 'stockholm' or 'alignment_summary'
           required: true
           type: string
+        - name: download
+          in: query
+          description: If true, adds headers to trigger a browser download
+          required: false
+          type: boolean
       responses:
         '200':
           description: Success
@@ -495,6 +505,11 @@ paths:
           in: query
           description: '"true" to include only non-redundant profile hits'
           required: true
+          type: boolean
+        - name: download
+          in: query
+          description: If true, adds headers to trigger a browser download
+          required: false
           type: boolean
       produces:
         - text/plain
