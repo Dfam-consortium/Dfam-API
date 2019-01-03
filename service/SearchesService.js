@@ -474,7 +474,10 @@ async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
   // Do the search
   // TODO: Make nhmmer location configurable
   const nhmmer = '/usr/local/hmmer/bin/nhmmer';
-  const nhmmer_out = await execFileAsync(nhmmer, ['--max', '-Z', '3102', '-E', '1000', '--notextw', hmmFile.path, seqFile.path]);
+  // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
+  // TODO: (JR) A region might match a model more than once. The "best" match within the
+  //       region will be used here, which might not be the right one.
+  const nhmmer_out = await execFileAsync(nhmmer, ['--max', '-T', '0', '--notextw', hmmFile.path, seqFile.path]);
 
   hmmFile.cleanup();
   seqFile.cleanup();
