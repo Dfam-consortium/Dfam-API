@@ -52,7 +52,10 @@ module.exports.readFamilyHmm = function readFamilyHmm (req, res, next) {
           const filename = id + extensions[format];
           res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
         }
-        res.writeHead(200, { 'Content-Type': response.content_type });
+        res.writeHead(200, {
+          'Content-Type': response.content_type,
+          'Content-Length': Buffer.byteLength(response.data),
+        });
         res.end(response.data);
       } else {
         res.statusCode = 404;
@@ -87,7 +90,10 @@ module.exports.readFamilySeed = function readFamilySeed (req, res, next) {
           const filename = id + extensions[format];
           res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
         }
-        res.writeHead(200, { 'Content-Type': response.content_type });
+        res.writeHead(200, {
+          'Content-Type': response.content_type,
+          'Content-Length': Buffer.byteLength(response.data),
+        });
         res.end(response.data);
       } else {
         res.statusCode = 404;

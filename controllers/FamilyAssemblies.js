@@ -38,7 +38,10 @@ module.exports.readFamilyAssemblyAnnotations = function readFamilyAssemblyAnnota
           const filename = id + '.' + assembly_id + (nrph ? '.nr-hits' : '.hits') + '.tsv';
           res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
         }
-        res.writeHead(200, { 'Content-Type': response.content_type });
+        res.writeHead(200, {
+          'Content-Type': response.content_type,
+          'Content-Length': Buffer.byteLength(response.data),
+        });
         res.end(response.data);
       } else {
         res.statusCode = 404;

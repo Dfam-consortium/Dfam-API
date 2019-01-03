@@ -309,6 +309,7 @@ paths:
           type: boolean
       produces:
         - text/plain
+        - image/png
         - application/json
       responses:
         '200':
