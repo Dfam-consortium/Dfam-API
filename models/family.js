@@ -108,6 +108,10 @@ module.exports = function(sequelize, DataTypes) {
     hmm_general_NC: {
       type: "DOUBLE",
       allowNull: true
+    },
+    seed_ref: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     tableName: 'family'

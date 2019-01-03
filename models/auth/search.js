@@ -39,7 +39,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: 'dfamhmm'
     },
     status: {
-      type: DataTypes.STRING(5),
+      type: DataTypes.STRING(10),
       allowNull: true,
       defaultValue: 'PEND'
     },

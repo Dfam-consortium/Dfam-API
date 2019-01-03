@@ -15,7 +15,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     description: {
       type: DataTypes.STRING(100),
-      allowNull: false
+      allowNull: true
     },
     dfam_taxdb_tax_id: {
       type: DataTypes.BIGINT,
@@ -26,16 +26,16 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     source: {
-      type: DataTypes.ENUM('ensembl','ensembl_genomes','ncbi','ucsc'),
-      allowNull: false
+      type: DataTypes.ENUM('ensembl','ensembl_genomes','broad','ncbi','ucsc','baylor'),
+      allowNull: true
     },
     release_date: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: true
     },
     version: {
       type: DataTypes.STRING(45),
-      allowNull: false
+      allowNull: true
     },
     schema_name: {
       type: DataTypes.STRING(45),
@@ -50,6 +50,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER(11),
       allowNull: true,
       defaultValue: '0'
+    },
+    z_size: {
+      type: DataTypes.BIGINT,
+      allowNull: true
     }
   }, {
     tableName: 'assembly'

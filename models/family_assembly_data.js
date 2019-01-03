@@ -159,6 +159,10 @@ module.exports = function(sequelize, DataTypes) {
     cons_avg_hit_length: {
       type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: true
+    },
+    hmm_thresh_search_evalue: {
+      type: DataTypes.STRING(15),
+      allowNull: true
     }
   }, {
     tableName: 'family_assembly_data'

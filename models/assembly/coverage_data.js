@@ -33,7 +33,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     karyotype: {
       type: "LONGBLOB",
-      allowNull: false
+      allowNull: true
     }
   }, {
     tableName: 'coverage_data'

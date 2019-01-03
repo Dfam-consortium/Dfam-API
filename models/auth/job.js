@@ -18,7 +18,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '0'
     },
     status: {
-      type: DataTypes.STRING(5),
+      type: DataTypes.STRING(10),
       allowNull: true,
       defaultValue: 'PEND'
     },
