@@ -193,6 +193,7 @@ function familyQueryRowToObject(row, format) {
         "classification_id": "classification_id",
         "align_data": "align_data",
         "description": "description",
+        "protein_type": "protein_type",
       });
 
       // 'reverse' is stored as an integer

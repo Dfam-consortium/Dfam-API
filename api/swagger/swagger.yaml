@@ -1214,6 +1214,8 @@ definitions:
               type: [ 'string', 'null' ]
             description:
               type: string
+            protein_type:
+              type: string
       features:
         type: array
         items:
