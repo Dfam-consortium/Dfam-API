@@ -1020,9 +1020,12 @@ definitions:
         items:
           type: object
           required:
-            - species_name
+            - id
+            - name
           properties:
-            species_name:
+            id:
+              type: number
+            name:
               type: string
             assembly:
               type: string

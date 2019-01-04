@@ -18,7 +18,7 @@ ncbiTaxonomyNames.belongsTo(assembly, { foreignKey: 'tax_id', targetKey: 'dfam_t
 exports.readTaxa = function(name,limit,annotated) {
   if (annotated) {
     return ncbiTaxonomyNames.findAll({
-      attributes: ["name_txt"],
+      attributes: ["tax_id", "name_txt"],
       where: {
         name_class: "scientific name",
         name_txt: { [Sequelize.Op.like]: "%" + name + "%" },
@@ -35,10 +35,10 @@ exports.readTaxa = function(name,limit,annotated) {
       ],
       limit: limit || 20,
     }).then(function(results) {
-      return { "taxa": results.map(r => ({ "assembly": r.assembly.name, "species_name": r.name_txt })) };
+      return { "taxa": results.map(r => ({ "id": r.tax_id, "name": r.name_txt, "assembly": r.assembly.name })) };
     });
   } else {
-    const query = "SELECT name_txt FROM ncbi_taxdb_names WHERE name_class = 'scientific name' AND name_txt LIKE :where_contains ESCAPE '#' ORDER BY (CASE WHEN name_txt = :where_name THEN 1 WHEN name_txt LIKE :where_prefix ESCAPE '#' THEN 2 ELSE 3 END), name_txt LIMIT :limit";
+    const query = "SELECT tax_id, CASE WHEN unique_name <> '' THEN unique_name ELSE name_txt END AS display_name FROM ncbi_taxdb_names WHERE name_class = 'scientific name' AND name_txt LIKE :where_contains ESCAPE '#' ORDER BY (CASE WHEN display_name = :where_name THEN 1 WHEN display_name LIKE :where_prefix ESCAPE '#' THEN 2 ELSE 3 END), display_name LIMIT :limit";
     const replacements = {
       where_name: name,
       where_prefix: escape_sql_like(name, "#") + "%",
@@ -47,7 +47,7 @@ exports.readTaxa = function(name,limit,annotated) {
     };
 
     return conn.query(query, { type: "SELECT", replacements }).then(function(results) {
-      return { "taxa": results.map(r => ({ "species_name": r.name_txt })) };
+      return { "taxa": results.map(r => ({ "id": r.tax_id, "name": r.display_name })) };
     });
   }
 };

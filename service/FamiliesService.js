@@ -219,60 +219,77 @@ function familyQueryRowToObject(row, format) {
 // Otherwise, result.ids is a list of IDs (self + ancestors) and
 // result.lineage is a lineage string (useful for searching descendants).
 // result.ids will only contain ancestors if clade_relatives is "ancestors" or "both"
-function collectClades(clade, clade_relatives) {
+async function collectClades(clade, clade_relatives) {
   const result = { ids: [], lineage: null };
 
-  return ncbiTaxdbNamesModel.findOne({
-    where: { name_class: 'scientific name', name_txt: clade },
-    attributes: [ 'tax_id', 'name_txt' ],
-    include: [
-      { model: ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
-    ],
-  }).then(function(record) {
-    if (!record) {
-      return null;
+  // Try clade by ID first
+  const id = parseInt(clade);
+  let record;
+  if (!isNaN(id)) {
+    record = await ncbiTaxdbNamesModel.findOne({
+      where: { tax_id: id, name_class: 'scientific name' },
+      attributes: [ 'tax_id', 'name_txt' ],
+      include: [
+        { model: ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
+      ],
+    });
+  }
+
+  // Then try by scientific name
+  if (!record) {
+    record = await ncbiTaxdbNamesModel.findOne({
+      where: { name_class: 'scientific name', name_txt: clade },
+      attributes: [ 'tax_id', 'name_txt' ],
+      include: [
+        { model: ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
+      ],
+    });
+  }
+
+  if (!record) {
+    return null;
+  }
+
+  // Primary results: the given ID and its lineage
+  result.ids.push(record.tax_id);
+  result.lineage = record.name_txt;
+
+  // Secondary query: parent IDs
+  const recurseParents = async function(parent_id) {
+    const parent = await ncbiTaxdbNodesModel.findOne({
+      attributes: [ 'tax_id', 'parent_id' ],
+      where: { tax_id: parent_id },
+      include: [
+        { model: ncbiTaxdbNamesModel, where: { name_class: 'scientific name' }, attributes: [ 'name_txt' ] },
+      ]
+    });
+
+    if (parent) {
+      if (clade_relatives === "ancestors" || clade_relatives === "both") {
+        result.ids.push(parent.tax_id);
+      }
+
+      let parent_name = "";
+      if (parent.ncbi_taxdb_names.length) {
+        parent_name = parent.ncbi_taxdb_names[0].name_txt;
+      }
+      result.lineage = parent_name + ";" + result.lineage;
+
+      if (parent_id !== 1) {
+        return recurseParents(parent.parent_id);
+      }
     }
+  };
 
-    // Primary results: the given ID and its lineage
-    result.ids.push(record.tax_id);
-    result.lineage = record.name_txt;
+  let recurseParentsPromise;
+  if (record.tax_id !== 1) {
+    recurseParentsPromise = recurseParents(record.ncbi_taxdb_node.parent_id);
+  } else {
+    recurseParentsPromise = Promise.resolve();
+  }
 
-    // Secondary query: parent IDs
-    const recurseParents = function(parent_id) {
-      return ncbiTaxdbNodesModel.findOne({
-        attributes: [ 'tax_id', 'parent_id' ],
-        where: { tax_id: parent_id },
-        include: [
-          { model: ncbiTaxdbNamesModel, where: { name_class: 'scientific name' }, attributes: [ 'name_txt' ] },
-        ]
-      }).then(function(parent) {
-        if (parent) {
-          if (clade_relatives === "ancestors" || clade_relatives === "both") {
-            result.ids.push(parent.tax_id);
-          }
-
-          let parent_name = "";
-          if (parent.ncbi_taxdb_names.length) {
-            parent_name = parent.ncbi_taxdb_names[0].name_txt;
-          }
-          result.lineage = parent_name + ";" + result.lineage;
-
-          if (parent_id !== 1) {
-            return recurseParents(parent.parent_id);
-          }
-        }
-      });
-    };
-
-    let recurseParentsResult;
-    if (record.tax_id !== 1) {
-      recurseParentsResult = recurseParents(record.ncbi_taxdb_node.parent_id);
-    } else {
-      recurseParentsResult = Promise.resolve();
-    }
-
-    return recurseParentsResult.then(function() { return result; });
-  });
+  await recurseParentsPromise;
+  return result;
 }
 
 /**
@@ -344,7 +361,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     if (clade_relatives === "descendants" || clade_relatives === "both") {
       clade_where.push("dfam_taxdb.lineage LIKE :where_lineage ESCAPE '#'");
       from += "LEFT JOIN dfam_taxdb ON dfam_taxdb.tax_id = family_clade.dfam_taxdb_tax_id ";
-      replacements.where_lineage = escape.escape_sql_like(clade_info.lineage, '#') + "%";
+      replacements.where_lineage = escape.escape_sql_like(clade_info.lineage, '#') + ";%";
     }
 
     where.push("( " + clade_where.join(" OR ") + " )");
