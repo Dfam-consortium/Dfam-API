@@ -412,7 +412,10 @@ function parseTRF( filePath ) {
 
 // TODO: deduplicate a lot of this code with AlignmentService.
 async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
-  const [seqFile, hmmFile] = await Promise.all([tmpFileAsync(), tmpFileAsync()]);
+  const [seqFile, hmmFile] = await Promise.all([
+    tmpFileAsync({ detachDescriptor: true }),
+    tmpFileAsync({ detachDescriptor: true }),
+  ]);
 
   // Save HMM data to file
   const writeHmmFile = promisify(fs.writeFile)(hmmFile.fd, hmmData, null).then(function() {
@@ -469,18 +472,19 @@ async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
     throw new Error('Error saving sequence data to a temporary file.' + err);
   });
 
-  await Promise.all([writeHmmFile, writeFastaFile]);
+  try {
+    await Promise.all([writeHmmFile, writeFastaFile]);
 
-  // Do the search
-  // TODO: Make nhmmer location configurable
-  const nhmmer = '/usr/local/hmmer/bin/nhmmer';
-  // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
-  // TODO: (JR) A region might match a model more than once. The "best" match within the
-  //       region will be used here, which might not be the right one.
-  const nhmmer_out = await execFileAsync(nhmmer, ['--max', '-T', '0', '--notextw', hmmFile.path, seqFile.path]);
-
-  hmmFile.cleanup();
-  seqFile.cleanup();
-
-  return AlignmentService.formatAlignment(seqID, ordStart, ordEnd, nhmmer_out.stdout, startPos);
+    // Do the search
+    // TODO: Make nhmmer location configurable
+    const nhmmer = '/usr/local/hmmer/bin/nhmmer';
+    // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
+    // TODO: (JR) A region might match a model more than once. The "best" match within the
+    //       region will be used here, which might not be the right one.
+    const nhmmer_out = await execFileAsync(nhmmer, ['--max', '-T', '0', '--notextw', hmmFile.path, seqFile.path]);
+    return AlignmentService.formatAlignment(seqID, ordStart, ordEnd, nhmmer_out.stdout, startPos);
+  } finally {
+    hmmFile.cleanup();
+    seqFile.cleanup();
+  }
 }

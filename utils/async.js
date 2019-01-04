@@ -2,9 +2,9 @@ const tmp = require('tmp');
 const child_process = require('child_process');
 
 // Wrapper around tmp.file that returns a Promise
-exports.tmpFileAsync = function() {
+exports.tmpFileAsync = function(options) {
   return new Promise(function(resolve, reject) {
-    tmp.file(function(err, path, fd, cleanup) {
+    tmp.file(options, function(err, path, fd, cleanup) {
       if (err) { reject(err); }
       else { resolve({ path, fd, cleanup }); }
     });
