@@ -19,6 +19,7 @@ const ncbiTaxdbNamesModel = require("../models/ncbi_taxdb_names.js")(conn, Seque
 const ncbiTaxdbNodesModel = require("../models/ncbi_taxdb_nodes.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
 const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
+const seedAlignDataModel = require("../models/seed_align_data.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
 const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
 const curationStateModel = require("../models/curation_state.js")(conn, Sequelize);
@@ -30,8 +31,6 @@ const conn_users = require('../databases').users;
 const userModel = require('../models/auth/user')(conn_users, Sequelize);
 
 const escape = require("../utils/escape.js");
-const writer = require("../utils/writer.js");
-const DfamSeedAlignment = require("Dfam-js/dist/Dfam-js");
 
 seedRegionModel.removeAttribute('id');
 
@@ -530,7 +529,7 @@ exports.readFamilyById = function(id) {
         return familyQueryRowToObject(row);
       });
     } else {
-      return writer.respondWithCode(404, "");
+      return null;
     }
   });
 };
@@ -815,33 +814,38 @@ exports.readFamilySeed = function(id,format) {
     attributes: [ "id", "name", "description" ],
     where: { accession: id },
   }).then(function(family) {
-    return seedRegionModel.findAll({
-      attributes: [ "a2m_seq", "seq_id" ],
-      where: { family_id: family.id },
-    }).then(function(seed_regions) {
-      family.seed_regions = seed_regions;
+    if (format == "stockholm") {
+      return seedRegionModel.findAll({
+        attributes: [ "a2m_seq", "seq_id" ],
+        where: { family_id: family.id },
+      }).then(function(seed_regions) {
+        family.seed_regions = seed_regions;
 
-      return seedRegionsToStockholm(family).then(function(stockholm) {
-        if (format == "stockholm") {
+        return seedRegionsToStockholm(family).then(function(stockholm) {
           return {
             data: stockholm,
             content_type: "text/plain",
           };
-        } else if (format == "alignment_summary") {
-          // TODO: cache summary data
-          let alignment = new DfamSeedAlignment();
-          alignment.parseStockholm(stockholm);
-          let summary = alignment.toAlignmentSummary();
-
+        });
+      });
+    } else if (format == "alignment_summary") {
+      return seedAlignDataModel.findOne({
+        attributes: ["graph_json"],
+        where: { family_id: family.id },
+      }).then(function(seedAlignData) {
+        if (seedAlignData) {
           return {
-            data: JSON.stringify(summary),
+            data: seedAlignData.graph_json,
             content_type: "application/json",
+            encoding: 'gzip'
           };
         } else {
           return null;
         }
       });
-    });
+    } else {
+      return null;
+    }
   });
 };
 

@@ -1,13 +1,13 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
+var APIResponse = require('../utils/response.js').APIResponse;
 var FamilyAssemblies = require('../service/FamilyAssembliesService');
 
 module.exports.readFamilyAssemblies = function readFamilyAssemblies (req, res, next) {
   var id = req.swagger.params['id'].value;
   FamilyAssemblies.readFamilyAssemblies(id)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -19,7 +19,7 @@ module.exports.readFamilyAssemblyAnnotationStats = function readFamilyAssemblyAn
   var assembly_id = req.swagger.params['assembly_id'].value;
   FamilyAssemblies.readFamilyAssemblyAnnotationStats(id,assembly_id)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -34,18 +34,19 @@ module.exports.readFamilyAssemblyAnnotations = function readFamilyAssemblyAnnota
   FamilyAssemblies.readFamilyAssemblyAnnotations(id,assembly_id,nrph)
     .then(function (response) {
       if (response) {
+        const headers = {};
         if (download) {
           const filename = id + '.' + assembly_id + (nrph ? '.nr-hits' : '.hits') + '.tsv';
-          res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+          headers["Content-Disposition"] = 'attachment; filename="' + filename + '"';
         }
-        res.writeHead(200, {
-          'Content-Type': response.content_type,
-          'Content-Length': Buffer.byteLength(response.data),
-        });
-        res.end(response.data);
+
+        return new APIResponse(response.data, {
+          headers,
+          contentType: response.content_type,
+          encoding: response.encoding,
+        }).respond(req, res);
       } else {
-        res.statusCode = 404;
-        res.end();
+        return new APIResponse().respond(req, res);
       }
     })
     .catch(function (err) {
@@ -58,7 +59,7 @@ module.exports.readFamilyAssemblyKaryotype = function readFamilyAssemblyKaryotyp
   var assembly_id = req.swagger.params['assembly_id'].value;
   FamilyAssemblies.readFamilyAssemblyKaryotype(id,assembly_id)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response, { contentType: "application/json" }).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -71,7 +72,7 @@ module.exports.readFamilyAssemblyModelCoverage = function readFamilyAssemblyMode
   var model = req.swagger.params['model'].value;
   FamilyAssemblies.readFamilyAssemblyModelCoverage(id,assembly_id,model)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -84,7 +85,7 @@ module.exports.readFamilyAssemblyModelConservation = function readFamilyAssembly
   var model = req.swagger.params['model'].value;
   FamilyAssemblies.readFamilyAssemblyModelConservation(id,assembly_id,model)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);

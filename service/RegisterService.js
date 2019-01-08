@@ -6,7 +6,7 @@ const Sequelize = require('sequelize');
 const auth = require('../auth');
 const conn = require('../databases').users;
 const userModel = require('../models/auth/user')(conn, Sequelize);
-const writer = require('../utils/writer');
+const APIResponse = require('../utils/response.js').APIResponse;
 
 const transporter = require('nodemailer').createTransport({
   sendmail: true,
@@ -22,9 +22,7 @@ const transporter = require('nodemailer').createTransport({
  **/
 exports.register = function(email,name,password) {
   if (email.indexOf("@") == -1) {
-    return Promise.resolve(writer.respondWithCode(400, {
-      message: "Email must contain an @ sign."
-    }));
+    return Promise.resolve(new APIResponse({ message: "Email must contain an @ sign." }, 400));
   }
 
   const { salt, hash } = auth.hashPassword(password);
@@ -32,7 +30,7 @@ exports.register = function(email,name,password) {
 
   return userModel.count({ where: { email } }).then(function(count) {
     if (count) {
-      return writer.respondWithCode(400, { message: "Email is already registered." });
+      return new APIResponse({ message: "Email is already registered." }, 400);
     }
 
     return userModel.create({
@@ -85,9 +83,7 @@ exports.verifyEmail = function(token) {
         return { message: "Verification succeeded." };
       });
     } else {
-      return writer.respondWithCode(400, {
-        message: "Invalid verification token."
-      });
+      return new APIResponse({ message: "Invalid verification token." }, 400);
     }
   });
 };

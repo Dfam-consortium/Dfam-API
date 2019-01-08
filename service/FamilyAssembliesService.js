@@ -3,13 +3,11 @@
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const getAssemblyModels = require("../databases.js").getAssemblyModels;
-const zlib = require("zlib");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const familyAssemblyDataModel = require("../models/family_assembly_data.js")(conn, Sequelize);
 const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
 const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
-const writer = require("../utils/writer.js");
 const mapFields = require("../utils/mapFields.js");
 
 familyAssemblyDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
@@ -122,22 +120,11 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
       attributes: [ column ],
       where: { "family_accession": id }
     }).then(function(files) {
-      return new Promise(function(resolve, reject) {
-        if (!files || !files[column]) {
-          return resolve(null);
-        }
+      if (!files || !files[column]) {
+        return null;
+      }
 
-        zlib.gunzip(files[column], function(err, data) {
-          if (err) { reject(err); }
-          else { resolve(data); }
-        });
-      }).then(function(data) {
-        if (data) {
-          return { data, content_type: "text/plain" };
-        } else {
-          return null;
-        }
-      });
+      return { data: files[column], content_type: "text/plain", encoding: "gzip" };
     });
   });
 };
@@ -208,7 +195,7 @@ exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
           "false_hits": coverage.num_rev,
         };
       } else {
-        return writer.respondWithCode(404, "");
+        return null;
       }
     });
   });

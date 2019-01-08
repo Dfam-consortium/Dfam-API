@@ -1,13 +1,13 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
+var APIResponse = require('../utils/response.js').APIResponse;
 var Search = require('../service/SearchesService');
 
 module.exports.readSearchResults = function readSearchResults (req, res, next) {
   var id = req.swagger.params['id'].value;
   Search.readSearchResults(id)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -22,7 +22,7 @@ module.exports.readSearchResultAlignment = function readSearchResultAlignment (r
   var family = req.swagger.params['family'].value;
   Search.readSearchResultAlignment(id,sequence,start,end,family)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -36,7 +36,7 @@ module.exports.submitSearch = function submitSearch (req, res, next) {
   var evalue = req.swagger.params['evalue'].value;
   Search.submitSearch(sequence,organism,cutoff,evalue)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);

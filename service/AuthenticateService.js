@@ -6,7 +6,7 @@ const Sequelize = require('sequelize');
 const auth = require('../auth');
 const conn = require('../databases').users;
 const userModel = require('../models/auth/user')(conn, Sequelize);
-const writer = require('../utils/writer');
+const APIResponse = require('../utils/response.js').APIResponse;
 
 /**
  * Obtain API access token for previously registered user.
@@ -21,7 +21,7 @@ exports.authenticate = function(email,password) {
       if (auth.validatePassword(password, user.salt, user.pw_hash)) {
         if (!user.email_verified_date) {
           winston.debug("Authentication failed (unverified): ", { email });
-          return writer.respondWithCode(400, { message: "Please verify your email address." });
+          return new APIResponse({ message: "Please verify your email address." }, 400);
         }
 
         winston.debug("Authentication success: ", { email });
@@ -34,7 +34,7 @@ exports.authenticate = function(email,password) {
       winston.debug("Authentication failed (email): ", { email });
     }
 
-    return writer.respondWithCode(400, { message: "Invalid username or password." });
+    return new APIResponse({ message: "Invalid username or password." }, 400);
   });
 };
 

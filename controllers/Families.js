@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
+var APIResponse = require('../utils/response.js').APIResponse;
 var Families = require('../service/FamiliesService');
 
 module.exports.readFamilies = function readFamilies (req, res, next) {
@@ -22,7 +22,7 @@ module.exports.readFamilies = function readFamilies (req, res, next) {
   var limit = req.swagger.params['limit'].value;
   Families.readFamilies(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -33,7 +33,7 @@ module.exports.readFamilyById = function readFamilyById (req, res, next) {
   var id = req.swagger.params['id'].value;
   Families.readFamilyById(id)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -47,19 +47,20 @@ module.exports.readFamilyHmm = function readFamilyHmm (req, res, next) {
   Families.readFamilyHmm(id,format)
     .then(function (response) {
       if (response) {
+        const headers = {};
         if (download) {
           const extensions = { 'hmm': '.hmm', 'logo': '.json', 'image': '.png' };
           const filename = id + extensions[format];
-          res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+          headers["Content-Disposition"] = 'attachment; filename="' + filename + '"';
         }
-        res.writeHead(200, {
-          'Content-Type': response.content_type,
-          'Content-Length': Buffer.byteLength(response.data),
-        });
-        res.end(response.data);
+
+        return new APIResponse(response.data, {
+          headers,
+          contentType: response.content_type,
+          encoding: response.encoding,
+        }).respond(req, res);
       } else {
-        res.statusCode = 404;
-        res.end();
+        return new APIResponse().respond(req, res);
       }
     })
     .catch(function (err) {
@@ -71,7 +72,7 @@ module.exports.readFamilyRelationships = function readFamilyRelationships (req, 
   var id = req.swagger.params['id'].value;
   Families.readFamilyRelationships(id)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -85,19 +86,20 @@ module.exports.readFamilySeed = function readFamilySeed (req, res, next) {
   Families.readFamilySeed(id,format)
     .then(function (response) {
       if (response) {
+        const headers = {};
         if (download) {
           const extensions = { 'stockholm': '.stk', 'alignment_summary': '.json' };
           const filename = id + extensions[format];
           res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
         }
-        res.writeHead(200, {
-          'Content-Type': response.content_type,
-          'Content-Length': Buffer.byteLength(response.data),
-        });
-        res.end(response.data);
+
+        return new APIResponse(response.data, {
+          headers,
+          contentType: response.content_type,
+          encoding: response.encoding,
+        }).respond(req, res);
       } else {
-        res.statusCode = 404;
-        res.end();
+        return new APIResponse().respond(req, res);
       }
     })
     .catch(function (err) {

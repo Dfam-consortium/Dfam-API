@@ -1,12 +1,12 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
+var APIResponse = require('../utils/response.js').APIResponse;
 var Assemblies = require('../service/AssembliesService');
 
 module.exports.readAssemblies = function readAssemblies (req, res, next) {
   Assemblies.readAssemblies()
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (response) {
       next(err);

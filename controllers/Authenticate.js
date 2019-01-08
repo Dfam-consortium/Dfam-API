@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
+var APIResponse = require('../utils/response.js').APIResponse;
 var Authenticate = require('../service/AuthenticateService');
 
 module.exports.authenticate = function authenticate (req, res, next) {
@@ -8,7 +8,7 @@ module.exports.authenticate = function authenticate (req, res, next) {
   var password = req.swagger.params['password'].value;
   Authenticate.authenticate(email,password)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);

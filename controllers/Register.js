@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
+var APIResponse = require('../utils/response.js').APIResponse;
 var Register = require('../service/RegisterService');
 
 module.exports.register = function register (req, res, next) {
@@ -9,7 +9,7 @@ module.exports.register = function register (req, res, next) {
   var password = req.swagger.params['password'].value;
   Register.register(email,name,password)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
@@ -20,7 +20,7 @@ module.exports.verifyEmail = function verifyEmail (req, res, next) {
   var token = req.swagger.params['token'].value;
   Register.verifyEmail(token)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);

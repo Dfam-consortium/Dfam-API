@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
+var APIResponse = require('../utils/response.js').APIResponse;
 var Alignment = require('../service/AlignmentService');
 
 module.exports.readAlignment = function readAlignment (req, res, next) {
@@ -11,7 +11,7 @@ module.exports.readAlignment = function readAlignment (req, res, next) {
   var family = req.swagger.params['family'].value;
   Alignment.readAlignment(assembly,chrom,start,end,family)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);

@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
+var APIResponse = require('../utils/response.js').APIResponse;
 var Annotations = require('../service/AnnotationsService');
 
 module.exports.readAnnotations = function readAnnotations (req, res, next) {
@@ -12,7 +12,7 @@ module.exports.readAnnotations = function readAnnotations (req, res, next) {
   var nrph = req.swagger.params['nrph'].value;
   Annotations.readAnnotations(assembly,chrom,start,end,family,nrph)
     .then(function (response) {
-      utils.writeJson(res, response);
+      return new APIResponse(response).respond(req, res);
     })
     .catch(function (err) {
       next(err);
