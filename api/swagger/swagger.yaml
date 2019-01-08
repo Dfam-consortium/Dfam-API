@@ -1089,7 +1089,7 @@ definitions:
       length:
         type: integer
       classification:
-        type: string
+        type: [ 'string', 'null' ]
       repeat_type_name:
         type:
           - string
@@ -1101,12 +1101,16 @@ definitions:
       consensus_sequence:
         type: string
       author:
-        type: string
+        type: [ 'string', 'null' ]
       submitter:
         type: string
       date_created:
         type: string
       date_modified:
+        type: [ 'string', 'null' ]
+      curation_state_name:
+        type: string
+      curation_state_description:
         type: string
       target_site_cons:
         type: [ 'string', 'null' ]
