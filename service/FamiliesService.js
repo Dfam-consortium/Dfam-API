@@ -7,6 +7,7 @@ const mapFields = require("../utils/mapFields.js");
 const child_process = require('child_process');
 const config = require("../config");
 const path = require("path");
+const runWorkerAsync = require('../utils/async').runWorkerAsync;
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
@@ -20,7 +21,6 @@ const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
 const ncbiTaxdbNamesModel = require("../models/ncbi_taxdb_names.js")(conn, Sequelize);
 const ncbiTaxdbNodesModel = require("../models/ncbi_taxdb_nodes.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
-const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
 const seedAlignDataModel = require("../models/seed_align_data.js")(conn, Sequelize);
 const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
 const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
@@ -34,10 +34,7 @@ const userModel = require('../models/auth/user')(conn_users, Sequelize);
 
 const escape = require("../utils/escape.js");
 
-seedRegionModel.removeAttribute('id');
-
 familyModel.hasMany(aliasModel, { foreignKey: 'family_id', as: 'aliases' });
-familyModel.hasMany(seedRegionModel, { foreignKey: 'family_id' });
 familyModel.belongsTo(curationStateModel, { foreignKey: 'curation_state_id', as: 'curation_state' });
 familyModel.belongsTo(classificationModel, { foreignKey: 'classification_id', as: 'classification' });
 familyModel.belongsToMany(rmStageModel, { as: 'search_stages', through: 'family_has_search_stage', foreignKey: 'family_id', otherKey: 'repeatmasker_stage_id' });
@@ -669,142 +666,6 @@ exports.readFamilyRelationships = function(id) {
   });
 };
 
-// TODO: Move this to Dfam-js
-//
-// Converts a DFAM family to Stockholm data.
-// Expected format: family = {
-//  "name": "Name",
-//  "description: "Description",
-//  "seed_regions": [
-//    { a2m_seq: "sequence1" },
-//    { a2m_seq: "sequence2" },
-//    ...
-//  ],
-// }
-//
-// Returns a promise that resolves to a single string, the stockholm-formatted output.
-function seedRegionsToStockholm(family) {
-  if (family == null || family.seed_regions == null || family.seed_regions.length == 0) {
-    return Promise.resolve(null);
-  }
-
-  var seedRegions = family.seed_regions;
-
-  var insLocs = {};
-  var insRE = /([a-z]+)/g;
-  var matches;
-  var matchColCnt = -1;
-  var stockholmSeqs = [];
-
-  return new Promise(function(resolve, reject) {
-    // TODO: Compatibility with non-node environments
-    function schedule(fn) {
-      setImmediate(function() {
-        try {
-          fn();
-        } catch(err) {
-          reject(err);
-        }
-      });
-    }
-
-    var i = 0;
-
-    var readNextRegion = function() {
-      if (!(i < seedRegions.length)) {
-        schedule(buildStockholm);
-        return;
-      }
-
-      var region = seedRegions[i];
-      stockholmSeqs.push(region.a2m_seq);
-      // Create a non-gap RF line with the correct match column length
-      if (matchColCnt < 0)
-        matchColCnt = (region.a2m_seq.match(/[A-Z-]/g) || []).length;
-      var prevLen = 0;
-      while ((matches = insRE.exec(region.a2m_seq)) != null) {
-        var len = matches[1].length;
-        var idx = insRE.lastIndex - len - prevLen;
-        if (insLocs[idx] == null || insLocs[idx] < len)
-          insLocs[idx] = len;
-        prevLen += len;
-      }
-
-      i++;
-      schedule(readNextRegion);
-    };
-
-    schedule(readNextRegion);
-
-    var buildStockholm = function() {
-      var stockholmStr = "# STOCKHOLM 1.0\n" +
-        "#=GF ID " + family.name + "\n";
-      if (family.description != null)
-        stockholmStr += "#=GF CC " + family.description + "\n";
-      stockholmStr += "#=GF SQ " + seedRegions.length + "\n";
-
-      // Sort highest indexes first so we can insert without affecting
-      // future indices.
-      var RF = "";
-      RF += "X".repeat(matchColCnt);
-      var sortedIdxs = Object.keys(insLocs).sort(function(a, b) {
-        return b - a;
-      });
-      sortedIdxs.forEach(function(idx) {
-        var insStr = "";
-        insStr += ".".repeat(insLocs[idx]);
-        RF = RF.substring(0, idx) + insStr + RF.substring(idx);
-      });
-
-      stockholmStr += "#=GC RF " + RF + "\n";
-
-      var i = 0;
-      var buildNextLine = function() {
-        if (!(i < stockholmSeqs.length)) {
-          schedule(finish);
-          return;
-        }
-
-        var seq = stockholmSeqs[i];
-        var j = 0;
-        var refPos = 0;
-        var tmpSeq = "";
-        while (j < seq.length) {
-          var ref = RF[refPos];
-          var seqBase = seq[j];
-          if (ref == ".") {
-            if (seqBase == "-" || (seqBase >= 'A' && seqBase <= 'Z')) {
-              // emit a placeholder "."
-              tmpSeq += '.';
-            } else {
-              // else keep the current character
-              tmpSeq += seqBase;
-              j++;
-            }
-          } else {
-            tmpSeq += seqBase;
-            j++;
-          }
-          refPos++;
-        }
-        stockholmSeqs[i] = tmpSeq.replace(/-/g, ".").toUpperCase();
-        stockholmStr += seedRegions[i].seq_id + "  " + stockholmSeqs[i] + "\n";
-
-        i++;
-        schedule(buildNextLine);
-      };
-
-      schedule(buildNextLine);
-
-      var finish = function () {
-        stockholmStr += "//\n";
-        resolve(stockholmStr);
-      };
-    };
-  });
-}
-
-
 /**
  * Retrieve an individual Dfam family's seed alignment data
  *
@@ -812,25 +673,23 @@ function seedRegionsToStockholm(family) {
  * returns String
  **/
 exports.readFamilySeed = function(id,format) {
-  return familyModel.findOne({
-    attributes: [ "id", "name", "description" ],
-    where: { accession: id },
-  }).then(function(family) {
-    if (format == "stockholm") {
-      return seedRegionModel.findAll({
-        attributes: [ "a2m_seq", "seq_id" ],
-        where: { family_id: family.id },
-      }).then(function(seed_regions) {
-        family.seed_regions = seed_regions;
-
-        return seedRegionsToStockholm(family).then(function(stockholm) {
-          return {
-            data: stockholm,
-            content_type: "text/plain",
-          };
-        });
-      });
-    } else if (format == "alignment_summary") {
+  if (format == "stockholm") {
+    return runWorkerAsync(["stockholm", id]).then(function(stockholm) {
+      if (stockholm && stockholm.length) {
+        return {
+          data: stockholm,
+          content_type: "text/plain",
+          encoding: "gzip",
+        };
+      } else {
+        return null;
+      }
+    });
+  } else if (format == "alignment_summary") {
+    return familyModel.findOne({
+      attributes: [ "id", "name", "description" ],
+      where: { accession: id },
+    }).then(function(family) {
       return seedAlignDataModel.findOne({
         attributes: ["graph_json"],
         where: { family_id: family.id },
@@ -839,15 +698,15 @@ exports.readFamilySeed = function(id,format) {
           return {
             data: seedAlignData.graph_json,
             content_type: "application/json",
-            encoding: 'gzip'
+            encoding: 'gzip',
           };
         } else {
           return null;
         }
       });
-    } else {
-      return null;
-    }
-  });
+    });
+  } else {
+    return null;
+  }
 };
 
