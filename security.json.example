@@ -1,18 +1,4 @@
 {
   "jwt_secret": "secret",
-  "jwt_duration": 86400,
-  "dfam_database": {
-    "database": "dfam_dev",
-    "username": "user",
-    "password": "pass"
-  },
-  "users_database": {
-    "database": "dfam_users_dev",
-    "username": "user",
-    "password": "pass"
-  },
-  "assembly_databases": {
-    "username": "user",
-    "password": "pass"
-  }
+  "jwt_duration": 86400
 }

@@ -1,5 +1,5 @@
 var winston = require('winston');
-var security = require('./security.json');
+var config = require('./config');
 
 var Sequelize = require('sequelize');
 
@@ -7,10 +7,11 @@ function connect(dbinfo) {
   winston.info(`Connecting to ${dbinfo.database}`);
   return new Sequelize(
     dbinfo.database,
-    dbinfo.username,
+    dbinfo.user,
     dbinfo.password,
     {
-      host: "localhost",
+      host: dbinfo.host,
+      port: dbinfo.port,
       dialect: "mysql",
       define: {
         timestamps: false,
@@ -30,8 +31,8 @@ function connect(dbinfo) {
   );
 }
 
-var dfam_connection = connect(security.dfam_database);
-var users_connection = connect(security.users_database);
+var dfam_connection = connect(config.schema.Dfam);
+var users_connection = connect(config.schema.DfamUser);
 
 const assemblyModels = {};
 function getAssemblyModels(schema_name) {
@@ -39,8 +40,10 @@ function getAssemblyModels(schema_name) {
     const models = assemblyModels[schema_name] = {};
     const conn = models.conn = connect({
       database: schema_name,
-      username: security.assembly_databases.username,
-      password: security.assembly_databases.password,
+      host: config.schema.AssemblyDB.host,
+      port: config.schema.AssemblyDB.port,
+      user: config.schema.AssemblyDB.user,
+      password: config.schema.AssemblyDB.password,
     });
 
     models.modelFileModel = require("./models/assembly/model_file.js")(conn, Sequelize);
