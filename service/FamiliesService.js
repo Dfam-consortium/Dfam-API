@@ -5,6 +5,8 @@ const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
 const mapFields = require("../utils/mapFields.js");
 const child_process = require('child_process');
+const config = require("../config");
+const path = require("path");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
@@ -578,8 +580,8 @@ exports.readFamilyHmm = function(id, format) {
       if (format == "image") {
 
         return new Promise(function(resolve, reject) {
-          // TODO: configurable HMM_Logos script location
-          const proc = child_process.spawn('/usr/local/HMM_Logos/webGenLogoImage.pl',
+          const webGenLogoImage = path.join(config.hmm_logos_dir, 'webGenLogoImage.pl');
+          const proc = child_process.spawn(webGenLogoImage,
             { stdio: ['pipe', 'pipe', 'inherit'] }
           );
 

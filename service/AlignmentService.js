@@ -1,9 +1,11 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const promisify = require('util').promisify;
 const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
+const config = require("../config");
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
@@ -121,8 +123,7 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, startPos, endPos, hmmData
     ordEnd = startPos;
   }
 
-  // TODO: Make twoBitToFa location configurable
-  const twoBitToFa = '/usr/local/bin/twoBitToFa';
+  const twoBitToFa = path.join(config.ucsc_utils_bin, 'twoBitToFa');
   const search = twoBitFile + ':' + seqID + ':' + (ordStart-1) + '-' + ordEnd;
 
   // Grab sequence data from twoBit format
@@ -138,8 +139,7 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, startPos, endPos, hmmData
     await Promise.all([writeHmmFile, writeFastaFile]);
 
     // Do the search
-    // TODO: Make nhmmer location configurable
-    const nhmmer = '/usr/local/hmmer/bin/nhmmer';
+    const nhmmer = path.join(config.hmmer_bin, 'nhmmer');
     // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
     // TODO: (JR) A region might match a model more than once. The "best" match within the
     //       region will be used here, which might not be the right one.
@@ -168,8 +168,8 @@ exports.readAlignment = function(assembly,chrom,start,end,family) {
     include: [ { model: familyModel, where: { accession: family }, attributes: [] } ],
   }).then(function(model) {
     return promisify(zlib.gunzip)(model.hmm).then(function(hmm_data) {
-      // TODO: Make genome search path configurable
-      const twoBitFile = `/usr/local/genomes/${assembly}/${assembly}.unmasked.2bit`;
+      const twoBitFile = path.join(config.dfam_warehouse_dir,
+        "ref-genomes", assembly, assembly + ".2bit");
 
       return reAlignAnnotationHMM(twoBitFile, chrom, start, end, hmm_data);
     });

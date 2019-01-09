@@ -12,6 +12,8 @@ const uuidv1 = require('uuid/v1');
 const md5 = require('md5');
 const dateFormat = require('dateformat');
 const zlib = require('zlib');
+const config = require('../config');
+const path = require('path');
 
 const AlignmentService = require('./AlignmentService');
 
@@ -28,8 +30,7 @@ const streamModel = require('../models/auth/stream.js')(conn_users, Sequelize);
 const jobModel = require('../models/auth/job.js')(conn_users, Sequelize);
 const searchModel = require('../models/auth/search.js')(conn_users, Sequelize);
 
-// TODO: make configurable
-const resultStore = '/usr/local/dfam_search_cache';
+const resultStore = config.dfamdequeuer.result_store;
 
 /**
  * Retrieve the results of a sequence search
@@ -67,8 +68,7 @@ exports.readSearchResults = function(id) {
     }
 
     var startedDate = new Date(jobRec.started);
-    var dataDir = resultStore + "/" + dateFormat(startedDate,"yy/mm/dd/HH/MM/ss") +
-                  "/" + id + "/1";
+    var dataDir = path.join(resultStore, dateFormat(startedDate,"yy/mm/dd/HH/MM/ss"), id, "1");
 
     const nhmmerResults = promisify(fs.access)(
       dataDir + "/nhmmer.out",
@@ -88,8 +88,7 @@ exports.readSearchResults = function(id) {
       throw new Error("Error looking for trf.out for id " + id + ": " + err);
     });
 
-    // TODO: Put this setting somewhere
-    const faSize = "/usr/local/bin/faSize";
+    const faSize = path.join(config.ucsc_utils_bin, "faSize");
     // Use faSize to get Query sizes
     // e.g.
     //      Seq1  13283
@@ -169,8 +168,7 @@ exports.readSearchResultAlignment = function(id,sequence,start,end,family) {
     }
 
     var startedDate = new Date(jobRec.started);
-    var dataDir = resultStore + "/" + dateFormat(startedDate,"yy/mm/dd/HH/MM/ss") +
-                  "/" + id + "/1";
+    var dataDir = path.join(resultStore, dateFormat(startedDate,"yy/mm/dd/HH/MM/ss"), id, "1");
 
     return hmmModelDataModel.findOne({
       attributes: [ "hmm" ],
@@ -432,9 +430,8 @@ async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
     ordEnd = startPos;
   }
 
-  // TODO: Make location configurable
-  const faOneRecord = '/usr/local/bin/faOneRecord';
-  const faFrag = '/usr/local/bin/faFrag';
+  const faOneRecord = path.join(config.ucsc_utils_bin, 'faOneRecord');
+  const faFrag = path.join(config.ucsc_utils_bin, 'faFrag');
 
   const faFragOutput = new Promise(function(resolve, reject) {
     const faOneRecordProc = child_process.spawn(faOneRecord, [dataDir + "/dfamscan.in", seqID]);
@@ -476,8 +473,7 @@ async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
     await Promise.all([writeHmmFile, writeFastaFile]);
 
     // Do the search
-    // TODO: Make nhmmer location configurable
-    const nhmmer = '/usr/local/hmmer/bin/nhmmer';
+    const nhmmer = path.join(config.hmmer_bin, 'nhmmer');
     // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
     // TODO: (JR) A region might match a model more than once. The "best" match within the
     //       region will be used here, which might not be the right one.
