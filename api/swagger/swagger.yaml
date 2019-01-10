@@ -320,6 +320,41 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/sequence':
+    x-swagger-router-controller: Families
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family name
+        required: true
+        type: string
+    get:
+      description: Retrieve an individual Dfam family sequence
+      tags:
+        - families
+      operationId: readFamilySequence
+      parameters:
+        - name: format
+          in: query
+          description: 'The desired output format, currently only "embl" is supported'
+          required: true
+          type: string
+        - name: download
+          in: query
+          description: If true, adds headers to trigger a browser download
+          required: false
+          type: boolean
+      produces:
+        - text/plain
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   '/families/{id}/seed':
     x-swagger-router-controller: Families
     parameters:

@@ -545,9 +545,17 @@ exports.readFamilyHmm = function(id, format) {
   var field;
   var content_type;
   if (format == "hmm") {
-    // TODO: This is un-annotated. Should we return annotated?
-    field = "hmm";
-    content_type = "text/plain";
+    return runWorkerAsync(["hmm", id]).then(function(hmm) {
+      if (hmm && hmm.length) {
+        return {
+          data: hmm,
+          content_type: "text/plain",
+          encoding: "gzip",
+        };
+      } else {
+        return null;
+      }
+    });
   } else if (format == "logo") {
     field = "hmm_logo";
     content_type = "application/json";
@@ -706,7 +714,30 @@ exports.readFamilySeed = function(id,format) {
       });
     });
   } else {
-    return null;
+    throw new Error("Invalid format: " + format);
   }
 };
 
+/**
+ * Retrieve an individual Dfam family sequence
+ *
+ * id String The Dfam family name
+ * format String The desired output format, currently only \"embl\" is supported
+ * returns String
+ **/
+exports.readFamilySequence = function(id, format) {
+  if (format == "embl") {
+    return runWorkerAsync(["embl", id]).then(function(embl) {
+      if (embl && embl.length) {
+        return {
+          data: embl,
+          content_type: "text/plain",
+        };
+      } else {
+        return null;
+      }
+    });
+  } else {
+    throw new Error("Invalid format: " + format);
+  }
+};

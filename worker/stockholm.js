@@ -1,18 +1,18 @@
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
-const mapFields = require("../utils/mapFields.js");
+
+const family = require("./family");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
+
 seedRegionModel.removeAttribute('id');
+
 familyModel.hasMany(seedRegionModel, { foreignKey: 'family_id' });
 
 module.exports = function stockholm_command(accession) {
-  return familyModel.findOne({
-    attributes: [ "id", "name", "description" ],
-    where: { accession },
-  }).then(function(family) {
+  return family.getFamilyForAnnotation(accession).then(function(family) {
     if (family) {
       return seedRegionModel.findAll({
         where: { family_id: family.id },
@@ -29,7 +29,6 @@ module.exports = function stockholm_command(accession) {
 };
 
 // TODO: Move this to Dfam-js?
-// TODO: Annotate output
 //
 // Converts a DFAM family to Stockholm data.
 // Expected format: family = {
@@ -45,7 +44,7 @@ module.exports = function stockholm_command(accession) {
 // *Synchronously* generates and returns the stockholm-formatted output.
 function seedRegionsToStockholm(family) {
   if (family == null || family.seed_regions == null || family.seed_regions.length == 0) {
-    return Promise.resolve(null);
+    return null;
   }
 
   var seedRegions = family.seed_regions;
@@ -71,11 +70,56 @@ function seedRegionsToStockholm(family) {
     }
   });
 
-  var stockholmStr = "# STOCKHOLM 1.0\n" +
-    "#=GF ID " + family.name + "\n";
-  if (family.description != null)
-    stockholmStr += "#=GF CC " + family.description + "\n";
-  stockholmStr += "#=GF SQ " + seedRegions.length + "\n";
+  var stockholmStr = "# STOCKHOLM 1.0\n";
+  function add_header(code, text) {
+    // TODO: Long text wrapping
+    stockholmStr += "#=GF " + code + " " + text + "\n";
+  }
+  add_header("ID", family.name);
+
+  add_header("AC", family.accession);
+  if (family.description != null) {
+    add_header("DE", family.description);
+  }
+  add_header("AU", family.author);
+
+  let general_cutoff = null;
+  family.family_assembly_data.forEach(function(fam_asm) {
+    general_cutoff = Math.max(general_cutoff || fam_asm.hmm_hit_TC, fam_asm.hmm_hit_TC);
+  });
+
+  if (general_cutoff !== null) {
+    const cutoff_string = (Math.round(general_cutoff * 100) / 100) + ";";
+    add_header("GA", cutoff_string);
+    add_header("TC", cutoff_string);
+    add_header("NC", cutoff_string);
+  }
+  // TODO: BM build method
+  // TODO: SM search method
+  family.clades.forEach(function(clade) {
+    add_header("MS", `TaxId:${clade.tax_id} TaxName:${clade.sanitized_name}`);
+  });
+
+  family.citations.sort((a, b) => a.family_has_citation.order_added - b.family_has_citation.order_added);
+  family.citations.forEach(function(citation) {
+    if (citation.family_has_citation.comment) {
+      add_header("RC", citation.family_has_citation.comment);
+    }
+    add_header("RN", "[" + citation.family_has_citation.order_added + "]");
+    add_header("RM", citation.pmid);
+    add_header("RT", citation.title);
+    add_header("RA", citation.authors);
+    add_header("RL", citation.journal);
+  });
+
+  family.aliases.forEach(function(alias) {
+    add_header("DR", alias.db_id + "; " + alias.db_link + ";");
+    if (alias.comment) {
+      add_header("DC", alias.comment);
+    }
+  });
+
+  add_header("SQ", seedRegions.length);
 
   // Sort highest indexes first so we can insert without affecting
   // future indices.

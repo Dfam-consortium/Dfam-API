@@ -106,3 +106,31 @@ module.exports.readFamilySeed = function readFamilySeed (req, res, next) {
       next(err);
     });
 };
+
+module.exports.readFamilySequence = function readFamilySequence (req, res, next) {
+  var id = req.swagger.params['id'].value;
+  var format = req.swagger.params['format'].value;
+  var download = req.swagger.params['download'].value;
+  Families.readFamilySequence(id,format)
+    .then(function (response) {
+      if (response) {
+        const headers = {};
+        if (download) {
+          const extensions = { 'embl': '.embl', };
+          const filename = id + extensions[format];
+          headers["Content-Disposition"] = 'attachment; filename="' + filename + '"';
+        }
+
+        return new APIResponse(response.data, {
+          headers,
+          contentType: response.content_type,
+          encoding: response.encoding,
+        }).respond(req, res);
+      } else {
+        return new APIResponse().respond(req, res);
+      }
+    })
+    .catch(function (err) {
+      next(err);
+    });
+};

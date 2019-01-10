@@ -29,14 +29,14 @@ winston.configure({
   ],
 });
 
-const ALLOWED_COMMANDS = ['stockholm'];
+const ALLOWED_COMMANDS = ['stockholm', 'hmm', 'embl'];
 
 if (process.argv.length > 2) {
   const command = process.argv[2];
   if (ALLOWED_COMMANDS.indexOf(command) !== -1) {
     const args = process.argv.slice(3);
     require('./' + command).apply(undefined, args).then(function(result) {
-      outputStream.write(result, (err) => process.exit(err ? 1 : 0));
+      outputStream.write(result || "", (err) => process.exit(err ? 1 : 0));
     });
   }
 }
