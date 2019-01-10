@@ -37,6 +37,9 @@ if (process.argv.length > 2) {
     const args = process.argv.slice(3);
     require('./' + command).apply(undefined, args).then(function(result) {
       outputStream.write(result || "", (err) => process.exit(err ? 1 : 0));
+    }).catch(function(error) {
+      console.error(error);
+      process.exit(1);
     });
   }
 }

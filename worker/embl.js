@@ -15,57 +15,65 @@ function exportEmbl(family) {
 
   function add_header(code, text) {
     // TODO: Long text wrapping
-    emblStr += code.padEnd(6);
+    emblStr += code.padEnd(4);
     if (text) {
       emblStr += " " + text;
     }
     emblStr += "\n";
   }
 
+  function add_XX() {
+    emblStr += "XX\n";
+  }
+
   // TODO: Check usage of name vs accession
   add_header("ID", family.accession + "     repeatmasker; DNA;  ???;  " + family.length + " BP.");
   add_header("CC", family.name + " DNA");
-  add_header("XX");
+  add_XX();
   add_header("AC", family.accession);
   family.aliases.forEach(function(alias) {
     if (alias.db_id == "Repbase") {
-      add_header("XX");
+      add_XX();
       add_header("DE", "RepbaseID: " + alias.db_link);
     }
   });
 
-  add_header("XX");
-  if (family.classification.rm_type.name == "LTR") {
-    add_header("KW", "Long terminal repeat of retrovirus-like element; " + family.name);
+  add_XX();
+
+  if (family.rmTypeName == "LTR") {
+    add_header("KW", "Long terminal repeat of retrovirus-like element; " + family.name + ".");
   } else {
-    add_header("KW", `${family.classification.rm_type.name}/${family.classification.rm_subtype.name}.`);
+    add_header("KW", `${family.rmTypeName}/${family.rmSubTypeName}.`);
   }
-  add_header("XX");
+  add_XX();
 
-  family.citations.sort((a, b) => a.family_has_citation.order_added - b.family_has_citation.order_added);
-  family.citations.forEach(function(citation) {
-    if (citation.family_has_citation.comment) {
-      add_header("RC", citation.family_has_citation.comment);
-    }
-    add_header("RN", `[${citation.family_has_citation.order_added}] (bases 1 to ${family.length})`);
-    add_header("RA", citation.authors);
-    add_header("RT", citation.title);
-    add_header("RL", citation.journal);
-  });
+  if (family.citations.length) {
+    family.citations.sort((a, b) => a.family_has_citation.order_added - b.family_has_citation.order_added);
+    family.citations.forEach(function(citation) {
+      if (citation.family_has_citation.comment) {
+        add_header("RC", citation.family_has_citation.comment);
+      }
+      add_header("RN", `[${citation.family_has_citation.order_added}] (bases 1 to ${family.length})`);
+      add_header("RA", citation.authors);
+      add_header("RT", citation.title);
+      add_header("RL", citation.journal);
+    });
 
-  add_header("XX");
+    add_XX();
+  }
 
   add_header("CC", "RepeatMasker Annotations:");
-  add_header("CC", "     Type: " + family.classification.rm_type.name);
-  add_header("CC", "     SubType: " + family.classification.rm_subtype.name);
-  family.clades.forEach(function(clade) {
-    add_header("CC", "     Species: " + clade.sanitized_name);
-  });
+  add_header("CC", "     Type: " + family.rmTypeName);
+  add_header("CC", "     SubType: " + family.rmSubTypeName);
+  add_header("CC", "     Species: " + family.clades.map(c => c.sanitized_name).join(", "));
   add_header("CC", "     SearchStages: " + family.search_stages.map(ss => ss.id).join(","));
   let buffer_stages = [];
   family.buffer_stages.forEach(function(bs) {
-    if (bs.start_pos || bs.end_pos) {
-      buffer_stages.push(`${bs.id}[${bs.start_pos}-${bs.end_pos}]`);
+    const start = bs.family_has_buffer_stage.start_pos;
+    const end = bs.family_has_buffer_stage.end_pos;
+
+    if (start || end) {
+      buffer_stages.push(`${bs.id}[${start}-${end}]`);
     } else {
       buffer_stages.push(bs.id);
     }
@@ -76,7 +84,7 @@ function exportEmbl(family) {
   }
   // TODO: RepeatMasker Annotations: Description
 
-  add_header("XX");
+  add_XX();
 
   const seq = family.consensus.toLowerCase();
 

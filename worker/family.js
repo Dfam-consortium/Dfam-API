@@ -49,11 +49,29 @@ module.exports.getFamilyForAnnotation = function(accession) {
       } },
       { model: citationModel, as: 'citations', through: { attributes: [ 'order_added', 'comment' ] } },
       'clades',
-      { model: familyAssemblyDataModel, as: 'family_assembly_data', include: [
-        { model: assemblyModel, include: [
-          { model: dfamTaxdbModel, }
-        ] },
-      ] }
+      { model: familyAssemblyDataModel, as: 'family_assembly_data',
+        attributes: ['hmm_hit_GA', 'hmm_hit_TC', 'hmm_hit_NC', 'hmm_fdr'],
+        include: [
+          { model: assemblyModel, include: [
+            { model: dfamTaxdbModel, attributes: ['tax_id', 'sanitized_name', 'scientific_name'] }
+          ] },
+        ],
+      }
     ],
+  }).then(function(family) {
+    if (family) {
+      if (family.classification.rm_type) {
+        family.rmTypeName = family.classification.rm_type.name;
+      } else {
+        family.rmTypeName = "";
+      }
+      if (family.classification.rm_subtype) {
+        family.rmSubTypeName = family.classification.rm_subtype.name;
+      } else {
+        family.rmSubTypeName = "";
+      }
+    }
+
+    return family;
   });
 };
