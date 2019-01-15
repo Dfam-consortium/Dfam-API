@@ -59,6 +59,42 @@ familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family1_id', as: 'famil
 familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family2_id', as: 'family2' });
 familyOverlapModel.hasMany(overlapSegmentModel, { foreignKey: 'family_overlap_id' });
 
+function familySubqueries(rows, format) {
+  return Promise.all(rows.map(function(row) {
+    var replacements = { family_id: row.id };
+
+    const subqueries = [];
+
+    subqueries.push(conn.query("SELECT lineage FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
+
+    if (format != "summary") {
+      subqueries.push(conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }).then(a => row.aliases = a));
+      subqueries.push(conn.query("SELECT name FROM family_has_search_stage INNER JOIN repeatmasker_stage ON family_has_search_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(ss => row.search_stages = ss));
+      subqueries.push(conn.query("SELECT name, start_pos, end_pos FROM family_has_buffer_stage INNER JOIN repeatmasker_stage ON family_has_buffer_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(function(buffer_stages) {
+        row.buffer_stages = buffer_stages.map(function(bs) {
+          return { name: bs.name, family_has_buffer_stage: { start_pos: bs.start_pos, end_pos: bs.end_pos } };
+        });
+      }));
+      subqueries.push(conn.query("SELECT pmid, title, authors, journal, pubdate FROM family_has_citation INNER JOIN citation ON family_has_citation.citation_pmid = citation.pmid WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cit => row.citations = cit));
+      subqueries.push(userModel.findOne({ where: { id: row.deposited_by_id }, attributes: [ 'full_name' ] }).then(function(user) {
+        if (user) {
+          row.submitter = user.full_name;
+        }
+      }));
+      subqueries.push(familyFeatureModel.findAll({
+        where: { family_id: row.id },
+        include: [
+          { model: featureAttributeModel, as: 'feature_attributes' }
+        ] }).then(function(features) { row.features = features; }));
+      subqueries.push(codingSequenceModel.findAll({
+        where: { family_id: row.id }
+      }).then(function(coding_sequences) { row.coding_sequences = coding_sequences; }));
+    }
+
+    return Promise.all(subqueries).then(() => row);
+  }));
+}
+
 function familyQueryRowToObject(row, format) {
   const obj = mapFields(row, {}, {
     "accession": "accession",
@@ -436,42 +472,8 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   ]).then(function([count_result, rows]) {
     const total_count = count_result[0].total_count;
 
-    return Promise.all(rows.map(function(row) {
-      var replacements = { family_id: row.id };
-
-      const subqueries = [];
-
-      // TODO: This runs a few subqueries (many in non-summary mode) per family.
-      // Consider changing "WHERE family.id = ..." to "WHERE family.id IN (...)"
-      // and merging the results if it performs better than the individual queries.
-
-      subqueries.push(conn.query("SELECT lineage FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
-
-      if (format != "summary") {
-        subqueries.push(conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }).then(a => row.aliases = a));
-        subqueries.push(conn.query("SELECT name FROM family_has_search_stage INNER JOIN repeatmasker_stage ON family_has_search_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(ss => row.search_stages = ss));
-        subqueries.push(conn.query("SELECT name, start_pos, end_pos FROM family_has_buffer_stage INNER JOIN repeatmasker_stage ON family_has_buffer_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(function(buffer_stages) {
-          row.buffer_stages = buffer_stages.map(function(bs) {
-            return { name: bs.name, family_has_buffer_stage: { start_pos: bs.start_pos, end_pos: bs.end_pos } };
-          });
-        }));
-        subqueries.push(conn.query("SELECT pmid, title, authors, journal, pubdate FROM family_has_citation INNER JOIN citation ON family_has_citation.citation_pmid = citation.pmid WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cit => row.citations = cit));
-        subqueries.push(userModel.findOne({ where: { id: row.deposited_by_id }, attributes: [ 'full_name' ] }).then(function(user) {
-          if (user) {
-            row.submitter = user.full_name;
-          }
-        }));
-        subqueries.push(familyFeatureModel.findAll({
-          where: { family_id: row.id },
-          include: [
-            { model: featureAttributeModel, as: 'feature_attributes' }
-          ] }).then(function(features) { row.features = features; }));
-        subqueries.push(codingSequenceModel.findAll({
-          where: { family_id: row.id }
-        }).then(function(coding_sequences) { row.coding_sequences = coding_sequences; }));
-      }
-
-      return Promise.all(subqueries).then(function() {
+    return familySubqueries(rows, format).then(function(rows) {
+      return rows.map(function(row) {
         row.classification = {
           id: row.classification_id,
           lineage: row.classification_lineage,
@@ -482,9 +484,10 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
           name: row.curation_state_name,
           description: row.curation_state_description,
         };
-        return familyQueryRowToObject(row, format);
+        return row;
       });
-    })).then(function(objs) {
+    }).then(function(rows) {
+      const objs = rows.map(row => familyQueryRowToObject(row, format));
       return { total_count, results: objs };
     });
   });
@@ -497,40 +500,21 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
  * id String The Dfam family name
  * returns familyResponse
  **/
-exports.readFamilyById = function(id) {
-  return familyModel.findOne({
+exports.readFamilyById = async function(id) {
+  const row = await familyModel.findOne({
     where: { accession: id },
     include: [
-      'aliases',
       { model: classificationModel, as: 'classification', include: [ 'rm_type', 'rm_subtype' ] },
-      { model: curationStateModel, as: 'curation_state', },
-      { model: rmStageModel, as: 'search_stages' },
-      { model: rmStageModel, as: 'buffer_stages', through: {
-        attributes: [ 'start_pos', 'end_pos'],
-      } },
-      { model: citationModel, as: 'citations' },
-      { model: dfamTaxdbModel, as: 'clades' },
-      { model: familyFeatureModel, as: 'features', include: [
-        { model: featureAttributeModel, as: 'feature_attributes' }
-      ] },
-      { model: codingSequenceModel, as: 'coding_sequences' },
-    ]
-  }).then(function(row) {
-    if (row) {
-      return userModel.findOne({
-        where: { id: row.deposited_by_id },
-        attributes: [ 'full_name' ],
-      }).then(function(user) {
-        if (user) {
-          row.submitter = user.full_name;
-        }
-
-        return familyQueryRowToObject(row);
-      });
-    } else {
-      return null;
-    }
+      { model: curationStateModel, as: 'curation_state' },
+    ],
   });
+
+  if (row) {
+    const full_rows = await familySubqueries([row], null);
+    return familyQueryRowToObject(full_rows[0], null);
+  } else {
+    return null;
+  }
 };
 
 
