@@ -27,10 +27,10 @@ function exportEmbl(family) {
   }
 
   // TODO: Check usage of name vs accession
-  add_header("ID", family.accession + "     repeatmasker; DNA;  ???;  " + family.length + " BP.");
+  add_header("ID", family.accessionAndVersion + "     repeatmasker; DNA;  ???;  " + family.length + " BP.");
   add_header("CC", family.name + " DNA");
   add_XX();
-  add_header("AC", family.accession);
+  add_header("AC", family.accessionAndVersion);
   family.aliases.forEach(function(alias) {
     if (alias.db_id == "Repbase") {
       add_XX();

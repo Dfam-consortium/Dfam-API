@@ -37,7 +37,7 @@ classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtyp
 
 module.exports.getFamilyForAnnotation = function(accession) {
   return familyModel.findOne({
-    attributes: [ "id", "name", "accession", "length", "description", "author", "refineable", "consensus" ],
+    attributes: [ "id", "name", "accession", "version", "length", "description", "author", "refineable", "consensus" ],
     where: { accession },
     include: [
       'aliases',
@@ -70,6 +70,8 @@ module.exports.getFamilyForAnnotation = function(accession) {
       } else {
         family.rmSubTypeName = "";
       }
+
+      family.accessionAndVersion = family.accession + "." + (family.version || 0);
     }
 
     return family;
