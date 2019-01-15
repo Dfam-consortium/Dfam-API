@@ -16,8 +16,7 @@ function connect(dbinfo) {
       define: {
         timestamps: false,
       },
-      // TODO: Get timezone from environment
-      timezone: '-08:00',
+      timezone: config.apiserver.db_timezone,
       logging: function(message, data) {
         winston.debug(message);
       },
