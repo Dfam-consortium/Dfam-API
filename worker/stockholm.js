@@ -20,7 +20,11 @@ module.exports = function stockholm_command(accession) {
         family.seed_regions = seed_regions;
 
         const stockholm = seedRegionsToStockholm(family);
-        return zlib.gzipSync(stockholm);
+        if (stockholm) {
+          return zlib.gzipSync(stockholm);
+        } else {
+          return "";
+        }
       });
     } else {
       return "";
