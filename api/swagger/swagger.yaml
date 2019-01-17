@@ -54,6 +54,24 @@ paths:
           description: Error
           schema:
             type: string
+  /blogposts:
+    x-swagger-router-controller: Blog
+    get:
+      produces:
+        - application/json
+      description: Get recent Dfam blog posts.
+      tags:
+        - blog
+      operationId: readBlogPosts
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            type: string
   /authenticate:
     x-swagger-router-controller: Authenticate
     post:
