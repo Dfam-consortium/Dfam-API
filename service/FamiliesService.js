@@ -573,6 +573,7 @@ exports.readFamilyHmm = function(id, format) {
           const proc = child_process.spawn(webGenLogoImage,
             { stdio: ['pipe', 'pipe', 'inherit'] }
           );
+          proc.on('error', err => reject(err));
 
           const chunks = [];
           proc.stdout.on('data', chunk => chunks.push(chunk));
