@@ -2,16 +2,39 @@
 
 ## Usage
 
+### Dependencies
+
+All node.js runtime dependencies are specified in `package.json`.
+
+The core functionality of the API depends on:
+
+* A mysql database server with Dfam databases
+* Dfam-warehouse directory containing reference genomes and other caches
+
+Some functionality requires these additional tools:
+
+* `twoBitToFa`, `faSize` from the UCSC Genome Browser tools suite
+* `nhmmer` from the HMMER suite
+* `HMM_Logos`, specifically webGenLogoImage.pl
+* A running instance of `dfamdequeuer`, and its own dependencies
+
+Connection URLs and paths are specified in the configuration.
+
 ### Configuration
 
-Most configuration lives in `security.json`. A `security.json.example` file is provided as a starting point.
+Most configuration is read from the path `../conf/Dfam.conf` relative to the
+working directory. If the `DFAM_CONF` environment variable is present, it will
+be used instead.
+
+Some configuration is present in `security.json`. A
+`security.json.example` file is provided as a starting point.
 
 ### Running the server
 
 To run the server, run:
 
 ```
-DFAM_API_PORT=<port> npm start
+[DFAM_API_PORT=<port>] npm start
 ```
 
 To view the Swagger UI interface:
@@ -40,7 +63,7 @@ Sequelize model generation.
 javascript files.
 
 ```
-DFAM_API_PORT=<port> npm run watch start
+[DFAM_API_PORT=<port>] npm run watch start
 ```
 
 ### eslint
