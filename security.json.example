@@ -1,4 +1,0 @@
-{
-  "jwt_secret": "secret",
-  "jwt_duration": 86400
-}

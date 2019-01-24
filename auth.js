@@ -4,14 +4,14 @@ const passport = require('passport');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const winston = require('winston');
 
-const security = require('./security');
+const config = require('./config');
 const Sequelize = require('sequelize');
 const conn = require('./databases').users;
 const userModel = require('./models/auth/user')(conn, Sequelize);
 
 var opts = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: security.jwt_secret,
+  secretOrKey: config.apiserver.jwt_secret,
 };
 
 // Map JWT tokens to users in our database
@@ -54,13 +54,13 @@ module.exports.swaggerHandlers = {
 
 module.exports.generateJwt = function(id, email, name) {
   var expiry = new Date();
-  expiry.setTime(expiry.getTime() + (security.jwt_duration * 1000));
+  expiry.setTime(expiry.getTime() + (config.apiserver.jwt_duration * 1000));
   return jwt.sign({
     id: id,
     email: email,
     name: name,
     exp: parseInt(expiry.getTime() / 1000),
-  }, security.jwt_secret);
+  }, config.apiserver.jwt_secret);
 };
 
 module.exports.hashPassword = function(password) {

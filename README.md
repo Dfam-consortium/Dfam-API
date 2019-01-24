@@ -22,12 +22,9 @@ Connection URLs and paths are specified in the configuration.
 
 ### Configuration
 
-Most configuration is read from the path `../conf/Dfam.conf` relative to the
+Configuration is read from the path `../conf/Dfam.conf` relative to the
 working directory. If the `DFAM_CONF` environment variable is present, it will
 be used instead.
-
-Some configuration is present in `security.json`. A
-`security.json.example` file is provided as a starting point.
 
 ### Running the server
 
