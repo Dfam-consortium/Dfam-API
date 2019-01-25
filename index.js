@@ -82,6 +82,15 @@ swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
     } else {
       winston.error(err.toString());
     }
+
+    if (err.failedValidation) {
+      // Request validation error
+      // swagger-tools has already set the status code to 400
+
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ message: err.message }));
+    }
+
     if (!res.headersSent) {
       res.statusCode = 500;
       res.setHeader("Content-Type", "application/json");
