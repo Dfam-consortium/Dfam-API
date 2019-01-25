@@ -21,7 +21,7 @@
     "jsonwebtoken": "^8.4.0",
     "md5": "^2.2.1",
     "mysql2": "^1.6.4",
-    "nodemailer": "^5.0.0",
+    "nodemailer": "^5.1.1",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "sequelize": "^4.42.0",
@@ -31,9 +31,9 @@
     "winston": "^3.1.0"
   },
   "devDependencies": {
-    "eslint": "^5.12.0",
+    "eslint": "^5.12.1",
     "mysql": "^2.16.0",
-    "npm-watch": "^0.5.0",
+    "npm-watch": "^0.6.0",
     "sequelize-auto": "^0.4.29"
   }
 }
