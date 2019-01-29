@@ -1,6 +1,10 @@
-const tmp = require('tmp');
 const child_process = require('child_process');
+const path = require('path');
+
+const tmp = require('tmp');
 const winston = require('winston');
+
+const worker_path = path.join(global.dfam_app_root, 'worker');
 
 // Wrapper around tmp.file that returns a Promise
 exports.tmpFileAsync = function(options) {
@@ -45,7 +49,7 @@ exports.runWorkerAsync = function(args) {
   }).then(function() {
     return new Promise(function(resolve, reject) {
       // See worker/index.js for an explanation of DFAM_WORKER_FD
-      const workerProc = child_process.fork("worker", args, {
+      const workerProc = child_process.fork(worker_path, args, {
         stdio: ['pipe', 'inherit', 'inherit', 'pipe', 'ipc'],
         env: Object.assign({}, process.env, { "DFAM_WORKER_FD": "3" }),
       });

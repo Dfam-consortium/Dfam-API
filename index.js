@@ -5,6 +5,9 @@ const path = require('path');
 const process = require('process');
 const http = require('http');
 
+// The 'worker' has to be launched relative to this file.
+global.dfam_app_root = path.resolve(__dirname);
+
 const winston = require('winston');
 const format = winston.format;
 winston.configure({
