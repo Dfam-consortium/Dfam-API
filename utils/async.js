@@ -44,8 +44,10 @@ exports.runWorkerAsync = function(args) {
     runReady();
   }).then(function() {
     return new Promise(function(resolve, reject) {
+      // See worker/index.js for an explanation of DFAM_WORKER_FD
       const workerProc = child_process.fork("worker", args, {
         stdio: ['pipe', 'inherit', 'inherit', 'pipe', 'ipc'],
+        env: Object.assign({}, process.env, { "DFAM_WORKER_FD": "3" }),
       });
       workerProc.on('error', err => reject(err));
 
