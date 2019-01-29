@@ -17,7 +17,7 @@ hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 exports.formatAlignment = function(seqID, ordStart, ordEnd, nhmmer_out) {
   var alignRec = {};
 
-  // console.log(`nhmmer_out: ${nhmmer_out}`);
+  // winston.debug(`nhmmer_out: ${nhmmer_out}`);
   let lines = nhmmer_out.split(/[\r\n]/);
   let lineIndex = 0;
 
