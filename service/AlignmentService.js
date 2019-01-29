@@ -8,8 +8,10 @@ const { tmpFileAsync, execFileAsync } = require('../utils/async');
 const config = require("../config");
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
+const getAssemblyModels = require("../databases.js").getAssemblyModels;
 const zlib = require("zlib");
 const familyModel = require("../models/family.js")(conn, Sequelize);
+const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
 
 hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
@@ -102,7 +104,7 @@ exports.formatAlignment = function(seqID, ordStart, ordEnd, nhmmer_out) {
 // return the alignment.
 //
 // TODO: Future request. Write the equivalent for RMBlast/Crossmatch
-async function reAlignAnnotationHMM(twoBitFile, seqID, startPos, endPos, hmmData) {
+async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos, hmmData) {
   const [seqFile, hmmFile] = await Promise.all([
     tmpFileAsync({ detachDescriptor: true }),
     tmpFileAsync({ detachDescriptor: true }),
@@ -145,7 +147,7 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, startPos, endPos, hmmData
     //       region will be used here, which might not be the right one.
     const nhmmer_out = await execFileAsync(nhmmer, ['--max', '-T', '0', '--notextw', hmmFile.path, seqFile.path]);
 
-    return exports.formatAlignment(seqID, ordStart, ordEnd, nhmmer_out.stdout, startPos);
+    return exports.formatAlignment(seqName, ordStart, ordEnd, nhmmer_out.stdout, startPos);
   } finally {
     hmmFile.cleanup();
     seqFile.cleanup();
@@ -162,16 +164,28 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, startPos, endPos, hmmData
  * family String The family to align against
  * no response value expected for this operation
  **/
-exports.readAlignment = function(assembly,chrom,start,end,family) {
-  return hmmModelDataModel.findOne({
+exports.readAlignment = async function(assembly,chrom,start,end,family) {
+  const assembly_rec = await assemblyModel.findOne({
+    where: { name: assembly },
+    attributes: ['schema_name'],
+  });
+
+  const models = getAssemblyModels(assembly_rec.schema_name);
+
+  const sequence = await models.sequenceModel.findOne({
+    attributes: ['accession'],
+    where: { id: chrom }
+  });
+
+  const model = await hmmModelDataModel.findOne({
     attributes: [ "hmm" ],
     include: [ { model: familyModel, where: { accession: family }, attributes: [] } ],
-  }).then(function(model) {
-    return promisify(zlib.gunzip)(model.hmm).then(function(hmm_data) {
-      const twoBitFile = path.join(config.dfam_warehouse_dir,
-        "ref-genomes", assembly, assembly + ".2bit");
-
-      return reAlignAnnotationHMM(twoBitFile, chrom, start, end, hmm_data);
-    });
   });
+
+  const hmm_data = await promisify(zlib.gunzip)(model.hmm);
+
+  const twoBitFile = path.join(config.dfam_warehouse_dir,
+    "ref-genomes", assembly, "dfamseq.mask.2bit");
+
+  return reAlignAnnotationHMM(twoBitFile, sequence.accession, chrom, start, end, hmm_data);
 };
