@@ -39,8 +39,8 @@ module.exports = function stockholm_command(accession) {
 //  "name": "Name",
 //  "description: "Description",
 //  "seed_regions": [
-//    { a2m_seq: "sequence1" },
-//    { a2m_seq: "sequence2" },
+//    { a3m_seq: "sequence1" },
+//    { a3m_seq: "sequence2" },
 //    ...
 //  ],
 // }
@@ -60,12 +60,12 @@ function seedRegionsToStockholm(family) {
   var stockholmSeqs = [];
 
   seedRegions.forEach(function(region) {
-    stockholmSeqs.push(region.a2m_seq);
+    stockholmSeqs.push(region.a3m_seq);
     // Create a non-gap RF line with the correct match column length
     if (matchColCnt < 0)
-      matchColCnt = (region.a2m_seq.match(/[A-Z-]/g) || []).length;
+      matchColCnt = (region.a3m_seq.match(/[A-Z-]/g) || []).length;
     var prevLen = 0;
-    while ((matches = insRE.exec(region.a2m_seq)) != null) {
+    while ((matches = insRE.exec(region.a3m_seq)) != null) {
       var len = matches[1].length;
       var idx = insRE.lastIndex - len - prevLen;
       if (insLocs[idx] == null || insLocs[idx] < len)

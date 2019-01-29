@@ -5,8 +5,7 @@ module.exports = function(sequelize, DataTypes) {
     tax_id: {
       type: DataTypes.BIGINT,
       allowNull: false,
-      primaryKey: true,
-      unique: true
+      primaryKey: true
     },
     parent_id: {
       type: DataTypes.BIGINT,

@@ -30,7 +30,7 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: false
     },
-    a2m_seq: {
+    a3m_seq: {
       type: DataTypes.TEXT,
       allowNull: false
     },

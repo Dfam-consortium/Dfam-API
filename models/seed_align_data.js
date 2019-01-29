@@ -5,7 +5,11 @@ module.exports = function(sequelize, DataTypes) {
     family_id: {
       type: DataTypes.BIGINT,
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      references: {
+        model: 'family',
+        key: 'id'
+      }
     },
     graph_json: {
       type: "LONGBLOB",
