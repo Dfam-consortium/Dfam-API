@@ -152,7 +152,7 @@ exports.readFamilyAssemblyKaryotype = function(id,assembly_id) {
       attributes: [ "karyotype" ],
       where: { "family_accession": id }
     }).then(function(data) {
-      if (data.karyotype) {
+      if (data && data.karyotype) {
         return data.karyotype.toString();
       } else {
         return null;
