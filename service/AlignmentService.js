@@ -141,7 +141,7 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos
     await Promise.all([writeHmmFile, writeFastaFile]);
 
     // Do the search
-    const nhmmer = path.join(config.hmmer_bin, 'nhmmer');
+    const nhmmer = path.join(config.hmmer_bin_dir, 'nhmmer');
     // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
     // TODO: (JR) A region might match a model more than once. The "best" match within the
     //       region will be used here, which might not be the right one.
