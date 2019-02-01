@@ -87,21 +87,10 @@ function seedRegionsToStockholm(family) {
   }
   add_header("AU", family.author);
 
-  let general_cutoff = null;
-  family.family_assembly_data.forEach(function(fam_asm) {
-    general_cutoff = Math.max(general_cutoff || fam_asm.hmm_hit_TC, fam_asm.hmm_hit_TC);
-  });
+  add_header("TP", family.classification.lineage.replace(/^root;/, ''));
 
-  if (general_cutoff !== null) {
-    const cutoff_string = (Math.round(general_cutoff * 100) / 100) + ";";
-    add_header("GA", cutoff_string);
-    add_header("TC", cutoff_string);
-    add_header("NC", cutoff_string);
-  }
-  // TODO: BM build method
-  // TODO: SM search method
   family.clades.forEach(function(clade) {
-    add_header("MS", `TaxId:${clade.tax_id} TaxName:${clade.sanitized_name}`);
+    add_header("OC", `${clade.sanitized_name}`);
   });
 
   family.citations.sort((a, b) => a.family_has_citation.order_added - b.family_has_citation.order_added);
