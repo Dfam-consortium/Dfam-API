@@ -1,5 +1,7 @@
 'use strict';
 
+const APIResponse = require('../utils/response.js').APIResponse;
+
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const conn = require("../databases.js").dfam;
@@ -26,6 +28,13 @@ classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id' 
  * no response value expected for this operation
  **/
 exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
+  if (Math.abs(end-start) > 50000) {
+    return Promise.resolve(new APIResponse(
+      { message: "Requested range is too long." },
+      400
+    ));
+  }
+
   return assemblyModel.findOne({
     attributes: ["schema_name"],
     where: { "name": assembly },

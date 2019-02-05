@@ -199,6 +199,11 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
   var sanSeq = sanitizeFASTAInput(sequence);
   const md5sum = md5(sanSeq);
 
+  // TODO: Replace this minimal sanitization against
+  // "weird" characters with a check that the assembly
+  // in question actually exists.
+  organism = organism.replace(/[^A-Za-z0-9 _-]/g, '');
+
   // Preprocess options
   //   - dfamdequeuer expects options to stored as a CSV string
   //     where each field represents a component of the command line.
