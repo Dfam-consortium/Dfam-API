@@ -219,6 +219,10 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
   const now = Date.now();
   const uuid = uuidv1();
 
+  if (sequence.length > 50000) {
+    return Promise.resolve(new APIResponse({ message: "Submitted sequence is too long."}, 400));
+  }
+
   // Preprocess sequence by sanitizing and generating a checksum
   let sanSeq;
   try {
@@ -247,9 +251,10 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
     optStr = optStr + ",--cut_ga";
   } else {
     evalue = parseFloat(evalue);
-    if (!isNaN(evalue)) {
-      optStr = optStr + ",-E," + Math.min(evalue, 1000);
+    if (isNaN(evalue)) {
+      return Promise.resolve(new APIResponse({ message: "Invalid E-value provided." }, 400));
     }
+    optStr = optStr + ",-E," + Math.min(evalue, 1000);
   }
 
   // Create job request

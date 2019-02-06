@@ -416,6 +416,8 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     replacements.where_subtype = subtype;
   }
 
+  // TODO: new Date(...) is full of surprises.
+
   if (updated_after) {
     where.push("(date_modified > :where_after OR date_created > :where_after)");
     replacements.where_after = new Date(updated_after);
@@ -525,21 +527,20 @@ exports.readFamilyById = async function(id) {
  * format String The desired output format, \"hmm\" or \"logo\" or \"image\"
  * returns String
  **/
-exports.readFamilyHmm = function(id, format) {
+exports.readFamilyHmm = async function(id, format) {
   var field;
   var content_type;
   if (format == "hmm") {
-    return runWorkerAsync(["hmm", id]).then(function(hmm) {
-      if (hmm && hmm.length) {
-        return {
-          data: hmm,
-          content_type: "text/plain",
-          encoding: "gzip",
-        };
-      } else {
-        return null;
-      }
-    });
+    const hmm = await runWorkerAsync(["hmm", id]);
+    if (hmm && hmm.length) {
+      return {
+        data: hmm,
+        content_type: "text/plain",
+        encoding: "gzip",
+      };
+    } else {
+      return null;
+    }
   } else if (format == "logo") {
     field = "hmm_logo";
     content_type = "application/json";
@@ -550,55 +551,48 @@ exports.readFamilyHmm = function(id, format) {
     throw new Error("Invalid format: " + format);
   }
 
-  return hmmModelDataModel.findOne({
+  const model = await hmmModelDataModel.findOne({
     attributes: [ field ],
     include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
-  }).then(function(model) {
-    return new Promise(function(resolve, reject) {
-      if (!model || !model[field]) {
-        return resolve(null);
-      }
+  });
 
-      // TODO: Consider a streaming approach with 'data'
+  if (!model || !model[field]) {
+    return null;
+  }
 
-      zlib.gunzip(model[field], function(err, data) {
-        if (err) { reject(err); }
-        else { resolve(data); }
-      });
-    }).then(function(data) {
-      if (format == "image") {
+  if (format == "logo") {
+    return { data: model[field], content_type, encoding: 'gzip' };
+  }
 
-        return new Promise(function(resolve, reject) {
-          const webGenLogoImage = path.join(config.hmm_logos_dir, 'webGenLogoImage.pl');
-          const proc = child_process.spawn(webGenLogoImage,
-            { stdio: ['pipe', 'pipe', 'inherit'] }
-          );
-          proc.on('error', err => reject(err));
-
-          const chunks = [];
-          proc.stdout.on('data', chunk => chunks.push(chunk));
-          proc.on('close', function(code) {
-            if (code == 0) {
-              resolve(Buffer.concat(chunks));
-            } else {
-              reject(new Error("Error converting HMM to PNG image."));
-            }
-          });
-
-          proc.stdin.write(data);
-          proc.stdin.end();
-        });
-      } else {
-        return data;
-      }
-    }).then(function(data) {
-      if (data) {
-        return { data, content_type };
-      } else {
-        return null;
-      }
+  // format == "image"
+  const unzippedHmm = await new Promise(function(resolve, reject) {
+    zlib.gunzip(model[field], function(err, data) {
+      if (err) { reject(err); }
+      else { resolve(data); }
     });
   });
+
+  const image = await new Promise(function(resolve, reject) {
+    const webGenLogoImage = path.join(config.hmm_logos_dir, 'webGenLogoImage.pl');
+    const proc = child_process.spawn(webGenLogoImage,
+      { stdio: ['pipe', 'pipe', 'inherit'] }
+    );
+    proc.on('error', err => reject(err));
+
+    const chunks = [];
+    proc.stdout.on('data', chunk => chunks.push(chunk));
+    proc.on('close', function(code) {
+      if (code == 0) {
+        resolve(Buffer.concat(chunks));
+      } else {
+        reject(new Error("Error converting HMM to PNG image."));
+      }
+    });
+
+    proc.stdin.end(unzippedHmm);
+  });
+
+  return { data: image, content_type };
 };
 
 
@@ -611,15 +605,13 @@ exports.readFamilyHmm = function(id, format) {
 exports.readFamilyRelationships = function(id) {
   return familyOverlapModel.findAll({
     include: [
-      { model: familyModel, as: 'family1', attributes: ["name", "accession", "length"] },
+      {
+        model: familyModel, as: 'family1', attributes: ["name", "accession", "length"],
+        where: { 'accession': id },
+      },
       { model: familyModel, as: 'family2', attributes: ["name", "accession", "length"] },
       overlapSegmentModel,
     ],
-    where: {
-      [Sequelize.Op.or]: {
-        '$family1.accession$': id,
-      }
-    }
   }).then(function(overlaps) {
     var all_overlaps = [];
 
