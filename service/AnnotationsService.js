@@ -28,7 +28,7 @@ classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id' 
  * no response value expected for this operation
  **/
 exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
-  if (Math.abs(end-start) > 50000) {
+  if (Math.abs(end-start) > 1000000) {
     return Promise.resolve(new APIResponse(
       { message: "Requested range is too long." },
       400

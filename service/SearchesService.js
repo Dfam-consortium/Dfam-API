@@ -14,6 +14,7 @@ const dateFormat = require('dateformat');
 const zlib = require('zlib');
 const config = require('../config');
 const path = require('path');
+const APIResponse = require('../utils/response.js').APIResponse;
 
 const AlignmentService = require('./AlignmentService');
 
@@ -30,6 +31,8 @@ const streamModel = require('../models/auth/stream.js')(conn_users, Sequelize);
 const jobModel = require('../models/auth/job.js')(conn_users, Sequelize);
 const searchModel = require('../models/auth/search.js')(conn_users, Sequelize);
 
+searchModel.belongsTo(jobModel, { as: 'job', foreignKey: 'job_id' });
+
 const resultStore = config.dfamdequeuer.result_store;
 
 /**
@@ -41,30 +44,49 @@ const resultStore = config.dfamdequeuer.result_store;
 exports.readSearchResults = function(id) {
   // Query the database to get the start time so we can
   // build the data directory path.
-  return jobModel.findOne({ where: { uuid: id } }).then(function(jobRec) {
+  return searchModel.findOne({
+    include: [ 'job' ],
+    where: { '$job.uuid$': id }
+  }).then(function(searchRec) {
+    const jobRec = searchRec.job;
+
+    const response = {
+      submittedAt: jobRec.opened,
+      duration: "Not finished",
+      // TODO: Displayed parameters aren't properly quoted for a shell
+      searchParameters: searchRec.options.replace(/,/g, ' '),
+    };
+
+    if (jobRec.response_time) {
+      response.duration = jobRec.response_time.toFixed(0) + " seconds";
+    }
+
     if (jobRec.status === "PEND") {
+      response.status = "PEND";
+
       return jobModel.count({
         where: {
           "status": { [Op.in]: [ "RUNNING", "PEND" ] },
           "opened": { [Op.lt]: jobRec.opened }
         },
       }).then(function(count) {
-        return {
-          status: "PEND",
-          message: `Search pending. There are ${count} jobs ahead of this one.`
-        };
+        response.message = `Search pending. There are ${count} jobs ahead of this one.`;
+        return response;
       });
     } else if (jobRec.status === "RUNNING") {
-      return {
-        status: "RUNNING",
-        message: `Search running since ${jobRec.started}.`
-      };
+      response.status = "RUNNING";
+      response.message = `Search running since ${jobRec.started}.`;
+      return response;
     } else if (jobRec.status === "ERROR") {
-      return { status: "ERROR", message: "Search failed." };
+      response.status = "ERROR";
+      response.message = "Search failed.";
+      return response;
     } else if (jobRec.status === "DONE") {
       // handled below
     } else {
-      return { status: jobRec.status, message: "Unknown status." };
+      response.status = jobRec.status;
+      response.message = "Unknown status.";
+      return response;
     }
 
     var startedDate = new Date(jobRec.started);
@@ -137,7 +159,7 @@ exports.readSearchResults = function(id) {
     //  }, ..
     //]
     return Promise.all([nhmmerResults, trfResults, getQuerySizes]).then(function([nhmmer, trf, sizes]) {
-      return Object.keys(sizes).map(function(k) {
+      response.results = Object.keys(sizes).map(function(k) {
         return {
           "query": k,
           "length": sizes[k],
@@ -145,6 +167,8 @@ exports.readSearchResults = function(id) {
           "tandem_repeats": trf[k] || [],
         };
       });
+
+      return response;
     });
   });
 };
@@ -196,7 +220,16 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
   const uuid = uuidv1();
 
   // Preprocess sequence by sanitizing and generating a checksum
-  var sanSeq = sanitizeFASTAInput(sequence);
+  let sanSeq;
+  try {
+    sanSeq = sanitizeFASTAInput(sequence);
+  } catch(e) {
+    if (e.invalidFASTAInput) {
+      return Promise.resolve(new APIResponse({ message: e.message }, 400));
+    } else {
+      throw e;
+    }
+  }
   const md5sum = md5(sanSeq);
 
   // TODO: Replace this minimal sanitization against
@@ -254,8 +287,8 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
 
 function sanitizeFASTAInput(sequence) {
   const validFASTAHeader = /^>(\S*).*$/;
-  const validFASTASequence = /^\s*([ACGTUMRWSYKVHDBN]+)\s*$/;
-  const toleratedFASTABlankLine = /^\s*$/;
+  // List of IUB codes at http://biocorp.ca/IUB.php
+  const invalidFASTAChar = /[^ACGTRYKMSWBDHVN]/g;
 
   var lines = sequence.split(/\r\n|\n/);
 
@@ -281,15 +314,18 @@ function sanitizeFASTAInput(sequence) {
       used_IDs.push(recID);
       recSeq = "";
     } else {
-      line.replace(/[\s\n\r]+/g,'');
-      line.toUpperCase();
-      if ((matches = line.match(validFASTASequence)) != null) {
-        recSeq = recSeq + matches[1];
-      }else if (line.match(toleratedFASTABlankLine)) {
-        // Eat blank lines...mmmm
-      }else {
-        // Eat non FASTA stuff.....this could emit an error if
-        // that would be useful.
+      // Only process non-blank lines
+      line = line.replace(/\s/g,'');
+      if (line) {
+        line = line.toUpperCase();
+        line = line.replace('X', 'N');
+        if ((matches = line.match(invalidFASTAChar)) != null) {
+          const e = new Error('Invalid FASTA character: ' + matches[0]);
+          e.invalidFASTAInput = true;
+          throw e;
+        } else {
+          recSeq = recSeq + line;
+        }
       }
     }
   });
