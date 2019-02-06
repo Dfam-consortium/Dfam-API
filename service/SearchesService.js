@@ -141,8 +141,8 @@ exports.readSearchResults = function(id) {
         return {
           "query": k,
           "length": sizes[k],
-          "hits": nhmmer[k],
-          "tandem_repeats": trf[k]
+          "hits": nhmmer[k] || [],
+          "tandem_repeats": trf[k] || [],
         };
       });
     });
