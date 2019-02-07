@@ -105,11 +105,19 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER(11),
       allowNull: true
     },
-    hmm_general_NC: {
+    hmm_general_threshold: {
       type: "DOUBLE",
       allowNull: true
     },
     seed_ref: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    title: {
+      type: DataTypes.STRING(80),
+      allowNull: true
+    },
+    curation_notes: {
       type: DataTypes.TEXT,
       allowNull: true
     }

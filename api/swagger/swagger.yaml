@@ -1137,6 +1137,8 @@ definitions:
         type: string
       name:
         type: string
+      title:
+        type: string
       description:
         type: string
       length:
@@ -1173,7 +1175,7 @@ definitions:
         type: boolean
       model_mask:
         type: [ 'string', 'null' ]
-      hmm_general_nc:
+      hmm_general_threshold:
         type: number
       aliases:
         type: array

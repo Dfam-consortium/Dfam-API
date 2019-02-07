@@ -42,7 +42,7 @@ function annotateHmm(family, hmm) {
     if (lines[i].indexOf("NAME") !== -1) {
       result.push(lines[i]);
       add_header("ACC", family.accessionAndVersion);
-      add_header("DESC", family.description);
+      add_header("DESC", family.title);
     } else if (lines[i].indexOf("CKSUM") !== -1) {
       result.push(lines[i]);
 

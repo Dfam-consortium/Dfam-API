@@ -99,6 +99,7 @@ function familyQueryRowToObject(row, format) {
   const obj = mapFields(row, {}, {
     "accession": "accession",
     "name": "name",
+    "title": "title",
     "description": "description",
     "length": "length",
   });
@@ -132,7 +133,7 @@ function familyQueryRowToObject(row, format) {
     "refineable": "refineable",
     "disabled": "disabled",
     "model_mask": "model_mask",
-    "hmm_general_nc": "hmm_general_nc",
+    "hmm_general_threshold": "hmm_general_threshold",
   });
 
   if (obj.refineable !== undefined) {
@@ -353,7 +354,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
 
   const replacements = {};
 
-  var selects = [ "family.id AS id", "family.accession", "family.name AS name", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
+  var selects = [ "family.id AS id", "family.accession", "family.name AS name", "family.title AS title", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
   let from = "family LEFT JOIN classification ON family.classification_id = classification.id" +
 " LEFT JOIN repeatmasker_type ON classification.repeatmasker_type_id = repeatmasker_type.id" +
 " LEFT JOIN repeatmasker_subtype ON classification.repeatmasker_subtype_id = repeatmasker_subtype.id ";
@@ -363,7 +364,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     from += " LEFT JOIN curation_state ON family.curation_state_id = curation_state.id ";
     selects = selects.concat([
       "consensus", "author", "deposited_by_id", "date_created", "date_modified",
-      "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_nc",
+      "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_threshold",
       "curation_state.name AS curation_state_name",
       "curation_state.description AS curation_state_description"
     ]);
@@ -434,7 +435,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
       i++;
       var key = "where_keywords" + i;
 
-      where.push(`((family.name LIKE :${key} ESCAPE '#') OR (family.description LIKE :${key} ESCAPE '#') OR (accession LIKE :${key} ESCAPE '#') OR (author LIKE :${key} ESCAPE '#'))`);
+      where.push(`((family.name LIKE :${key} ESCAPE '#') OR (family.title LIKE :${key} ESCAPE '#') OR (family.description LIKE :${key} ESCAPE '#') OR (accession LIKE :${key} ESCAPE '#') OR (author LIKE :${key} ESCAPE '#'))`);
       replacements[key] = "%" + escape.escape_sql_like(word, '#') + "%";
     });
   }
@@ -672,7 +673,7 @@ exports.readFamilySeed = function(id,format) {
     });
   } else if (format == "alignment_summary") {
     return familyModel.findOne({
-      attributes: [ "id", "name", "description" ],
+      attributes: [ "id", "name" ],
       where: { accession: id },
     }).then(function(family) {
       return seedAlignDataModel.findOne({

@@ -82,8 +82,8 @@ function seedRegionsToStockholm(family) {
   add_header("ID", family.name);
 
   add_header("AC", family.accessionAndVersion);
-  if (family.description != null) {
-    add_header("DE", family.description);
+  if (family.title != null) {
+    add_header("DE", family.title);
   }
   add_header("AU", family.author);
 
