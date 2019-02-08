@@ -74,6 +74,18 @@ npm run lint
 
 ### Testing
 
-Rigorous API tests have not yet been implemented. A
-[Postman](https://getpostman.com) collection is maintained at
-`api/api.postman_collection.json` for developement and testing.
+A [Postman](https://getpostman.com) collection is maintained
+at `api/api.postman_collection.json` for developement and
+testing.
+
+To run the test suite (implemented in tests/), run
+
+```
+npm test
+```
+
+Or to get an accompanying coverage report:
+
+```
+npm run coverage
+```

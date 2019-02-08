@@ -9,7 +9,9 @@
   "scripts": {
     "start": "node index.js",
     "lint": "eslint .; true",
-    "watch": "npm-watch"
+    "watch": "npm-watch",
+    "test": "ava",
+    "coverage": "nyc ava"
   },
   "license": "CC0-1.0",
   "private": true,
@@ -32,9 +34,12 @@
     "winston": "^3.1.0"
   },
   "devDependencies": {
+    "ava": "^1.2.1",
     "eslint": "^5.12.1",
     "mysql": "^2.16.0",
     "npm-watch": "^0.6.0",
-    "sequelize-auto": "^0.4.29"
+    "nyc": "^13.2.0",
+    "sequelize-auto": "^0.4.29",
+    "supertest": "^3.4.2"
   }
 }

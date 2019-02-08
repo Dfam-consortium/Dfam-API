@@ -1,0 +1,198 @@
+const test = require('ava');
+const supertest = require('supertest');
+
+const winston = require('winston');
+const format = winston.format;
+winston.configure({
+  level: 'info',
+  transports: [
+    new winston.transports.Console({
+      format: format.combine(
+        format.colorize(),
+        format.simple(),
+      ),
+    }),
+  ],
+});
+
+const app = require('../app')();
+const request = supertest(app);
+
+async function get_body(url) {
+  const response = await request.get(url).expect(200);
+  return response.body;
+}
+
+async function get_text(url) {
+  const response = await request.get(url).expect(200);
+  return response.text;
+}
+
+async function get_notfound(url) {
+  await request.get(url).expect(404);
+}
+
+// AlignmentService
+test('get alignment', async t => {
+  const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF0004191');
+  t.regex(body.pp.string, /^699\**9988777333.*/);
+
+  await get_notfound('/alignment?assembly=fake&chrom=chr1&start=1&end=1000&family=DF0004191');
+  await get_notfound('/alignment?assembly=mm10&chrom=fake&start=1&end=1000&family=DF0004191');
+
+  await request.get('/alignment?assembly=mm10&chrom=chr1&start=1&end=40000&family=DF0004191')
+    .expect(400);
+});
+
+// AnnotationsService
+test('get annotations', async t => {
+  const body = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true');
+  t.true(body.hits.length > 1);
+  t.true(body.tandem_repeats.length > 1);
+
+  const body2 = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF0000001');
+  t.true(body2.hits.length > 1);
+  t.true(body2.tandem_repeats.length > 1);
+
+  await get_notfound('/annotations?assembly=fake&chrom=chr1&start=168130000&end=168180000&nrph=true');
+
+  const body3 = await get_body('/annotations?assembly=hg38&chrom=fake&start=168130000&end=168180000&nrph=true');
+  t.is(body3.hits.length, 0);
+
+  await request.get('/annotations?assembly=hg38&chrom=fake&start=158000000&end=168000000&nrph=true')
+    .expect(400);
+});
+
+// AssembliesService
+test('get assemblies', async t => {
+  const body = await get_body('/assemblies');
+  const ficAlb2 = body.find(asm => asm.id === 'ficAlb2');
+  t.is(ficAlb2.name, 'Ficedula albicollis');
+});
+
+// AuthenticateService
+
+// BlogService
+test('get blog posts', async t => {
+  const body = await get_body('/blogposts');
+  t.truthy(body.length);
+});
+
+// ClassificationService
+test('get classifications', async t => {
+  const body = await get_body('/classes');
+  t.is(body.name, 'root');
+  t.truthy(body.children.length);
+});
+
+test('search classifications', async t => {
+  const body = await get_body('/classes?name=SINE');
+  const cls = body.find(c => c.name == 'SINE');
+  t.is(cls.repeatmasker_type, 'SINE');
+  t.is(cls.full_name, 'root;Interspersed_Repeat;Transposable_Element;Retrotransposed_Element;LINE-dependent_Retroposon;SINE');
+});
+
+// FamiliesService
+test('search families', async t => {
+  const body = await get_body('/families?clade=9263&limit=20');
+  t.is(body.total_count, 6);
+  const charlie1 = body.results.find(f => f.name === 'Charlie1');
+  t.regex(charlie1.title, /Charlie DNA transposon/);
+  t.regex(charlie1.description, /8 bp TSD./);
+  t.is(charlie1.repeat_subtype_name, 'hAT-Charlie');
+});
+
+test('get family', async t => {
+  const body = await get_body('/families/DF0001010');
+
+  t.regex(body.title, /Long Terminal Repeat for ERVL/);
+  t.is(body.submitter, 'Robert Hubley');
+  t.truthy(body.search_stages.length);
+
+  await get_notfound('/families/DF000FAKE');
+});
+
+test('get family HMM', async t => {
+  const hmm = await get_body('/families/DF0000001/hmm?format=hmm');
+  t.truthy(hmm);
+
+  const logo_json = await get_body('/families/DF0000001/hmm?format=logo');
+  t.truthy(logo_json.height_arr.length);
+
+  await request
+    .get('/families/DF0000001/hmm?format=image')
+    .expect('Content-Type', 'image/png');
+  t.pass();
+});
+
+test('get family relationships', async t => {
+  const body = await get_body('/families/DF0000001/relationships');
+  t.truthy(body.length);
+});
+
+test('get family seed', async t => {
+  const text = await get_text('/families/DF0000001/seed?format=stockholm');
+  t.regex(text, /GC RF/);
+
+  const body = await get_body('/families/DF0000001/seed?format=alignment_summary');
+
+  t.truthy(body.alignments.length);
+  t.is(body.qualityBlockLen, 10);
+});
+
+test('get family sequence', async t => {
+  const text = await get_text('/families/DF0000001/sequence?format=embl');
+  t.regex(text, /SQ\s*Sequence \d* BP;/);
+});
+
+// FamilyAssembliesService
+test('get family assemblies', async t => {
+  const body = await get_body('/families/DF0000001/assemblies');
+  const hg38 = body.find(a => a.id == 'hg38');
+  t.is(hg38.name, 'Homo sapiens');
+});
+
+test('get family assembly stats', async t => {
+  const body = await get_body('/families/DF0000001/assemblies/hg38/annotation_stats');
+  t.truthy(body.hmm.trusted_all);
+});
+
+test('get family assembly annotations', async t => {
+  const text_rph = await get_text('/families/DF0000001/assemblies/hg38/annotations?nrph=false');
+  const text_nrph = await get_text('/families/DF0000001/assemblies/hg38/annotations?nrph=true');
+
+  t.true(text_nrph.length < text_rph.length);
+});
+
+test('get family assembly karyotype', async t => {
+  const body = await get_body('/families/DF0000001/assemblies/hg38/karyotype');
+  t.truthy(body.singleton_contigs.length);
+});
+
+test('get family assembly coverage', async t => {
+  const body = await get_body('/families/DF0000001/assemblies/hg38/model_coverage?model=hmm');
+  t.truthy(body.nrph);
+  t.truthy(body.false);
+  t.true(body.nrph_hits < body.all_hits);
+});
+
+test('get family assembly conservation', async t => {
+  const body = await get_body('/families/DF0000001/assemblies/hg38/model_conservation?model=hmm');
+  t.truthy(body.length);
+  t.truthy(body[0].num_seqs);
+});
+
+// Searches Service
+test.todo('perform search');
+
+// Taxa Service
+test('get taxa', async t => {
+  const body = await get_body('/taxa?name=Drosophila');
+  t.true(body.taxa[0].name == 'Drosophila <basidiomycete fungus>');
+});
+
+// Version Service
+test('get version', async t => {
+  const body = await get_body('/version');
+  t.deepEqual(body, { major: "0", minor: "0", bugfix: "3" });
+});
