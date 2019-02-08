@@ -39,6 +39,10 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
     attributes: ["schema_name"],
     where: { "name": assembly },
   }).then(function(assembly) {
+    if (!assembly) {
+      return null;
+    }
+
     const models = getAssemblyModels(assembly.schema_name);
 
     const query_hmm = {
