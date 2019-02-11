@@ -454,9 +454,12 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
         orderBy.push(match[1] + " " + match[2]);
       }
     });
-    if (orderBy.length) {
-      sql += " ORDER BY " + orderBy.join(",");
-    }
+  }
+
+  if (orderBy.length) {
+    sql += " ORDER BY " + orderBy.join(",");
+  } else {
+    sql += " ORDER BY accession";
   }
 
   if (limit !== undefined) {
