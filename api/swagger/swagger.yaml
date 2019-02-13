@@ -20,7 +20,14 @@ info:
     Robert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen
 
     Copyright 2016-2018 Institute for Systems Biology
-  termsOfService: 'http://creativecommons.org/licenses/by/4.0/'
+  contact:
+    name: Dfam Consortium
+    url: 'https://dfam.org/about'
+    email: 'help@dfam.org'
+  license:
+    name: CC0 1.0
+    url: 'https://creativecommons.org/publicdomain/zero/1.0/'
+  termsOfService: 'https://creativecommons.org/publicdomain/zero/1.0/'
 host: 'localhost:10011'
 basePath: /
 schemes:
@@ -1144,37 +1151,33 @@ definitions:
       length:
         type: integer
       classification:
-        type: [ 'string', 'null' ]
+        type: string
       repeat_type_name:
-        type:
-          - string
-          - 'null'
+        type: string
       repeat_subtype_name:
-        type:
-          - string
-          - 'null'
+        type: string
       consensus_sequence:
         type: string
       author:
-        type: [ 'string', 'null' ]
+        type: string
       submitter:
         type: string
       date_created:
         type: string
       date_modified:
-        type: [ 'string', 'null' ]
+        type: string
       curation_state_name:
         type: string
       curation_state_description:
         type: string
       target_site_cons:
-        type: [ 'string', 'null' ]
+        type: string
       refineable:
         type: boolean
       disabled:
         type: boolean
       model_mask:
-        type: [ 'string', 'null' ]
+        type: string
       hmm_general_threshold:
         type: number
       aliases:
@@ -1227,7 +1230,7 @@ definitions:
             journal:
               type: string
             pubdate:
-              type: [ 'string', 'null' ]
+              type: string
       clades:
         type: array
         items:
@@ -1256,7 +1259,7 @@ definitions:
               items:
                 type: integer
             external_reference:
-              type: [ 'string', 'null' ]
+              type: string
             reverse:
               type: boolean
             stop_codons:
@@ -1274,7 +1277,7 @@ definitions:
             classification_id:
               type: integer
             align_data:
-              type: [ 'string', 'null' ]
+              type: string
             description:
               type: string
             protein_type:
@@ -1328,9 +1331,7 @@ definitions:
         type: object
         properties:
           divergence:
-            type:
-              - 'null'
-              - number
+            type: number
           gathering_nonredundant:
             type: integer
           gathering_all:
@@ -1343,9 +1344,7 @@ definitions:
         type: object
         properties:
           divergence:
-            type:
-              - 'null'
-              - number
+            type: number
           gathering_nonredundant:
             type: integer
           gathering_all:
