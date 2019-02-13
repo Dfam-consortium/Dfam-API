@@ -377,7 +377,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     where.push("family.name LIKE :where_name ESCAPE '#'");
     replacements.where_name = escape.escape_sql_like(name_prefix, '#') + "%";
   } else if (name_accession) {
-    where.push("family.name LIKE :where_name_acc ESCAPE '#' OR family.accession LIKE :where_name_acc ESCAPE '#'");
+    where.push("(family.name LIKE :where_name_acc ESCAPE '#' OR family.accession LIKE :where_name_acc ESCAPE '#')");
     replacements.where_name_acc = "%" + escape.escape_sql_like(name_accession, '#') + "%";
   }
 
