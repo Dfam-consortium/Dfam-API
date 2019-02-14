@@ -8,6 +8,7 @@ const child_process = require('child_process');
 const config = require("../config");
 const path = require("path");
 const runWorkerAsync = require('../utils/async').runWorkerAsync;
+const APIResponse = require('../utils/response').APIResponse;
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
@@ -350,6 +351,14 @@ async function collectClades(clade, clade_relatives) {
  **/
 exports.readFamilies = async function(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
 
+  if (!format) {
+    format = "summary";
+  }
+
+  if (format !== "summary" && format !== "full") {
+    return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
+  }
+
   const clade_info = await collectClades(clade, clade_relatives);
 
   const replacements = {};
@@ -516,8 +525,8 @@ exports.readFamilyById = async function(id) {
   });
 
   if (row) {
-    const full_rows = await familySubqueries([row], null);
-    return familyQueryRowToObject(full_rows[0], null);
+    const full_rows = await familySubqueries([row], "full");
+    return familyQueryRowToObject(full_rows[0], "full");
   } else {
     return null;
   }
@@ -552,7 +561,7 @@ exports.readFamilyHmm = async function(id, format) {
     field = "hmm";
     content_type = "image/png";
   } else {
-    throw new Error("Invalid format: " + format);
+    return Promise.resolve(new APIResponse("Unrecognized format: " + format, 400));
   }
 
   const model = await hmmModelDataModel.findOne({
@@ -695,7 +704,7 @@ exports.readFamilySeed = function(id,format) {
       });
     });
   } else {
-    throw new Error("Invalid format: " + format);
+    return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
   }
 };
 
@@ -719,6 +728,6 @@ exports.readFamilySequence = function(id, format) {
       }
     });
   } else {
-    throw new Error("Invalid format: " + format);
+    return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
   }
 };
