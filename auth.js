@@ -63,13 +63,14 @@ module.exports.generateJwt = function(id, email, name) {
   }, config.apiserver.jwt_secret);
 };
 
+// TODO: Increase the number of iterations, backwards-compatibly if possible
 module.exports.hashPassword = function(password) {
   var salt = crypto.randomBytes(256).toString('hex');
-  var hash = crypto.pbkdf2Sync(password, salt, 100000, 512, 'sha512').toString('hex');
+  var hash = crypto.pbkdf2Sync(password, salt, 1000, 512, 'sha512').toString('hex');
   return { salt, hash };
 };
 
 module.exports.validatePassword = function(password, salt, hash) {
-  var newHash = crypto.pbkdf2Sync(password, salt, 100000, 512, 'sha512').toString('hex');
+  var newHash = crypto.pbkdf2Sync(password, salt, 1000, 512, 'sha512').toString('hex');
   return newHash == hash;
 };
