@@ -382,8 +382,8 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   }
 
   if (classification) {
-    where.push("classification.lineage = :where_classification");
-    replacements.where_classification = classification;
+    where.push("classification.lineage LIKE :where_classification ESCAPE '#'");
+    replacements.where_classification = escape.escape_sql_like(classification, '#') + "%";
   }
 
   if (clade_info) {
