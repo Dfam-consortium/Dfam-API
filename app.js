@@ -55,18 +55,19 @@ module.exports = function() {
 
     // Error handler for routes
     app.use(function(err, req, res, next) {
-      if (err.stack) {
-        winston.error(err.stack);
-      } else {
-        winston.error(err.toString());
-      }
-
       if (err.failedValidation) {
         // Request validation error
         // swagger-tools has already set the status code to 400
 
         res.setHeader("Content-Type", "application/json");
         res.end(JSON.stringify({ message: err.message }));
+        return;
+      }
+
+      if (err.stack) {
+        winston.error(err.stack);
+      } else {
+        winston.error(err.toString());
       }
 
       if (!res.headersSent) {
