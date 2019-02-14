@@ -25,7 +25,6 @@ module.exports = function() {
 
   // swaggerRouter configuration
   var options = {
-    swaggerUi: path.join(__dirname, '/swagger.json'),
     controllers: path.join(__dirname, './controllers'),
     useStubs: process.env.NODE_ENV === 'development' // Conditionally turn on stubs (mock mode)
   };
@@ -76,9 +75,6 @@ module.exports = function() {
       }
       res.end(JSON.stringify({ message: "Unhandled server error." }));
     });
-
-    // Serve the Swagger documents and Swagger UI
-    app.use(middleware.swaggerUi());
   });
 
   return app;

@@ -35,5 +35,4 @@ const app = require('./app')();
 // Start the server
 http.createServer(app).listen(serverPort, function () {
   winston.info(`Your server is listening on port ${serverPort} (http://localhost:${serverPort})`);
-  winston.info(`Swagger-ui is available on http://localhost:${serverPort}/docs`);
 });
