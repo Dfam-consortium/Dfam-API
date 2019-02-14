@@ -7,14 +7,12 @@ info:
     Repeats defined in the Dfam database are annotated for use with
     RepeatMasker using a combination of automated and manual steps.
 
-    ### Authentication
-    The API is secured using a token-based authentication
-    system.  The token is obtained using the "/authenticate" path.  In addition
-    the "/version", "/register" paths do not require a token to access.
+    For more information on getting started with the Dfam API, see
+    the documentation and examples at http://dfam.org/help/api
 
     ### Known Consumers
 
-    TODO (none yet)
+    http://dfam.org/
 
     #### Authors
     Robert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen
@@ -28,7 +26,7 @@ info:
     name: CC0 1.0
     url: 'https://creativecommons.org/publicdomain/zero/1.0/'
   termsOfService: 'https://creativecommons.org/publicdomain/zero/1.0/'
-host: 'localhost:10011'
+host: 'dfam.org'
 basePath: /
 schemes:
   - http
@@ -37,18 +35,18 @@ consumes:
   - application/json
 produces:
   - application/json
-securityDefinitions:
-  Bearer:
-    type: apiKey
-    in: header
-    name: Authorization
+#securityDefinitions:
+#  Bearer:
+#    type: apiKey
+#    in: header
+#    name: Authorization
 paths:
   /version:
     x-swagger-router-controller: Version
     get:
       produces:
         - application/json
-      description: Get the API version.
+      description: Get the current version of the API.
       tags:
         - version
       operationId: getVersion
@@ -66,7 +64,7 @@ paths:
     get:
       produces:
         - application/json
-      description: Get recent Dfam blog posts.
+      description: Get a list of recent Dfam blog posts. This API is meant for use on dfam.org and the details are not documented.
       tags:
         - blog
       operationId: readBlogPosts
@@ -74,106 +72,108 @@ paths:
         '200':
           description: Success
           schema:
-            type: string
+            type: array
+            items:
+              type: object
         default:
           description: Error
           schema:
             type: string
-  /authenticate:
-    x-swagger-router-controller: Authenticate
-    post:
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
-      description: Obtain API access token for previously registered user.
-      tags:
-        - authenticate
-      operationId: authenticate
-      parameters:
-        - name: email
-          in: formData
-          description: User's email address as username
-          required: true
-          type: string
-        - name: password
-          in: formData
-          description: User's password for obtaining API access token
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/loginResponse'
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-  /register:
-    x-swagger-router-controller: Register
-    post:
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
-      description: Register a new account with the API.
-      tags:
-        - register
-      operationId: register
-      parameters:
-        - name: email
-          in: formData
-          description: User's email address
-          required: true
-          type: string
-        - name: name
-          in: formData
-          description: User's full name
-          required: true
-          type: string
-        - name: password
-          in: formData
-          description: User's password for obtaining API access token
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: string
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-  /verify:
-    x-swagger-router-controller: Register
-    get:
-      produces:
-        - text/plain
-      description: Verify a user's email address.
-      tags:
-        - register
-      operationId: verifyEmail
-      parameters:
-        - name: token
-          in: query
-          description: User's email verification token
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: string
-        default:
-          description: Error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
+#  /authenticate:
+#    x-swagger-router-controller: Authenticate
+#    post:
+#      consumes:
+#        - application/x-www-form-urlencoded
+#      produces:
+#        - application/json
+#      description: Obtain API access token for previously registered user.
+#      tags:
+#        - authenticate
+#      operationId: authenticate
+#      parameters:
+#        - name: email
+#          in: formData
+#          description: User's email address as username
+#          required: true
+#          type: string
+#        - name: password
+#          in: formData
+#          description: User's password for obtaining API access token
+#          required: true
+#          type: string
+#      responses:
+#        '200':
+#          description: Success
+#          schema:
+#            $ref: '#/definitions/loginResponse'
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/ErrorResponse'
+#  /register:
+#    x-swagger-router-controller: Register
+#    post:
+#      consumes:
+#        - application/x-www-form-urlencoded
+#      produces:
+#        - application/json
+#      description: Register a new account with the API.
+#      tags:
+#        - register
+#      operationId: register
+#      parameters:
+#        - name: email
+#          in: formData
+#          description: User's email address
+#          required: true
+#          type: string
+#        - name: name
+#          in: formData
+#          description: User's full name
+#          required: true
+#          type: string
+#        - name: password
+#          in: formData
+#          description: User's password for obtaining API access token
+#          required: true
+#          type: string
+#      responses:
+#        '200':
+#          description: Success
+#          schema:
+#            type: string
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/ErrorResponse'
+#  /verify:
+#    x-swagger-router-controller: Register
+#    get:
+#      produces:
+#        - text/plain
+#      description: Verify a user's email address.
+#      tags:
+#        - register
+#      operationId: verifyEmail
+#      parameters:
+#        - name: token
+#          in: query
+#          description: User's email verification token
+#          required: true
+#          type: string
+#      responses:
+#        '200':
+#          description: Success
+#          schema:
+#            type: string
+#        default:
+#          description: Error
+#          schema:
+#            $ref: '#/definitions/ErrorResponse'
   /assemblies:
     x-swagger-router-controller: Assemblies
     get:
-      description: Retrieve a list of annotated assemblies in Dfam
+      description: Retrieve a list of all assemblies in Dfam that have annotations.
       tags:
         - assemblies
       operationId: readAssemblies
@@ -189,43 +189,43 @@ paths:
   /families:
     x-swagger-router-controller: Families
     get:
-      description: Returns a list of Dfam families optionally filtered and sorted.
+      description: Get a list of families in Dfam, optionally filtered and sorted.
       tags:
         - families
       operationId: readFamilies
       parameters:
         - name: format
           in: query
-          description: Desired output format
+          description: Desired output format. "summary" and "full" are the only formats currently recognized. Defaults to "summary".
           required: false
           type: string
         - name: sort
           in: query
-          description: A string containing the ordered sort columns
+          description: A string containing sort columns, for example "name:asc,length:desc". Sorting by any of "accession", "name", "length", and "type", "subtype", "date_created", and "date_modified" are supported. If unspecified, "accession:asc" will be used.
           required: false
           type: string
         - name: name
           in: query
-          description: Search term for repeat identifier
+          description: Search term for any part of the repeat name. Takes precedence over "name_prefix" if both are specified.
           required: false
           type: string
         - name: name_prefix
           in: query
-          description: Search term for repeat name prefix ( overriden by "name" search )
+          description: Search term for a prefix of the repeat name.
           type: string
         - name: name_accession
           in: query
-          description: Search term for repeat name or accession
+          description: Search term for any part of the repeat name or accession
           required: false
           type: string
         - name: classification
           in: query
-          description: Search term for repeat classification
+          description: Search term for repeat classification. Sub-classifications are included. A full classification lineage is expected for this search term; such as "root;Interspersed_Repeat".
           required: false
           type: string
         - name: clade
           in: query
-          description: Search term for repeat clade
+          description: Search term for repeat clade. Can be either an NCBI Taxonomy ID or scientific name. If the scientific name is ambiguous (e.g. "Drosophila"), the taxonomy ID should be used instead.
           required: false
           type: string
         - name: clade_relatives
@@ -237,12 +237,12 @@ paths:
           type: string
         - name: type
           in: query
-          description: Search term for repeat type
+          description: Search term for repeat type, as understood by RepeatMasker.
           required: false
           type: string
         - name: subtype
           in: query
-          description: Search term for repeat subtype
+          description: Search term for repeat subtype, as understood by RepeatMasker.
           required: false
           type: string
         - name: updated_after
@@ -259,22 +259,22 @@ paths:
           format: date
         - name: desc
           in: query
-          description: Search term for repeat description
+          description: Search term for repeat description.
           required: false
           type: string
         - name: keywords
           in: query
-          description: Keywords to search in text fields
+          description: Keywords to search in text fields (currently name, title, description, accession, author).
           required: false
           type: string
         - name: start
           in: query
-          description: Start index ( for range queries )
+          description: Index of first record to return. Commonly used along with `limit` to implement paging.
           required: false
           type: integer
         - name: limit
           in: query
-          description: Records to return ( for range queries )
+          description: Maxium number of records to return.
           required: false
           type: integer
       responses:
@@ -291,11 +291,11 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
     get:
-      description: Retrieve an individual Dfam family.
+      description: Retrieve full details of an individual Dfam family.
       tags:
         - families
       operationId: readFamilyById
@@ -313,18 +313,18 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
     get:
-      description: Retrieve an individual Dfam family's HMM data
+      description: Retrieve an individual Dfam family's annotated HMM
       tags:
         - families
       operationId: readFamilyHmm
       parameters:
         - name: format
           in: query
-          description: 'The desired output format, "hmm" or "logo" or "image"'
+          description: 'The desired output format: "hmm", "logo", or "image"'
           required: true
           type: string
         - name: download
@@ -350,18 +350,18 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
     get:
-      description: Retrieve an individual Dfam family sequence
+      description: Retrieve an individual Dfam family's annotated consensus sequence. If only the raw sequence is needed, use the `consensus_sequence` property from the `/families/{id}` endpoint instead.
       tags:
         - families
       operationId: readFamilySequence
       parameters:
         - name: format
           in: query
-          description: 'The desired output format, currently only "embl" is supported'
+          description: 'The desired output format. currently only "embl" is supported.'
           required: true
           type: string
         - name: download
@@ -385,7 +385,7 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
     get:
@@ -420,7 +420,7 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
     get:
@@ -442,11 +442,11 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
     get:
-      description: Retrieve an individual Dfam family's list of linked annotated assemblies
+      description: Retrieve a list of assemblies with annotations for this Dfam family.
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblies
@@ -464,16 +464,16 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly name
+        description: The assembly identifier, as shown in /families/{id}/assemblies
         required: true
         type: string
     get:
-      description: Retrieve a family's coverage data for a given assembly
+      description: Retrieve a family's coverage data associated with a given assembly
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyModelCoverage
@@ -504,16 +504,16 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly name
+        description: The assembly identifier, as shown in /families/{id}/assemblies
         required: true
         type: string
     get:
-      description: Retrieve a family's conservation data for a given assembly
+      description: Retrieve a family's conservation data associated with a given assembly
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyModelConservation
@@ -548,16 +548,16 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly name
+        description: The assembly identifier, as shown in /families/{id}/assemblies
         required: true
         type: string
     get:
-      description: Retrieve a family's annotation data for a given assembly
+      description: Retrieve a family's annotations associated with a given assembly
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyAnnotations
@@ -588,16 +588,16 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly name
+        description: The assembly identifier, as shown in /families/{id}/assemblies
         required: true
         type: string
     get:
-      description: Retrieve a family's annotation statistics for a given assembly
+      description: Retrieve a family's annotation statistics associated with a given assembly
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyAnnotationStats
@@ -615,16 +615,16 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family name
+        description: The Dfam family accession
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly name
+        description: The assembly identifier, as shown in /families/{id}/assemblies
         required: true
         type: string
     get:
-      description: Retrieve a family's karyotype data for a given assembly
+      description: Retrieve a family's karyotype data associated with a given assembly
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyKaryotype
@@ -640,14 +640,14 @@ paths:
   /classes:
     x-swagger-router-controller: Classification
     get:
-      description: Get generalized repeat classification heirarchy
+      description: Get the entire repeat classification hierarchy used by Dfam.
       tags:
         - classification
       operationId: readClassification
       parameters:
         - name: name
           in: query
-          description: Classification name to search for
+          description: Classification name to search for. If given, the results will be returned as an array instead of the default hierarchical format.
           required: false
           type: string
       responses:
@@ -662,7 +662,7 @@ paths:
   /taxa:
     x-swagger-router-controller: Taxa
     get:
-      description: Query the local copy of the NCBI taxonomy database
+      description: Query Dfam's copy of the NCBI taxonomy database.
       tags:
         - taxa
       operationId: readTaxa
@@ -679,7 +679,7 @@ paths:
           type: boolean
         - name: limit
           in: query
-          description: Only return up to a maximum number of hits
+          description: Only return up to a maximum number of matching taxa
           required: false
           type: integer
       responses:
@@ -701,12 +701,12 @@ paths:
       parameters:
         - name: assembly
           in: query
-          description: Assembly to search
+          description: Assembly to search. A list of assemblies is available at `/assemblies`.
           required: true
           type: string
         - name: chrom
           in: query
-          description: Chromosome to search
+          description: Chromosome to search. Assembly dependent, but normally in the "chrN" format.
           required: true
           type: string
         - name: start
@@ -721,12 +721,12 @@ paths:
           type: integer
         - name: family
           in: query
-          description: An optional family to restrict results to
+          description: An optional family to restrict results to.
           required: false
           type: string
         - name: nrph
           in: query
-          description: '"true" to exclude redundant profile hits'
+          description: '`true` to exclude redundant profile hits.'
           required: false
           type: boolean
       responses:
@@ -741,19 +741,19 @@ paths:
   /alignment:
     x-swagger-router-controller: Alignment
     get:
-      description: Query the alignment of a family to an assembly
+      description: Query the alignment of a family to an assembly. This API is meant for use on dfam.org and the details are not documented.
       tags:
         - alignment
       operationId: readAlignment
       parameters:
         - name: assembly
           in: query
-          description: Assembly to search
+          description: Assembly to align to. A list of assemblies is available at `/assemblies`.
           required: true
           type: string
         - name: chrom
           in: query
-          description: Chromosome to search
+          description: Chromosome to align to.
           required: true
           type: string
         - name: start
@@ -768,7 +768,7 @@ paths:
           type: integer
         - name: family
           in: query
-          description: The family to align against
+          description: The family to align against.
           required: true
           type: string
       responses:
@@ -794,22 +794,22 @@ paths:
       parameters:
         - name: sequence
           in: formData
-          description: Sequence data to search
+          description: Sequence data to search, in FASTA format.
           required: true
           type: string
         - name: organism
           in: formData
-          description: Source organism of the sequence, used for determining search thresholds
+          description: Source organism of the sequence, used for determining search thresholds.
           required: false
           type: string
         - name: cutoff
           in: formData
-          description: Type of cutoff to use, 'curated' or 'evalue'
+          description: Type of cutoff to use, either 'curated' or 'evalue'.
           required: true
           type: string
         - name: evalue
           in: formData
-          description: E-value cutoff to use in the search
+          description: E-value cutoff to use in the search. Only effective if `cutoff` is set to `'evalue'`.
           required: false
           type: string
       responses:
@@ -824,14 +824,14 @@ paths:
   '/searches/{id}':
     x-swagger-router-controller: Searches
     get:
-      description: Retrieve the results of a sequence search
+      description: Retrieve the results of a sequence search.
       tags:
         - searches
       operationId: readSearchResults
       parameters:
         - name: id
           in: path
-          description: A result set ID matching a previous search submission
+          description: A result set ID matching the ID returned by a previous search submission.
           required: true
           type: string
       responses:
@@ -846,19 +846,19 @@ paths:
   '/searches/{id}/alignment':
     x-swagger-router-controller: Searches
     get:
-      description: Retrieve an alignment from a sequence search result
+      description: Retrieve an alignment from a sequence search result.
       tags:
         - searches
       operationId: readSearchResultAlignment
       parameters:
         - name: id
           in: path
-          description: A result set ID matching a previous search submission
+          description: The result set ID returned by the API at submission time.
           required: true
           type: string
         - name: sequence
           in: query
-          description: Name of the input sequence to align
+          description: The name of the input sequence to align.
           required: true
           type: string
         - name: start
@@ -873,7 +873,7 @@ paths:
           type: integer
         - name: family
           in: query
-          description: The family to align against
+          description: The family to align against.
           required: true
           type: string
       responses:
@@ -885,180 +885,178 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
-  '/users/{userId}/files':
-    x-swagger-router-controller: Files
-    parameters:
-      - name: userId
-        in: path
-        required: true
-        type: string
-    get:
-      security:
-        - Bearer: []
-      produces:
-        - application/json
-      description: Get details on submitted and unproccesed files
-      tags:
-        - files
-      operationId: getSubmittedFiles
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: string
-        default:
-          description: Error
-          schema:
-            type: string
-    post:
-      security:
-        - Bearer: []
-      consumes:
-        - multipart/form-data
-      produces:
-        - application/json
-      description: Upload misc datasets for submission to Dfam
-      tags:
-        - files
-      operationId: uploadFileOrChunk
-      parameters:
-        - name: guid
-          in: formData
-          required: false
-          type: string
-        - name: title
-          in: formData
-          required: false
-          type: string
-        - name: description
-          in: formData
-          required: false
-          type: string
-        - name: citations
-          in: formData
-          required: false
-          type: string
-        - name: fileDescription
-          in: formData
-          required: false
-          type: string
-        - name: flowChunkNumber
-          in: formData
-          required: false
-          type: integer
-        - name: flowChunkSize
-          in: formData
-          required: false
-          type: integer
-        - name: flowCurrentChunkSize
-          in: formData
-          required: false
-          type: integer
-        - name: flowTotalSize
-          in: formData
-          required: false
-          type: integer
-        - name: flowType
-          in: formData
-          required: false
-          type: string
-        - name: flowIdentifier
-          in: formData
-          required: false
-          type: string
-        - name: flowFilename
-          in: formData
-          required: false
-          type: string
-        - name: flowRelativePath
-          in: formData
-          required: false
-          type: string
-        - name: flowTotalChunks
-          in: formData
-          required: false
-          type: integer
-        - name: file
-          in: formData
-          required: false
-          description: something
-          type: file
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: string
-        default:
-          description: Error
-          schema:
-            type: string
-  '/users/{userId}/files/status':
-    x-swagger-router-controller: fileSubmission
-    parameters:
-      - name: userId
-        in: path
-        required: true
-        type: string
-    get:
-      security:
-        - Bearer: []
-      produces:
-        - application/json
-      description: Upload misc datasets for submission to Dfam
-      tags:
-        - files
-      operationId: checkFileOrChunk
-      parameters:
-        - name: flowChunkNumber
-          in: query
-          required: false
-          type: integer
-        - name: flowChunkSize
-          in: query
-          required: false
-          type: integer
-        - name: flowCurrentChunkSize
-          in: query
-          required: false
-          type: integer
-        - name: flowTotalSize
-          in: query
-          required: false
-          type: integer
-        - name: flowIdentifier
-          in: query
-          required: false
-          type: string
-        - name: flowFilename
-          in: query
-          required: false
-          type: string
-        - name: flowRelativePath
-          in: query
-          required: false
-          type: string
-        - name: flowTotalChunks
-          in: query
-          required: false
-          type: string
-      responses:
-        '200':
-          description: Success
-          schema:
-            type: string
-        default:
-          description: Error
-          schema:
-            type: string
-  /swagger:
-    x-swagger-pipe: swagger_raw
+#  '/users/{userId}/files':
+#    x-swagger-router-controller: Files
+#    parameters:
+#      - name: userId
+#        in: path
+#        required: true
+#        type: string
+#    get:
+#      security:
+#        - Bearer: []
+#      produces:
+#        - application/json
+#      description: Get details on submitted and unproccesed files
+#      tags:
+#        - files
+#      operationId: getSubmittedFiles
+#      responses:
+#        '200':
+#          description: Success
+#          schema:
+#            type: string
+#        default:
+#          description: Error
+#          schema:
+#            type: string
+#    post:
+#      security:
+#        - Bearer: []
+#      consumes:
+#        - multipart/form-data
+#      produces:
+#        - application/json
+#      description: Upload misc datasets for submission to Dfam
+#      tags:
+#        - files
+#      operationId: uploadFileOrChunk
+#      parameters:
+#        - name: guid
+#          in: formData
+#          required: false
+#          type: string
+#        - name: title
+#          in: formData
+#          required: false
+#          type: string
+#        - name: description
+#          in: formData
+#          required: false
+#          type: string
+#        - name: citations
+#          in: formData
+#          required: false
+#          type: string
+#        - name: fileDescription
+#          in: formData
+#          required: false
+#          type: string
+#        - name: flowChunkNumber
+#          in: formData
+#          required: false
+#          type: integer
+#        - name: flowChunkSize
+#          in: formData
+#          required: false
+#          type: integer
+#        - name: flowCurrentChunkSize
+#          in: formData
+#          required: false
+#          type: integer
+#        - name: flowTotalSize
+#          in: formData
+#          required: false
+#          type: integer
+#        - name: flowType
+#          in: formData
+#          required: false
+#          type: string
+#        - name: flowIdentifier
+#          in: formData
+#          required: false
+#          type: string
+#        - name: flowFilename
+#          in: formData
+#          required: false
+#          type: string
+#        - name: flowRelativePath
+#          in: formData
+#          required: false
+#          type: string
+#        - name: flowTotalChunks
+#          in: formData
+#          required: false
+#          type: integer
+#        - name: file
+#          in: formData
+#          required: false
+#          description: something
+#          type: file
+#      responses:
+#        '200':
+#          description: Success
+#          schema:
+#            type: string
+#        default:
+#          description: Error
+#          schema:
+#            type: string
+#  '/users/{userId}/files/status':
+#    x-swagger-router-controller: fileSubmission
+#    parameters:
+#      - name: userId
+#        in: path
+#        required: true
+#        type: string
+#    get:
+#      security:
+#        - Bearer: []
+#      produces:
+#        - application/json
+#      description: Upload misc datasets for submission to Dfam
+#      tags:
+#        - files
+#      operationId: checkFileOrChunk
+#      parameters:
+#        - name: flowChunkNumber
+#          in: query
+#          required: false
+#          type: integer
+#        - name: flowChunkSize
+#          in: query
+#          required: false
+#          type: integer
+#        - name: flowCurrentChunkSize
+#          in: query
+#          required: false
+#          type: integer
+#        - name: flowTotalSize
+#          in: query
+#          required: false
+#          type: integer
+#        - name: flowIdentifier
+#          in: query
+#          required: false
+#          type: string
+#        - name: flowFilename
+#          in: query
+#          required: false
+#          type: string
+#        - name: flowRelativePath
+#          in: query
+#          required: false
+#          type: string
+#        - name: flowTotalChunks
+#          in: query
+#          required: false
+#          type: string
+#      responses:
+#        '200':
+#          description: Success
+#          schema:
+#            type: string
+#        default:
+#          description: Error
+#          schema:
+#            type: string
 definitions:
-  loginResponse:
-    required:
-      - token
-    properties:
-      token:
-        type: string
+#  loginResponse:
+#    required:
+#      - token
+#    properties:
+#      token:
+#        type: string
   assembliesResponse:
     type: array
     items:
