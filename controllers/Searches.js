@@ -7,7 +7,11 @@ module.exports.readSearchResults = function readSearchResults (req, res, next) {
   var id = req.swagger.params['id'].value;
   Search.readSearchResults(id)
     .then(function (response) {
-      return new APIResponse(response).respond(req, res);
+      return new APIResponse(response, {
+        headers: {
+          "Expires": "0",
+        }
+      }).respond(req, res);
     })
     .catch(function (err) {
       next(err);
