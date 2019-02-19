@@ -733,7 +733,7 @@ paths:
         '200':
           description: Success
           schema:
-            type: string
+            $ref: '#/definitions/annotationsResponse'
         default:
           description: Error
           schema:
@@ -1067,8 +1067,10 @@ definitions:
       properties:
         id:
           type: string
+          description: Assembly identifier, used in API parameters and responses.
         name:
           type: string
+          description: The scientific name of the organism this assembly corresponds to.
   taxaResponse:
     required:
       - taxa
@@ -1083,10 +1085,10 @@ definitions:
           properties:
             id:
               type: number
+              description: Taxon identifier, as provided by the NCBI Taxonomy database.
             name:
               type: string
-            assembly:
-              type: string
+              description: Display name. Intended to be unambiguous, but this should not be relied on.
   classesResponse:
     required:
       - name
@@ -1095,32 +1097,45 @@ definitions:
     properties:
       name:
         type: string
-      description:
-        type: string
+        description: The name of this level of the classification hierarchy.
       tooltip:
         type: string
+        description: A short description of the classification.
+      description:
+        type: string
+        description: Additional details of the classification.
       hyperlink:
         type: string
+        description: Link to an external resource with more information on the classification.
       full_name:
         type: string
+        description: Semicolon-delimited hierarchical path to this classification, starting from the root.
       repeatmasker_type:
         type: string
+        description: Corresponding 'Type' for use with RepeatMasker.
       repeatmasker_subtype:
         type: string
+        description: Corresponding 'SubType' for use with RepeatMasker.
       count:
         type: string
+        description: The number of families in the database with this classification.
       repbase_equiv:
         type: string
+        description: The name of the equivalent classification in RepBase.
       wicker_equiv:
         type: string
+        description: The name of the equivalent Wicker classification.
       curcio_derbyshire_equiv:
         type: string
+        description: The name of the equivalent Curcio-Derbyshire classification.
       piegu_equiv:
         type: string
+        description: The name of the equivalent Piegu classification.
       children:
         type: array
         items:
           $ref: '#/definitions/classesResponse'
+        description: Hierarchical child classifications of this classification.
   familiesResponse:
     required:
       - total_count
@@ -1128,6 +1143,7 @@ definitions:
     properties:
       total_count:
         type: integer
+        description: The total number of results that match the search terms in the database, regardless of any limit and/or offset provided.
       results:
         type: array
         items:
@@ -1140,44 +1156,63 @@ definitions:
     properties:
       accession:
         type: string
+        description: A name of the form DF1234567 that is a unique identifier for the family.
       name:
         type: string
+        description: A human-readable short name for the family. Historically, this was known to be unique but this should not be relied upon.
       title:
         type: string
+        description: A short description or tagline describing the family.
       description:
         type: string
+        description: A more detailed description of the family, including any details that do not fit into another available field.
       length:
         type: integer
+        description: The length of the family's seed alignment, consensus sequence, and Profile Hidden Markov Model.
       classification:
         type: string
+        description: The semicolon-delimited full hierarchy of the family's classification.
       repeat_type_name:
         type: string
+        description: The RepeatMasker type of the family.
       repeat_subtype_name:
         type: string
+        description: The RepeatMasker subtype of the family.
       consensus_sequence:
         type: string
+        description: The family's consensus sequence. This may be derived from the seed alignment, the profile HMM, or hand curation.
       author:
         type: string
+        description: Freeform text; a list of authors involved in the curation and description of the family.
       submitter:
         type: string
+        description: The name of the user who submitted the family to Dfam.
       date_created:
         type: string
+        description: The date upon which the family was registered in Dfam.
       date_modified:
         type: string
+        description: The most recent date upon which the family was modified.
       curation_state_name:
         type: string
+        description: The curation state of the family, for example 'Released' or 'Pending'.
       curation_state_description:
         type: string
+        description: A human-readable explanation of the meaning of the curation state.
       target_site_cons:
         type: string
+        description: The target site consensus for the family, if known.
       refineable:
         type: boolean
+        description: Deprecated flag used by RepeatMasker.
       disabled:
         type: boolean
       model_mask:
         type: string
+        description: Regions of the family's pHMM known to produce many false positive matches.
       hmm_general_threshold:
         type: number
+        description: Threshold used when searching for the family in a DNA sequence from an unknown or new organism.
       aliases:
         type: array
         items:
@@ -1188,8 +1223,10 @@ definitions:
           properties:
             database:
               type: string
+              description: Name of the database the alias is found in.
             alias:
               type: string
+              description: The alias for the family in another database.
       search_stages:
         type: array
         items:
@@ -1199,6 +1236,7 @@ definitions:
           properties:
             name:
               type: string
+              description: Names of RepeatMasker search stages the family is processed in.
       buffer_stages:
         type: array
         items:
@@ -1210,93 +1248,127 @@ definitions:
           properties:
             name:
               type: string
+              description: The name of the RepeatMasker buffer stage the family is processed in.
             start:
               type: integer
             end:
               type: integer
       citations:
         type: array
+        description: Publications pertinent to the family.
         items:
           type: object
           properties:
             pmid:
               type: integer
+              description: The PubMed ID for the citation.
             title:
               type: string
+              description: The article title.
             authors:
               type: string
+              description: Authors of the article.
             journal:
               type: string
+              description: The name of the cited journal.
             pubdate:
               type: string
+              description: Date of article publication.
       clades:
         type: array
+        description: A list of clades the family is known to be found in, each in semicolon-delimited hierarchical format.
         items:
           type: string
       coding_seqs:
         type: array
+        description: Known coding sequences in the family.
         items:
           type: object
           properties:
             product:
               type: string
+              description: Name of the product of the coding sequence.
             translation:
               type: string
+              description: Amino acid translation of the coding sequence.
             cds_start:
               type: integer
+              description: The start position of the coding sequence within the family.
             cds_end:
               type: integer
+              description: The end position of the coding sequence within the family.
             exon_count:
               type: integer
+              description: The number of exons in the coding sequence.
             exon_starts:
               type: array
+              description: List of exon start positions.
               items:
                 type: integer
             exon_ends:
               type: array
+              description: List of exon end positions.
               items:
                 type: integer
             external_reference:
               type: string
+              description: "'null' for all coding sequences that come from Dfam families."
             reverse:
               type: boolean
+              description: "'true' if the coding sequence is on the reverse strand."
             stop_codons:
               type: integer
+              description: The number of stop codons in the most recent alignment to the family.
             frameshifts:
               type: integer
+              description: The number of frameshifts in the most recent alignment to the family.
             gaps:
               type: integer
+              description: The number of gaps in the most recent alignment to the family.
             percent_identity:
               type: number
+              description: Percent identity with the most recent alignment to the family.
             left_unaligned:
               type: integer
+              description: The number of amino acids not aligned to the 5' end of the reference sequence.
             right_unaligned:
               type: integer
+              description: The number of amino acids not aligned to the 3' end of the reference sequence.
             classification_id:
               type: integer
+              description: "'null' for all coding sequences that come from Dfam families."
             align_data:
               type: string
+              description: (For future expansion) The alignment of each coding sequence. Not currently populated.
             description:
               type: string
+              description: Freeform description of the coding sequence.
             protein_type:
               type: string
       features:
         type: array
+        description: Miscellaneous features of the family, such as strucural defintions and binding sites.
         items:
           type: object
           properties:
             type:
               type: string
+              description: The type of the feature.
             description:
               type: string
+              description: Human-readable description of the feature.
             model_start_pos:
               type: integer
+              description: Start posotion of the feature within the family model.
             model_end_pos:
               type: integer
+              description: End posotion of the feature within the family model.
             label:
               type: string
+              description: Short label for this feature.
             attributes:
               type: array
+              description: List of additional attributes for this feature.
               items:
                 type: object
                 properties:
@@ -1315,14 +1387,19 @@ definitions:
       properties:
         id:
           type: string
+          description: Assembly identifier, used in API parameters and responses.
         name:
           type: string
+          description: The scientific name of the organism this assembly corresponds to.
         hmm_hit_ga:
           type: number
+          description: The Gathering Threshold used when searching for the family in this assembly.
         hmm_hit_tc:
           type: number
+          description: The Trusted Cutoff used when searching for the family in this assembly.
         hmm_fdr:
           type: number
+          description: The false discovery rate of searching for the family in this assembly.
   familyAssemblyAnnotationStatsResponse:
     properties:
       hmm:
@@ -1330,33 +1407,104 @@ definitions:
         properties:
           divergence:
             type: number
+            description: Kimura average divergence, calculated on non-redundant profile hits above the gathering threshold.
           gathering_nonredundant:
             type: integer
+            description: Number of non-redundant profile hits above the gathering threshold.
           gathering_all:
             type: integer
+            description: Total number of hits above the gathering threshold, including redundant hits.
           trusted_nonredundant:
             type: integer
+            description: Number of non-redundant profile hits above the trusted cutoff.
           trusted_all:
             type: integer
-      cons:
-        type: object
-        properties:
-          divergence:
-            type: number
-          gathering_nonredundant:
-            type: integer
-          gathering_all:
-            type: integer
-          trusted_nonredundant:
-            type: integer
-          trusted_all:
-            type: integer
+            description: Total number of hits above the trusted cutoff, including redundant hits.
+  annotationsResponse:
+    type: object
+    properties:
+      offset:
+        type: integer
+        description: The start position of the results.
+      length:
+        type: integer
+        description: The length of the region included in the results.
+      query:
+        type: string
+        description: The sequence and region covered by the results.
+      hits:
+        type: array
+        description: List of hits found by searching profile hidden markov models with HMMER.
+        items:
+          type: object
+          properties:
+            accession:
+              type: string
+              description: Accession of the matching family.
+            sequence:
+              type: string
+              description: The name of the sequence.
+            query:
+              type: string
+              description: The name of the matching family.
+            type:
+              type: string
+              description: RepeatMasker type of the family.
+            bit_score:
+              type: number
+              description: The bit score of the hit reported by HMMER.
+            e_value:
+              type: string
+              description: The e-value of the hit reported by HMMER.
+            model_start:
+              type: integer
+              description: The start position of the hit within the model.
+            model_end:
+              type: integer
+              description: The end position of the hit within the model.
+            strand:
+              type: string
+              description: The sequence strand where the hit was found; '+' or '-'.
+            ali_start:
+              type: integer
+              description: The start position of the hit within the sequence.
+            ali_end:
+              type: integer
+              description: The end position of the hit within the sequence.
+            seq_start:
+              type: integer
+              description: The start position of the alignment envelope used to reproduce alignments.
+            seq_end:
+              type: integer
+              description: The end position of the alignment envelope used to reproduce alignments.
+      tandem_repeats:
+        type: array
+        description: List of tandem repetitive sequences within the results range.
+        items:
+          type: object
+          properties:
+            start:
+              type: integer
+              description: The start position of the repeat.
+            end:
+              type: integer
+              description: The end position of the repeat.
+            type:
+              type: string
+              description: The repetitive sequence, for example 'GT'.
+            repeat_length:
+              type: integer
+              description: The length of the unit of repetition of the sequence.
+            sequence:
+              type: string
+              description: The name of the sequence searched.
   submitSearchResponse:
     required:
       - id
     properties:
       id:
         type: string
+        description: An identifier for this query that can be used to retrieve results.
   versionResponse:
     required:
       - major
@@ -1365,13 +1513,17 @@ definitions:
     properties:
       major:
         type: string
+        description: Major version number.
       minor:
         type: string
+        description: Minor version number.
       bugfix:
         type: string
+        description: Bugfix version number.
   ErrorResponse:
     required:
       - message
     properties:
       message:
         type: string
+        description: Human-readable explanation of the error.
