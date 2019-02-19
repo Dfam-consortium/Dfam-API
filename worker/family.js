@@ -37,7 +37,7 @@ classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtyp
 
 module.exports.getFamilyForAnnotation = function(accession) {
   return familyModel.findOne({
-    attributes: [ "id", "name", "accession", "version", "length", "title", "description", "author", "refineable", "consensus" ],
+    attributes: [ "id", "name", "accession", "version", "length", "title", "description", "author", "refineable", "consensus", "hmm_general_threshold" ],
     where: { accession },
     include: [
       'aliases',
