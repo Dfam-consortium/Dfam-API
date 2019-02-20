@@ -19,6 +19,21 @@ module.exports = function() {
 
   // global middleware configuration
 
+  // Simple request logger
+  app.use(function(req, res, next) {
+    const start = new Date();
+
+    require('on-finished')(res, function(err, res) {
+      if (!err) {
+        const time = new Date() - start;
+        winston.verbose(`${req.method} ${req.url} ${res.statusCode} ${time}ms`);
+      } else {
+        winston.error(err);
+      }
+    });
+    next();
+  });
+
   // CORS configuration. The default is Access-Control-Allow-Origin: *, which
   // might not be sufficient for some requests we support in the future.
   app.use(cors());
