@@ -47,10 +47,9 @@ function annotateHmm(family, hmm) {
       add_header("NAME", family.name);
       add_header("ACC", family.accessionAndVersion);
       add_header("DESC", family.title);
-    } else if (
-        lines[i].indexOf("NAME") !== -1 ||
-        lines[i].indexOf("ACC") !== -1 ||
-        lines[i].indexOf("DESC") !== -1) {
+    } else if (lines[i].indexOf("NAME") !== -1 ||
+               lines[i].indexOf("ACC") !== -1 ||
+               lines[i].indexOf("DESC") !== -1) {
       // Skip; correct version of this line was added already
     } else if (lines[i].indexOf("CKSUM") !== -1) {
       result.push(lines[i]);
