@@ -31,8 +31,13 @@ be used instead.
 To run the server, run:
 
 ```
-[DFAM_API_PORT=<port>] npm start
+[DFAM_LOG=debug] [DFAM_API_PORT=<port>] npm start
 ```
+
+Logging levels, highest to lowest: error, warn, info, verbose, debug, silly.
+
+* If unspecified, the default is 'verbose'.
+* SQL statements are logged at the 'debug' level.
 
 To view the Swagger UI interface:
 

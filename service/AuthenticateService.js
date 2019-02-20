@@ -20,18 +20,18 @@ exports.authenticate = function(email,password) {
     if (user) {
       if (auth.validatePassword(password, user.salt, user.pw_hash)) {
         if (!user.email_verified_date) {
-          winston.debug("Authentication failed (unverified): ", { email });
+          winston.verbose("Authentication failed (unverified): ", { email });
           return new APIResponse({ message: "Please verify your email address." }, 400);
         }
 
-        winston.debug("Authentication success: ", { email });
+        winston.verbose("Authentication success: ", { email });
         var token = auth.generateJwt(user.id, user.email, user.name);
         return { token };
       } else {
-        winston.debug("Authentication failed (password): ", { email });
+        winston.verbose("Authentication failed (password): ", { email });
       }
     } else {
-      winston.debug("Authentication failed (email): ", { email });
+      winston.verbose("Authentication failed (email): ", { email });
     }
 
     return new APIResponse({ message: "Invalid username or password." }, 400);

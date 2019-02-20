@@ -14,7 +14,7 @@ if (process.env.DFAM_WORKER_FD) {
 const winston = require('winston');
 const format = winston.format;
 winston.configure({
-  level: 'debug',
+  level: process.env["DFAM_LOG"] || 'verbose',
   transports: [
     new winston.transports.Console({
       format: format.combine(

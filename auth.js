@@ -25,7 +25,7 @@ passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
 
 function swaggerBearerHandler(req, def, scopes, callback) {
   if (!req.headers.authorization) {
-    winston.debug("swaggerBearerHandler - Failed, Authorization header missing.");
+    winston.verbose("swaggerBearerHandler - Failed, Authorization header missing.");
     var err = new Error("Missing authentication token. Please login first.");
     err.statusCode = 403;
     return callback(err);
