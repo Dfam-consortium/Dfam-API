@@ -37,6 +37,9 @@ test('get alignment', async t => {
   const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF0004191');
   t.regex(body.pp.string, /^699\**9988777333.*/);
 
+  const body2 = await get_body('/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF0000147');
+  t.regex(body2.pp.string, /^799.*9999998888877665$/);
+
   await get_notfound('/alignment?assembly=fake&chrom=chr1&start=1&end=1000&family=DF0004191');
   await get_notfound('/alignment?assembly=mm10&chrom=fake&start=1&end=1000&family=DF0004191');
 
@@ -76,6 +79,10 @@ test('get assemblies', async t => {
 test('get blog posts', async t => {
   const body = await get_body('/blogposts');
   t.truthy(body.length);
+
+  // TODO: actually verify that the cached posts are reused
+  const body2 = await get_body('/blogposts');
+  t.truthy(body2.length);
 });
 
 // ClassificationService
@@ -108,6 +115,13 @@ test('get family', async t => {
   t.regex(body.title, /Long Terminal Repeat for ERVL/);
   t.is(body.submitter, 'Robert Hubley');
   t.truthy(body.search_stages.length);
+
+  const body2 = await get_body('/families/DF0001067');
+  t.truthy(body2.buffer_stages.length);
+
+  const body3 = await get_body('/families/DF0000194');
+  t.truthy(body3.coding_seqs.length);
+  t.truthy(body3.target_site_cons);
 
   await get_notfound('/families/DF000FAKE');
 });
