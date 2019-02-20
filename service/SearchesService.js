@@ -53,8 +53,13 @@ exports.readSearchResults = function(id) {
     const response = {
       submittedAt: jobRec.opened,
       duration: "Not finished",
-      // TODO: Displayed parameters aren't properly quoted for a shell
-      searchParameters: searchRec.options.replace(/,/g, ' '),
+      searchParameters: searchRec.options.split(",").map(s => {
+        if (s.match(/\s/)) {
+          return '"' + s + '"';
+        } else {
+          return s;
+        }
+      }).join(" "),
     };
 
     if (jobRec.response_time) {
@@ -301,11 +306,11 @@ function sanitizeFASTAInput(sequence) {
 
   let matches;
   var newSequence = "";
-  var recID = "";
+  var recID = "Input";
   var recSeq = "";
   lines.forEach(function(line) {
     if ((matches = line.match(validFASTAHeader)) != null) {
-      if ( recID != "" && recSeq != "" ) {
+      if ( recSeq != "" ) {
         newSequence = newSequence + ">" + recID + "\n" + recSeq + "\n";
       }
 
@@ -325,7 +330,7 @@ function sanitizeFASTAInput(sequence) {
         line = line.toUpperCase();
         line = line.replace('X', 'N');
         if ((matches = line.match(invalidFASTAChar)) != null) {
-          const e = new Error('Invalid FASTA character: ' + matches[0]);
+          const e = new Error('Invalid DNA nucleotide: ' + matches[0]);
           e.invalidFASTAInput = true;
           throw e;
         } else {
