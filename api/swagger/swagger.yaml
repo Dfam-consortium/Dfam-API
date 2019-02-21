@@ -58,7 +58,7 @@ paths:
         default:
           description: Error
           schema:
-            type: string
+            $ref: '#/definitions/ErrorResponse'
   /blogposts:
     x-swagger-router-controller: Blog
     get:
@@ -78,7 +78,7 @@ paths:
         default:
           description: Error
           schema:
-            type: string
+            $ref: '#/definitions/ErrorResponse'
 #  /authenticate:
 #    x-swagger-router-controller: Authenticate
 #    post:
@@ -432,7 +432,7 @@ paths:
         '200':
           description: Success
           schema:
-            type: string
+            $ref: '#/definitions/familyRelationshipsResponse'
         default:
           description: Error
           schema:
@@ -632,7 +632,8 @@ paths:
         '200':
           description: Success
           schema:
-            type: string
+            type: object
+            description: Data in the format recognized by Dfam-consortium/Karotype
         default:
           description: Error
           schema:
@@ -775,7 +776,7 @@ paths:
         '200':
           description: Success
           schema:
-            type: string
+            $ref: '#/definitions/alignmentResponse'
         default:
           description: Error
           schema:
@@ -838,7 +839,7 @@ paths:
         '200':
           description: Success
           schema:
-            type: string
+            $ref: '#/definitions/annotationsResponse'
         default:
           description: Error
           schema:
@@ -880,7 +881,7 @@ paths:
         '200':
           description: Success
           schema:
-            type: string
+            $ref: '#/definitions/alignmentResponse'
         default:
           description: Error
           schema:
@@ -1376,7 +1377,67 @@ definitions:
                     type: string
                   value:
                     type: string
-
+  familyRelationshipsResponse:
+    type: array
+    items:
+      type: object
+      properties:
+        strand:
+          type: string
+          description: For a forward strand match, '+'; for a reverse strand match, '-'.
+        evalue:
+          type: string
+          description: The e-value of the hit.
+        identity:
+          type: string
+          description: Percentage identity of the overlap region.
+        coverage:
+          type: string
+          description: Percentage shared coverage of the two families.
+        cigar:
+          type: string
+          description: Alignment between the two families, expressed as a sequence of "M", "I", and "D" characters. Not actually a CIGAR alignment, but derived from that format.
+        model_start:
+          type: integer
+          description: Start position of the overlap region in the first family.
+        target_start:
+          type: integer
+          description: Start position of the overlap region in the second family.
+        model_end:
+          type: integer
+          description: End position of the overlap region in the first family.
+        target_end:
+          type: integer
+          description: End position of the overlap region in the second family.
+        auto_overlap:
+          type: object
+          properties:
+            model:
+              type: object
+              description: Details of the first family.
+              properties:
+                id:
+                  type: string
+                  description: Human-readable identifier for the family (in Dfam, the "name").
+                accession:
+                  type: string
+                  description: The Dfam accession for the family.
+                length:
+                  type: integer
+                  description: The total length of the family.
+            target:
+              type: object
+              description: Details of the second family.
+              properties:
+                id:
+                  type: string
+                  description: Human-readable identifier for the family (in Dfam, the "name").
+                accession:
+                  type: string
+                  description: The Dfam accession for the family.
+                length:
+                  type: integer
+                  description: The total length of the family.
   familyAssembliesResponse:
     type: array
     items:
@@ -1498,6 +1559,52 @@ definitions:
             sequence:
               type: string
               description: The name of the sequence searched.
+  alignmentResponse:
+    type: object
+    properties:
+      hmm:
+        type: object
+        properties:
+          start:
+            type: integer
+            description: Start position in the model of the alignment.
+          end:
+            type: integer
+            description: End position in the model of the alignment.
+          id:
+            type: string
+            description: An identifier for the model.
+          string:
+            type: string
+            description: Model string for the aligned region, from nhmmer.
+      seq:
+        type: object
+        properties:
+          start:
+            type: integer
+            description: Start position in the sequence of the alignment.
+          end:
+            type: integer
+            description: End position in the sequence of the alignment.
+          id:
+            type: string
+            description: An identifier for the sequence.
+          string:
+            type: string
+            description: Sequence string for the aligned region, from nhmmer.
+      match:
+        type: object
+        properties:
+          string:
+            type: string
+            description: String describing the match states of the alignment, from nhmmer.
+      pp:
+        type: object
+        properties:
+          string:
+            type: string
+            description: String describing the posterior probability of the alignment, from nhmmer.
+
   submitSearchResponse:
     required:
       - id
