@@ -11,7 +11,8 @@
     "lint": "eslint .; true",
     "watch": "npm-watch",
     "test": "ava",
-    "coverage": "nyc ava"
+    "coverage": "nyc ava",
+    "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml"
   },
   "license": "CC0-1.0",
   "private": true,
@@ -42,6 +43,7 @@
     "npm-watch": "^0.6.0",
     "nyc": "^13.3.0",
     "sequelize-auto": "^0.4.29",
+    "spectacle-docs": "^1.0.7",
     "supertest": "^3.4.2"
   }
 }

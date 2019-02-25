@@ -94,3 +94,14 @@ Or to get an accompanying coverage report:
 ```
 npm run coverage
 ```
+
+### Building Documentation
+
+```
+npm run build-docs
+```
+
+And to deploy them:
+```
+cp -r autogen/apidocs/ /path/to/target
+```
