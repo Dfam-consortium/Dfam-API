@@ -8,6 +8,7 @@ const child_process = require('child_process');
 const config = require("../config");
 const path = require("path");
 const runWorkerAsync = require('../utils/async').runWorkerAsync;
+const APIResponse = require('../utils/response').APIResponse;
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
@@ -350,6 +351,14 @@ async function collectClades(clade, clade_relatives) {
  **/
 exports.readFamilies = async function(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
 
+  if (!format) {
+    format = "summary";
+  }
+
+  if (format !== "summary" && format !== "full") {
+    return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
+  }
+
   const clade_info = await collectClades(clade, clade_relatives);
 
   const replacements = {};
@@ -377,13 +386,13 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     where.push("family.name LIKE :where_name ESCAPE '#'");
     replacements.where_name = escape.escape_sql_like(name_prefix, '#') + "%";
   } else if (name_accession) {
-    where.push("family.name LIKE :where_name_acc ESCAPE '#' OR family.accession LIKE :where_name_acc ESCAPE '#'");
+    where.push("(family.name LIKE :where_name_acc ESCAPE '#' OR family.accession LIKE :where_name_acc ESCAPE '#')");
     replacements.where_name_acc = "%" + escape.escape_sql_like(name_accession, '#') + "%";
   }
 
   if (classification) {
-    where.push("classification.lineage = :where_classification");
-    replacements.where_classification = classification;
+    where.push("classification.lineage LIKE :where_classification ESCAPE '#'");
+    replacements.where_classification = escape.escape_sql_like(classification, '#') + "%";
   }
 
   if (clade_info) {
@@ -454,9 +463,12 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
         orderBy.push(match[1] + " " + match[2]);
       }
     });
-    if (orderBy.length) {
-      sql += " ORDER BY " + orderBy.join(",");
-    }
+  }
+
+  if (orderBy.length) {
+    sql += " ORDER BY " + orderBy.join(",");
+  } else {
+    sql += " ORDER BY accession";
   }
 
   if (limit !== undefined) {
@@ -513,8 +525,8 @@ exports.readFamilyById = async function(id) {
   });
 
   if (row) {
-    const full_rows = await familySubqueries([row], null);
-    return familyQueryRowToObject(full_rows[0], null);
+    const full_rows = await familySubqueries([row], "full");
+    return familyQueryRowToObject(full_rows[0], "full");
   } else {
     return null;
   }
@@ -549,7 +561,7 @@ exports.readFamilyHmm = async function(id, format) {
     field = "hmm";
     content_type = "image/png";
   } else {
-    throw new Error("Invalid format: " + format);
+    return Promise.resolve(new APIResponse("Unrecognized format: " + format, 400));
   }
 
   const model = await hmmModelDataModel.findOne({
@@ -692,7 +704,7 @@ exports.readFamilySeed = function(id,format) {
       });
     });
   } else {
-    throw new Error("Invalid format: " + format);
+    return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
   }
 };
 
@@ -716,6 +728,6 @@ exports.readFamilySequence = function(id, format) {
       }
     });
   } else {
-    throw new Error("Invalid format: " + format);
+    return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
   }
 };

@@ -6,6 +6,7 @@ const promisify = require('util').promisify;
 const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
 const config = require("../config");
+const APIResponse = require("../utils/response").APIResponse;
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const getAssemblyModels = require("../databases.js").getAssemblyModels;
@@ -165,10 +166,21 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos
  * no response value expected for this operation
  **/
 exports.readAlignment = async function(assembly,chrom,start,end,family) {
+  if (Math.abs(end-start) > 30000) {
+    return Promise.resolve(new APIResponse(
+      { message: "Requested range is too long." },
+      400
+    ));
+  }
+
   const assembly_rec = await assemblyModel.findOne({
     where: { name: assembly },
     attributes: ['schema_name'],
   });
+
+  if (!assembly_rec) {
+    return null;
+  }
 
   const models = getAssemblyModels(assembly_rec.schema_name);
 
@@ -176,6 +188,10 @@ exports.readAlignment = async function(assembly,chrom,start,end,family) {
     attributes: ['accession'],
     where: { id: chrom }
   });
+
+  if (!sequence) {
+    return null;
+  }
 
   const model = await hmmModelDataModel.findOne({
     attributes: [ "hmm" ],

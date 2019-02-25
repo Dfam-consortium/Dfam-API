@@ -32,6 +32,9 @@ function annotateHmm(family, hmm) {
   const result = [];
 
   function add_header(code, text) {
+    if (!text) {
+      return;
+    }
     // TODO: Long text wrapping
     text.split("\n").forEach(function(line) {
       result.push(code.padEnd(6) + line);
@@ -39,20 +42,21 @@ function annotateHmm(family, hmm) {
   }
 
   for (var i = 0; i < lines.length; i++) {
-    if (lines[i].indexOf("NAME") !== -1) {
+    if (lines[i].indexOf("HMMER3") !== -1) {
       result.push(lines[i]);
+      add_header("NAME", family.name);
       add_header("ACC", family.accessionAndVersion);
       add_header("DESC", family.title);
+    } else if (lines[i].indexOf("NAME") !== -1 ||
+               lines[i].indexOf("ACC") !== -1 ||
+               lines[i].indexOf("DESC") !== -1) {
+      // Skip; correct version of this line was added already
     } else if (lines[i].indexOf("CKSUM") !== -1) {
       result.push(lines[i]);
 
-      let general_cutoff = null;
-      family.family_assembly_data.forEach(function(fam_asm) {
-        general_cutoff = Math.max(general_cutoff || fam_asm.hmm_hit_TC, fam_asm.hmm_hit_TC);
-      });
-
-      if (general_cutoff !== null) {
-        const cutoff_string = general_cutoff.toFixed(2) + ";";
+      const general_threshold = family.hmm_general_threshold;
+      if (general_threshold) {
+        const cutoff_string = general_threshold.toFixed(2) + ";";
         add_header("GA", cutoff_string);
         add_header("TC", cutoff_string);
         add_header("NC", cutoff_string);
@@ -70,6 +74,7 @@ function annotateHmm(family, hmm) {
 
       // TODO: BM build method
       // TODO: SM search method
+      add_header("CT", family.classification.lineage.replace(/^root;/, ''));
       family.clades.forEach(function(clade) {
         add_header("MS", `TaxId:${clade.tax_id} TaxName:${clade.sanitized_name}`);
       });

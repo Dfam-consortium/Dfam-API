@@ -31,8 +31,13 @@ be used instead.
 To run the server, run:
 
 ```
-[DFAM_API_PORT=<port>] npm start
+[DFAM_LOG=debug] [DFAM_API_PORT=<port>] npm start
 ```
+
+Logging levels, highest to lowest: error, warn, info, verbose, debug, silly.
+
+* If unspecified, the default is 'verbose'.
+* SQL statements are logged at the 'debug' level.
 
 To view the Swagger UI interface:
 
@@ -74,6 +79,18 @@ npm run lint
 
 ### Testing
 
-Rigorous API tests have not yet been implemented. A
-[Postman](https://getpostman.com) collection is maintained at
-`api/api.postman_collection.json` for developement and testing.
+A [Postman](https://getpostman.com) collection is maintained
+at `api/api.postman_collection.json` for developement and
+testing.
+
+To run the test suite (implemented in tests/), run
+
+```
+npm test
+```
+
+Or to get an accompanying coverage report:
+
+```
+npm run coverage
+```

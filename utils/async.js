@@ -31,7 +31,7 @@ let running_workers = 0;
 const WORKER_LIMIT = 4;
 
 function runReady() {
-  winston.debug(waiting.length + " waiting workers.");
+  winston.verbose(waiting.length + " waiting workers.");
   while (waiting.length && running_workers < WORKER_LIMIT) {
     const job = waiting.shift();
     running_workers += 1;

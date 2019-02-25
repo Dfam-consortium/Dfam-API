@@ -39,11 +39,24 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
     attributes: ["schema_name"],
     where: { "name": assembly },
   }).then(function(assembly) {
+    if (!assembly) {
+      return null;
+    }
+
     const models = getAssemblyModels(assembly.schema_name);
 
     const query_hmm = {
       attributes: ["family_accession", "seq_start", "seq_end", "strand", "ali_start", "ali_end", "model_start", "model_end", "hit_bit_score", "hit_evalue_score", "nrph_hit"],
-      include: { model: models.sequenceModel, where: { "id": chrom }, attributes: ["id"] },
+      include: {
+        model: models.sequenceModel,
+        attributes: ["id"],
+        where: {
+          [Op.or]: [
+            { "id": chrom },
+            { "id": "chr" + chrom },
+          ]
+        },
+      },
       where: {
         seq_start: { [Op.gte]: start },
         seq_end: { [Op.lte]: end },
@@ -51,7 +64,16 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
     };
 
     const query_trf = {
-      include: { model: models.sequenceModel, where: { "id": chrom }, attributes: ["id"] },
+      include: {
+        model: models.sequenceModel,
+        attributes: ["id"],
+        where: {
+          [Op.or]: [
+            { "id": chrom },
+            { "id": "chr" + chrom },
+          ]
+        },
+      },
       where: {
         seq_start: { [Op.gte]: start },
         seq_end: { [Op.lte]: end },

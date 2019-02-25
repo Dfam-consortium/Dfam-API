@@ -25,7 +25,7 @@ passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
 
 function swaggerBearerHandler(req, def, scopes, callback) {
   if (!req.headers.authorization) {
-    winston.debug("swaggerBearerHandler - Failed, Authorization header missing.");
+    winston.verbose("swaggerBearerHandler - Failed, Authorization header missing.");
     var err = new Error("Missing authentication token. Please login first.");
     err.statusCode = 403;
     return callback(err);
@@ -63,13 +63,14 @@ module.exports.generateJwt = function(id, email, name) {
   }, config.apiserver.jwt_secret);
 };
 
+// TODO: Increase the number of iterations, backwards-compatibly if possible
 module.exports.hashPassword = function(password) {
   var salt = crypto.randomBytes(256).toString('hex');
-  var hash = crypto.pbkdf2Sync(password, salt, 100000, 512, 'sha512').toString('hex');
+  var hash = crypto.pbkdf2Sync(password, salt, 1000, 512, 'sha512').toString('hex');
   return { salt, hash };
 };
 
 module.exports.validatePassword = function(password, salt, hash) {
-  var newHash = crypto.pbkdf2Sync(password, salt, 100000, 512, 'sha512').toString('hex');
+  var newHash = crypto.pbkdf2Sync(password, salt, 1000, 512, 'sha512').toString('hex');
   return newHash == hash;
 };
