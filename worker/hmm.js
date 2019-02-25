@@ -1,6 +1,7 @@
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
+const wrap = require('word-wrap');
 
 const family = require("./family");
 
@@ -35,8 +36,7 @@ function annotateHmm(family, hmm) {
     if (!text) {
       return;
     }
-    // TODO: Long text wrapping
-    text.split("\n").forEach(function(line) {
+    wrap(text, {width: 70 }).split("\n").forEach(function(line) {
       result.push(code.padEnd(6) + line);
     });
   }
@@ -78,6 +78,7 @@ function annotateHmm(family, hmm) {
       family.clades.forEach(function(clade) {
         add_header("MS", `TaxId:${clade.tax_id} TaxName:${clade.sanitized_name}`);
       });
+      add_header("CC", family.description);
       add_header("CC", "RepeatMasker Annotations:");
       add_header("CC", "     Type: " + family.rmTypeName);
       add_header("CC", "     SubType: " + family.rmSubTypeName);
@@ -98,7 +99,6 @@ function annotateHmm(family, hmm) {
       if (family.refineable) {
         add_header("CC", "     Refineable");
       }
-      // TODO: RepeatMasker Annotations: Description
     } else {
       result.push(lines[i]);
     }

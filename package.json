@@ -32,7 +32,8 @@
     "swagger-tools": "^0.10.4",
     "tmp": "0.0.33",
     "uuid": "^3.3.2",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "word-wrap": "^1.2.3"
   },
   "devDependencies": {
     "ava": "^1.2.1",

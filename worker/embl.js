@@ -1,3 +1,5 @@
+const wrap = require('word-wrap');
+
 const family = require("./family");
 
 module.exports = function embl_command(accession) {
@@ -14,10 +16,9 @@ function exportEmbl(family) {
   var emblStr = "";
 
   function add_header(code, text) {
-    // TODO: Long text wrapping
-    emblStr += code.padEnd(4);
+    const indent = code.padEnd(4) + ' ';
     if (text) {
-      emblStr += " " + text;
+      emblStr += wrap(text, {width: 72, indent });
     }
     emblStr += "\n";
   }
@@ -26,15 +27,16 @@ function exportEmbl(family) {
     emblStr += "XX\n";
   }
 
-  // TODO: Check usage of name vs accession
   add_header("ID", family.accessionAndVersion + "     repeatmasker; DNA;  ???;  " + family.length + " BP.");
-  add_header("CC", family.name + " DNA");
+  add_header("NM", family.name);
   add_XX();
   add_header("AC", family.accessionAndVersion);
+  add_XX();
+  add_header("DE", family.title);
   family.aliases.forEach(function(alias) {
     if (alias.db_id == "Repbase") {
       add_XX();
-      add_header("DE", "RepbaseID: " + alias.db_link);
+      add_header("DR", "RepbaseID: " + alias.db_link);
     }
   });
 
@@ -45,6 +47,10 @@ function exportEmbl(family) {
   } else {
     add_header("KW", `${family.rmTypeName}/${family.rmSubTypeName}.`);
   }
+  add_XX();
+  family.clades.forEach(function(clade) {
+    add_header("OC", clade.lineage.replace(/^root;/, '').replace(/;/g, '; '));
+  });
   add_XX();
 
   if (family.citations.length) {
@@ -62,6 +68,8 @@ function exportEmbl(family) {
     add_XX();
   }
 
+  add_header("CC", family.description);
+  emblStr += "CC\n";
   add_header("CC", "RepeatMasker Annotations:");
   add_header("CC", "     Type: " + family.rmTypeName);
   add_header("CC", "     SubType: " + family.rmSubTypeName);
@@ -82,7 +90,6 @@ function exportEmbl(family) {
   if (family.refineable) {
     add_header("CC", "     Refineable");
   }
-  // TODO: RepeatMasker Annotations: Description
 
   add_XX();
 
