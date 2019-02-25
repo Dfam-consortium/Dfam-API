@@ -1208,6 +1208,7 @@ definitions:
         description: Deprecated flag used by RepeatMasker.
       disabled:
         type: boolean
+        description: "'true' if the family is disabled or removed in the current release. Disabled families are normally visible only when accessing the API with curator credentials."
       model_mask:
         type: string
         description: Regions of the family's pHMM known to produce many false positive matches.
