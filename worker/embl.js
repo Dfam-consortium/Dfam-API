@@ -18,7 +18,15 @@ function exportEmbl(family) {
   function add_header(code, text) {
     const indent = code.padEnd(4) + ' ';
     if (text) {
-      emblStr += wrap(text, {width: 72, indent });
+      emblStr += wrap(text, { width: 72, indent });
+    }
+    emblStr += "\n";
+  }
+
+  function add_featuredata(text) {
+    const indent = 'FT                   ';
+    if (text) {
+      emblStr += wrap(text, { width: 72, indent, cut: true });
     }
     emblStr += "\n";
   }
@@ -91,6 +99,20 @@ function exportEmbl(family) {
     add_header("CC", "     Refineable");
   }
 
+  if (family.coding_sequences.length) {
+    add_header("FH", "Key             Location/Qualifiers");
+    emblStr += "FH\n";
+  }
+  family.coding_sequences.forEach(function(cds) {
+    // TODO: sanitize values which might already contain a " in them?
+
+    add_header("FT", `CDS             ${cds.cds_start}..${cds.cds_end}`);
+    add_featuredata(`/product="${cds.product}"`);
+    add_featuredata(`/number=${cds.exon_count}`);
+    add_featuredata(`/note="${cds.description}"`);
+    add_featuredata(`/translation="${cds.translation}"`);
+  });
+
   add_XX();
 
   const seq = family.consensus.toLowerCase();
@@ -118,7 +140,7 @@ function exportEmbl(family) {
       j += 10;
     }
 
-    emblStr += `      ${line.padEnd(66)} ${Math.min(i, seq.length)}\n`;
+    emblStr += `     ${line.padEnd(66)} ${Math.min(i, seq.length)}\n`;
   }
 
   emblStr += "//\n";
