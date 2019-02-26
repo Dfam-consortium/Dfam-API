@@ -15,12 +15,16 @@ module.exports = function embl_command(accession) {
 function exportEmbl(family) {
   var emblStr = "";
 
-  function add_header(code, text) {
-    const indent = code.padEnd(4) + ' ';
-    if (text) {
-      emblStr += wrap(text, { width: 72, indent });
+  function add_header(code, text, wraptext) {
+    if (!text) {
+      return;
     }
-    emblStr += "\n";
+    if (wraptext) {
+      text = wrap(text, { width: 72, indent: '' });
+    }
+    text.split("\n").forEach(function(line) {
+      emblStr += code.padEnd(5) + line + "\n";
+    });
   }
 
   function add_featuredata(text) {
@@ -38,13 +42,13 @@ function exportEmbl(family) {
   add_header("ID", family.accessionAndVersion + "     repeatmasker; DNA;  ???;  " + family.length + " BP.");
   add_header("NM", family.name);
   add_XX();
-  add_header("AC", family.accessionAndVersion);
+  add_header("AC", family.accession + ';');
   add_XX();
-  add_header("DE", family.title);
+  add_header("DE", family.title, true);
   family.aliases.forEach(function(alias) {
     if (alias.db_id == "Repbase") {
       add_XX();
-      add_header("DR", "RepbaseID: " + alias.db_link);
+      add_header("DR", "Repbase; " + alias.db_link + ".");
     }
   });
 
@@ -57,7 +61,10 @@ function exportEmbl(family) {
   }
   add_XX();
   family.clades.forEach(function(clade) {
-    add_header("OC", clade.lineage.replace(/^root;/, '').replace(/;/g, '; '));
+    const lineage = clade.lineage.replace(/^root;/, '');
+    const lastSemi = lineage.lastIndexOf(';');
+    add_header("OS", lineage.substring(lastSemi+1));
+    add_header("OC", lineage.substring(0, lastSemi).replace(/;/g, '; ') + '.', true);
   });
   add_XX();
 
@@ -65,18 +72,18 @@ function exportEmbl(family) {
     family.citations.sort((a, b) => a.family_has_citation.order_added - b.family_has_citation.order_added);
     family.citations.forEach(function(citation) {
       if (citation.family_has_citation.comment) {
-        add_header("RC", citation.family_has_citation.comment);
+        add_header("RC", citation.family_has_citation.comment, true);
       }
       add_header("RN", `[${citation.family_has_citation.order_added}] (bases 1 to ${family.length})`);
-      add_header("RA", citation.authors);
-      add_header("RT", citation.title);
+      add_header("RA", citation.authors, true);
+      add_header("RT", citation.title, true);
       add_header("RL", citation.journal);
     });
 
     add_XX();
   }
 
-  add_header("CC", family.description);
+  add_header("CC", family.description, true);
   emblStr += "CC\n";
   add_header("CC", "RepeatMasker Annotations:");
   add_header("CC", "     Type: " + family.rmTypeName);
@@ -100,6 +107,7 @@ function exportEmbl(family) {
   }
 
   if (family.coding_sequences.length) {
+    emblStr += "XX\n";
     add_header("FH", "Key             Location/Qualifiers");
     emblStr += "FH\n";
   }
