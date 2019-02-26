@@ -67,6 +67,10 @@ module.exports = function(sequelize, DataTypes) {
     lineage: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    aliases: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     tableName: 'classification'
