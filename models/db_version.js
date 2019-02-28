@@ -2,7 +2,7 @@
 
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('db_version', {
-    ncbi_taxdb_version: {
+    dfam_version: {
       type: DataTypes.STRING(45),
       allowNull: false,
       primaryKey: true

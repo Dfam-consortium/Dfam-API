@@ -15,6 +15,7 @@ const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
 const curationStateModel = require("../models/curation_state.js")(conn, Sequelize);
 const familyAssemblyDataModel = require("../models/family_assembly_data.js")(conn, Sequelize);
 const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
+const codingSequenceModel = require("../models/coding_sequence.js")(conn, Sequelize);
 
 seedRegionModel.removeAttribute('id');
 
@@ -27,6 +28,7 @@ familyModel.belongsToMany(rmStageModel, { as: 'buffer_stages', through: familyHa
 familyModel.belongsToMany(citationModel, { as: 'citations', through: familyHasCitationModel, foreignKey: 'family_id', otherKey: 'citation_pmid' });
 familyModel.belongsToMany(dfamTaxdbModel, { as: 'clades', through: 'family_clade', foreignKey: 'family_id', otherKey: 'dfam_taxdb_tax_id' });
 familyModel.hasMany(familyAssemblyDataModel, { as: 'family_assembly_data', foreignKey: 'family_id' });
+familyModel.hasMany(codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
 
 familyAssemblyDataModel.belongsTo(assemblyModel, { foreignKey: 'assembly_id' });
 
@@ -56,7 +58,8 @@ module.exports.getFamilyForAnnotation = function(accession) {
             { model: dfamTaxdbModel, attributes: ['tax_id', 'sanitized_name', 'scientific_name'] }
           ] },
         ],
-      }
+      },
+      'coding_sequences',
     ],
   }).then(function(family) {
     if (family) {

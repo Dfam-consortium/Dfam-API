@@ -14,11 +14,11 @@ const escape = require("../utils/escape");
  * returns classesResponse
  **/
 exports.readClassification = function(name) {
-  let sql = "SELECT c.id AS id, c.parent_id AS parent_id, c.name AS name, tooltip, c.description AS description, hyperlink, repbase_equiv, wicker_equiv, curcio_derbyshire_equiv, piegu_equiv, lineage, type.name AS repeatmasker_type, subtype.name AS repeatmasker_subtype, (SELECT COUNT(*) FROM family WHERE classification_id = c.id) AS count FROM classification AS c LEFT JOIN repeatmasker_type AS type ON type.id = repeatmasker_type_id LEFT JOIN repeatmasker_subtype AS subtype ON subtype.id = repeatmasker_subtype_id";
+  let sql = "SELECT c.id AS id, c.parent_id AS parent_id, c.name AS name, tooltip, c.description AS description, hyperlink, repbase_equiv, wicker_equiv, curcio_derbyshire_equiv, piegu_equiv, aliases, lineage, type.name AS repeatmasker_type, subtype.name AS repeatmasker_subtype, (SELECT COUNT(*) FROM family WHERE classification_id = c.id) AS count FROM classification AS c LEFT JOIN repeatmasker_type AS type ON type.id = repeatmasker_type_id LEFT JOIN repeatmasker_subtype AS subtype ON subtype.id = repeatmasker_subtype_id";
   const replacements = {};
 
   if (name) {
-    sql += " WHERE c.name LIKE :where_name ESCAPE '#'";
+    sql += " WHERE (c.name LIKE :where_name ESCAPE '#' OR c.aliases LIKE :where_name ESCAPE '#')";
     replacements.where_name = "%" + escape.escape_sql_like(name, '#') + "%";
   }
 
@@ -32,7 +32,7 @@ exports.readClassification = function(name) {
 
       [
         "name", "tooltip", "description", "hyperlink", "repbase_equiv",
-        "wicker_equiv", "curcio_derbyshire_equiv", "piegu_equiv",
+        "wicker_equiv", "curcio_derbyshire_equiv", "piegu_equiv", "aliases",
         "repeatmasker_type", "repeatmasker_subtype", "count"
       ].forEach(function(attr) {
         if (cls[attr]) {

@@ -1,6 +1,7 @@
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
+const wrap = require('word-wrap');
 
 const family = require("./family");
 
@@ -31,11 +32,13 @@ function annotateHmm(family, hmm) {
   const lines = hmm.split(/\r?\n/);
   const result = [];
 
-  function add_header(code, text) {
+  function add_header(code, text, wraptext) {
     if (!text) {
       return;
     }
-    // TODO: Long text wrapping
+    if (wraptext) {
+      text = wrap(text, { width: 72, indent: '' });
+    }
     text.split("\n").forEach(function(line) {
       result.push(code.padEnd(6) + line);
     });
@@ -74,10 +77,11 @@ function annotateHmm(family, hmm) {
 
       // TODO: BM build method
       // TODO: SM search method
-      add_header("CT", family.classification.lineage.replace(/^root;/, ''));
+      add_header("CT", family.classification.lineage.replace(/^root;/, ''), true);
       family.clades.forEach(function(clade) {
         add_header("MS", `TaxId:${clade.tax_id} TaxName:${clade.sanitized_name}`);
       });
+      add_header("CC", family.description, true);
       add_header("CC", "RepeatMasker Annotations:");
       add_header("CC", "     Type: " + family.rmTypeName);
       add_header("CC", "     SubType: " + family.rmSubTypeName);
@@ -98,7 +102,6 @@ function annotateHmm(family, hmm) {
       if (family.refineable) {
         add_header("CC", "     Refineable");
       }
-      // TODO: RepeatMasker Annotations: Description
     } else {
       result.push(lines[i]);
     }

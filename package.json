@@ -1,7 +1,8 @@
 {
   "name": "dfam-api",
-  "version": "0.0.3",
+  "version": "0.3.0",
   "description": "Dfam API server",
+  "author": "Jeb Rosen <jeb.rosen@systemsbiology.org>",
   "main": "index.js",
   "watch": {
     "start": "**/*.js"
@@ -11,7 +12,8 @@
     "lint": "eslint .; true",
     "watch": "npm-watch",
     "test": "ava",
-    "coverage": "nyc ava"
+    "coverage": "nyc ava",
+    "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml"
   },
   "license": "CC0-1.0",
   "private": true,
@@ -19,7 +21,7 @@
     "connect": "^3.2.0",
     "cors": "^2.8.5",
     "dateformat": "^3.0.3",
-    "js-yaml": "^3.12.1",
+    "js-yaml": "^3.12.2",
     "jsonwebtoken": "^8.5.0",
     "md5": "^2.2.1",
     "mysql2": "^1.6.5",
@@ -27,12 +29,13 @@
     "on-finished": "^2.3.0",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
-    "rss-parser": "^3.6.2",
-    "sequelize": "^4.42.0",
+    "rss-parser": "^3.6.3",
+    "sequelize": "^4.42.1",
     "swagger-tools": "^0.10.4",
     "tmp": "0.0.33",
     "uuid": "^3.3.2",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "word-wrap": "^1.2.3"
   },
   "devDependencies": {
     "ava": "^1.2.1",
@@ -41,6 +44,7 @@
     "npm-watch": "^0.6.0",
     "nyc": "^13.3.0",
     "sequelize-auto": "^0.4.29",
+    "spectacle-docs": "^1.0.7",
     "supertest": "^3.4.2"
   }
 }

@@ -1,6 +1,7 @@
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
+const wrap = require('word-wrap');
 
 const family = require("./family");
 
@@ -76,8 +77,11 @@ function seedRegionsToStockholm(family) {
 
   var stockholmStr = "# STOCKHOLM 1.0\n";
   function add_header(code, text) {
-    // TODO: Long text wrapping
-    stockholmStr += "#=GF " + code + " " + text + "\n";
+    if (!text) {
+      return;
+    }
+    stockholmStr += wrap(text.toString(), { width: 72, indent: "#=GF " + code + " "});
+    stockholmStr += "\n";
   }
   add_header("ID", family.name);
 
@@ -111,6 +115,8 @@ function seedRegionsToStockholm(family) {
       add_header("DC", alias.comment);
     }
   });
+
+  add_header("CC", family.description);
 
   add_header("SQ", seedRegions.length);
 
