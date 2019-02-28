@@ -20,7 +20,7 @@ function exportEmbl(family) {
       return;
     }
     if (wraptext) {
-      text = wrap(text, { width: 72, indent: '' });
+      text = wrap(text, { width: 72, indent: '', trim: true });
     }
     text.split("\n").forEach(function(line) {
       emblStr += code.padEnd(5) + line + "\n";
@@ -30,7 +30,7 @@ function exportEmbl(family) {
   function add_featuredata(text) {
     const indent = 'FT                   ';
     if (text) {
-      emblStr += wrap(text, { width: 72, indent, cut: true });
+      emblStr += wrap(text, { width: 72, indent, trim: true, cut: true });
     }
     emblStr += "\n";
   }
@@ -39,7 +39,9 @@ function exportEmbl(family) {
     emblStr += "XX\n";
   }
 
-  add_header("ID", family.accessionAndVersion + "     repeatmasker; DNA;  ???;  " + family.length + " BP.");
+  const seq = family.consensus.toLowerCase();
+
+  add_header("ID", `${family.accession}; SV ${family.version || 0}; linear; DNA; STD; UNC; ${seq.length} BP.`);
   add_header("NM", family.name);
   add_XX();
   add_header("AC", family.accession + ';');
@@ -78,9 +80,8 @@ function exportEmbl(family) {
       add_header("RA", citation.authors, true);
       add_header("RT", citation.title, true);
       add_header("RL", citation.journal);
+      add_XX();
     });
-
-    add_XX();
   }
 
   add_header("CC", family.description, true);
@@ -122,8 +123,6 @@ function exportEmbl(family) {
   });
 
   add_XX();
-
-  const seq = family.consensus.toLowerCase();
 
   const counts = { "a": 0, "c": 0, "g": 0, "t": 0, "other": 0 };
   for (let i = 0; i < seq.length; i++) {

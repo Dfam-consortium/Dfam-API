@@ -80,7 +80,7 @@ function seedRegionsToStockholm(family) {
     if (!text) {
       return;
     }
-    stockholmStr += wrap(text.toString(), { width: 72, indent: "#=GF " + code + " "});
+    stockholmStr += wrap(text.toString(), { width: 72, indent: "#=GF " + code + " ", trim: true });
     stockholmStr += "\n";
   }
   add_header("ID", family.name);

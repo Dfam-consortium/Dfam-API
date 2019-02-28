@@ -37,7 +37,7 @@ function annotateHmm(family, hmm) {
       return;
     }
     if (wraptext) {
-      text = wrap(text, { width: 72, indent: '' });
+      text = wrap(text, { width: 72, indent: '', trim: true });
     }
     text.split("\n").forEach(function(line) {
       result.push(code.padEnd(6) + line);
