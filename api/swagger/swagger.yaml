@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 0.0.3
+  version: 0.3.0
   title: Dfam API
   description: |
     The Dfam API is an interface to the Dfam database.
@@ -17,7 +17,7 @@ info:
     #### Authors
     Robert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen
 
-    Copyright 2016-2018 Institute for Systems Biology
+    Copyright 2016-2019 Institute for Systems Biology
   contact:
     name: Dfam Consortium
     url: 'https://dfam.org/about'
