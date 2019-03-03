@@ -104,4 +104,8 @@ npm run build-docs
 And to deploy them:
 ```
 cp -r autogen/apidocs/ /path/to/target
+
+e.g.
+  cp -r autogen/apidocs/ /usr/local/Dfam-warehouse/releases/Dfam_3.0
+         
 ```

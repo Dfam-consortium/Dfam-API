@@ -1,12 +1,13 @@
 swagger: '2.0'
 info:
   version: 0.3.0
-  title: Dfam API
+  title: Dfam REST API
   description: |
-    The Dfam API is an interface to the Dfam database.
-    Repeats defined in the Dfam database are annotated for use with
-    RepeatMasker using a combination of automated and manual steps.
-
+    The Dfam REST API provides a means for programs and scripts to access 
+    information from the current release of the Dfam database. It provides
+    the core functionality used by the dfam.org website and is offered for
+    use in community developed applications and workflows. 
+ 
     For more information on getting started with the Dfam API, see
     the documentation and examples at http://dfam.org/help/api
 
@@ -64,7 +65,7 @@ paths:
     get:
       produces:
         - application/json
-      description: Get a list of recent Dfam blog posts. This API is meant for use on dfam.org and the details are not documented.
+      description: Get a list of recent Dfam blog posts. This API is intended for use only at dfam.org.
       tags:
         - blog
       operationId: readBlogPosts
@@ -173,7 +174,7 @@ paths:
   /assemblies:
     x-swagger-router-controller: Assemblies
     get:
-      description: Retrieve a list of all assemblies in Dfam that have annotations.
+      description: Retrieve a list of all genome assemblies in Dfam that have annotations.
       tags:
         - assemblies
       operationId: readAssemblies
@@ -206,26 +207,26 @@ paths:
           type: string
         - name: name
           in: query
-          description: Search term for any part of the repeat name. Takes precedence over "name_prefix" if both are specified.
+          description: Search term for any part of the family name. Takes precedence over "name_prefix" if both are specified.
           required: false
           type: string
         - name: name_prefix
           in: query
-          description: Search term for a prefix of the repeat name.
+          description: Search term for a prefix of the family name.
           type: string
         - name: name_accession
           in: query
-          description: Search term for any part of the repeat name or accession
+          description: Search term for any part of the family name or accession
           required: false
           type: string
         - name: classification
           in: query
-          description: Search term for repeat classification. Sub-classifications are included. A full classification lineage is expected for this search term; such as "root;Interspersed_Repeat".
+          description: Search term for family classification. Sub-classifications are included. A full classification lineage is expected for this search term; such as "root;Interspersed_Repeat".
           required: false
           type: string
         - name: clade
           in: query
-          description: Search term for repeat clade. Can be either an NCBI Taxonomy ID or scientific name. If the scientific name is ambiguous (e.g. "Drosophila"), the taxonomy ID should be used instead.
+          description: Search term for family clade. Can be either an NCBI Taxonomy ID or scientific name. If the scientific name is ambiguous (e.g. "Drosophila"), the taxonomy ID should be used instead.
           required: false
           type: string
         - name: clade_relatives
@@ -237,29 +238,29 @@ paths:
           type: string
         - name: type
           in: query
-          description: Search term for repeat type, as understood by RepeatMasker.
+          description: Search term for TE type, as understood by RepeatMasker.
           required: false
           type: string
         - name: subtype
           in: query
-          description: Search term for repeat subtype, as understood by RepeatMasker.
+          description: Search term for TE subtype, as understood by RepeatMasker.
           required: false
           type: string
         - name: updated_after
           in: query
-          description: Filter by "updated on or after" date
+          description: Filter by "updated on or after" date.
           required: false
           type: string
           format: date
         - name: updated_before
           in: query
-          description: Filter by "updated on or before" date
+          description: Filter by "updated on or before" date.
           required: false
           type: string
           format: date
         - name: desc
           in: query
-          description: Search term for repeat description.
+          description: Search term for family description.
           required: false
           type: string
         - name: keywords
@@ -291,7 +292,7 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
     get:
@@ -313,23 +314,23 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
     get:
-      description: Retrieve an individual Dfam family's annotated HMM
+      description: Retrieve an individual Dfam family's annotated HMM.
       tags:
         - families
       operationId: readFamilyHmm
       parameters:
         - name: format
           in: query
-          description: 'The desired output format: "hmm", "logo", or "image"'
+          description: 'The desired output format: "hmm", "logo", or "image".'
           required: true
           type: string
         - name: download
           in: query
-          description: If true, adds headers to trigger a browser download
+          description: If true, adds headers to trigger a browser download.
           required: false
           type: boolean
       produces:
@@ -350,7 +351,7 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
     get:
@@ -366,7 +367,7 @@ paths:
           type: string
         - name: download
           in: query
-          description: If true, adds headers to trigger a browser download
+          description: If true, adds headers to trigger a browser download.
           required: false
           type: boolean
       produces:
@@ -385,11 +386,11 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
     get:
-      description: Retrieve an individual Dfam family's seed alignment data
+      description: Retrieve an individual Dfam family's seed alignment data.
       tags:
         - families
       operationId: readFamilySeed
@@ -398,12 +399,12 @@ paths:
       parameters:
         - name: format
           in: query
-          description: The format to return, one of 'stockholm' or 'alignment_summary'
+          description: The format to return, one of 'stockholm' or 'alignment_summary'.
           required: true
           type: string
         - name: download
           in: query
-          description: If true, adds headers to trigger a browser download
+          description: If true, adds headers to trigger a browser download.
           required: false
           type: boolean
       responses:
@@ -420,11 +421,11 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
     get:
-      description: Retrieve an individual Dfam family's relationship information
+      description: Retrieve an individual Dfam family's relationship information.
       tags:
         - families
       operationId: readFamilyRelationships
@@ -442,11 +443,11 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
     get:
-      description: Retrieve a list of assemblies with annotations for this Dfam family.
+      description: Retrieve a list of genome assemblies with annotations for this Dfam family.
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblies
@@ -464,23 +465,23 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies
+        description: The assembly identifier, as shown in /families/{id}/assemblies.
         required: true
         type: string
     get:
-      description: Retrieve a family's coverage data associated with a given assembly
+      description: Retrieve a family's coverage data associated with a given assembly.
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyModelCoverage
       parameters:
         - name: model
           in: query
-          description: 'Model type, "cons" or "hmm"'
+          description: 'Model type, "cons" or "hmm".'
           required: true
           type: string
       responses:
@@ -504,23 +505,23 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies
+        description: The assembly identifier, as shown in /families/{id}/assemblies.
         required: true
         type: string
     get:
-      description: Retrieve a family's conservation data associated with a given assembly
+      description: Retrieve a family's conservation data associated with a given assembly.
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyModelConservation
       parameters:
         - name: model
           in: query
-          description: 'Model type, "cons" or "hmm"'
+          description: 'Model type, "cons" or "hmm".'
           required: true
           type: string
       responses:
@@ -548,28 +549,28 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies
+        description: The assembly identifier, as shown in /families/{id}/assemblies.
         required: true
         type: string
     get:
-      description: Retrieve a family's annotations associated with a given assembly
+      description: Retrieve a family's annotations associated with a given assembly.
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyAnnotations
       parameters:
         - name: nrph
           in: query
-          description: '"true" to include only non-redundant profile hits'
+          description: '"true" to include only non-redundant profile hits.'
           required: true
           type: boolean
         - name: download
           in: query
-          description: If true, adds headers to trigger a browser download
+          description: If true, adds headers to trigger a browser download.
           required: false
           type: boolean
       produces:
@@ -588,16 +589,16 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies
+        description: The assembly identifier, as shown in /families/{id}/assemblies.
         required: true
         type: string
     get:
-      description: Retrieve a family's annotation statistics associated with a given assembly
+      description: Retrieve a family's annotation statistics associated with a given assembly.
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyAnnotationStats
@@ -615,16 +616,16 @@ paths:
     parameters:
       - name: id
         in: path
-        description: The Dfam family accession
+        description: The Dfam family accession.
         required: true
         type: string
       - name: assembly_id
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies
+        description: The assembly identifier, as shown in /families/{id}/assemblies.
         required: true
         type: string
     get:
-      description: Retrieve a family's karyotype data associated with a given assembly
+      description: Retrieve a family's karyotype data associated with a given assembly.
       tags:
         - familyAssemblies
       operationId: readFamilyAssemblyKaryotype
@@ -633,7 +634,7 @@ paths:
           description: Success
           schema:
             type: object
-            description: Data in the format recognized by Dfam-consortium/Karotype
+            description: Data in the format recognized by Dfam-consortium/Karotype.
         default:
           description: Error
           schema:
@@ -641,7 +642,7 @@ paths:
   /classes:
     x-swagger-router-controller: Classification
     get:
-      description: Get the entire repeat classification hierarchy used by Dfam.
+      description: Get the entire TE classification hierarchy used by Dfam.
       tags:
         - classification
       operationId: readClassification
@@ -670,7 +671,7 @@ paths:
       parameters:
         - name: name
           in: query
-          description: Search string for taxonomy name
+          description: Search string for taxonomy name.
           required: true
           type: string
         - name: annotated
@@ -680,7 +681,7 @@ paths:
           type: boolean
         - name: limit
           in: query
-          description: Only return up to a maximum number of matching taxa
+          description: Only return up to a maximum number of matching taxa.
           required: false
           type: integer
       responses:
@@ -695,14 +696,14 @@ paths:
   /annotations:
     x-swagger-router-controller: Annotations
     get:
-      description: Retrieve annotations for a given assembly in a given range.
+      description: Retrieve annotations for a given genome assembly in a given range.
       tags:
         - annotations
       operationId: readAnnotations
       parameters:
         - name: assembly
           in: query
-          description: Assembly to search. A list of assemblies is available at `/assemblies`.
+          description: Genome assembly to search. A list of assemblies is available at `/assemblies`.
           required: true
           type: string
         - name: chrom
@@ -712,12 +713,12 @@ paths:
           type: string
         - name: start
           in: query
-          description: Start of the sequence range.
+          description: Start of the sequence range (one based).
           required: true
           type: integer
         - name: end
           in: query
-          description: End of the sequence range.
+          description: End of the sequence range (one based, fully-closed).
           required: true
           type: integer
         - name: family
@@ -742,14 +743,14 @@ paths:
   /alignment:
     x-swagger-router-controller: Alignment
     get:
-      description: Query the alignment of a family to an assembly. This API is meant for use on dfam.org and the details are not documented.
+      description: Query the alignment of a family to an assembly. This API is meant for use only on dfam.org.
       tags:
         - alignment
       operationId: readAlignment
       parameters:
         - name: assembly
           in: query
-          description: Assembly to align to. A list of assemblies is available at `/assemblies`.
+          description: Genome assembly to align to. A list of assemblies is available at `/assemblies`.
           required: true
           type: string
         - name: chrom
@@ -759,12 +760,12 @@ paths:
           type: string
         - name: start
           in: query
-          description: Start of the sequence range.
+          description: Start of the sequence range (one based).
           required: true
           type: integer
         - name: end
           in: query
-          description: End of the sequence range.
+          description: End of the sequence range (one based, fully closed).
           required: true
           type: integer
         - name: family
@@ -788,7 +789,7 @@ paths:
         - application/x-www-form-urlencoded
       produces:
         - application/json
-      description: Submit a sequence search request
+      description: Submit a sequence search request.
       tags:
         - searches
       operationId: submitSearch
@@ -1068,7 +1069,7 @@ definitions:
       properties:
         id:
           type: string
-          description: Assembly identifier, used in API parameters and responses.
+          description: Genome assembly identifier, used in API parameters and responses.
         name:
           type: string
           description: The scientific name of the organism this assembly corresponds to.
@@ -1098,7 +1099,7 @@ definitions:
     properties:
       name:
         type: string
-        description: The name of this level of the classification hierarchy.
+        description: The name of this level of the TE classification hierarchy.
       tooltip:
         type: string
         description: A short description of the classification.
@@ -1163,7 +1164,7 @@ definitions:
         description: A name of the form DF1234567 that is a unique identifier for the family.
       name:
         type: string
-        description: A human-readable short name for the family. Historically, this was known to be unique but this should not be relied upon.
+        description: A human-readable short name for the family. Historically, this was known to be unique but this should not be relied upon going forward.
       title:
         type: string
         description: A short description or tagline describing the family.
@@ -1298,21 +1299,21 @@ definitions:
               description: Amino acid translation of the coding sequence.
             cds_start:
               type: integer
-              description: The start position of the coding sequence within the family.
+              description: The start position of the coding sequence within the family (zero-based).
             cds_end:
               type: integer
-              description: The end position of the coding sequence within the family.
+              description: The end position of the coding sequence within the family (zero-based, half-open).
             exon_count:
               type: integer
               description: The number of exons in the coding sequence.
             exon_starts:
               type: array
-              description: List of exon start positions.
+              description: List of exon start positions (zero-based).
               items:
                 type: integer
             exon_ends:
               type: array
-              description: List of exon end positions.
+              description: List of exon end positions (zero-based, half-open).
               items:
                 type: integer
             external_reference:
@@ -1364,10 +1365,10 @@ definitions:
               description: Human-readable description of the feature.
             model_start_pos:
               type: integer
-              description: Start posotion of the feature within the family model.
+              description: Start posotion of the feature within the family model (one-based).
             model_end_pos:
               type: integer
-              description: End posotion of the feature within the family model.
+              description: End posotion of the feature within the family model (one-based, fully-closed).
             label:
               type: string
               description: Short label for this feature.
@@ -1403,16 +1404,16 @@ definitions:
           description: Alignment between the two families, expressed as a sequence of "M", "I", and "D" characters. Not actually a CIGAR alignment, but derived from that format.
         model_start:
           type: integer
-          description: Start position of the overlap region in the first family.
+          description: Start position of the overlap region in the first family (one-based).
         target_start:
           type: integer
-          description: Start position of the overlap region in the second family.
+          description: Start position of the overlap region in the second family (one-based).
         model_end:
           type: integer
-          description: End position of the overlap region in the first family.
+          description: End position of the overlap region in the first family (one-based, fully-closed).
         target_end:
           type: integer
-          description: End position of the overlap region in the second family.
+          description: End position of the overlap region in the second family (one-based, fully-closed).
         auto_overlap:
           type: object
           properties:
@@ -1490,7 +1491,7 @@ definitions:
     properties:
       offset:
         type: integer
-        description: The start position of the results.
+        description: The start position of the results (one-based).
       length:
         type: integer
         description: The length of the region included in the results.
@@ -1532,16 +1533,16 @@ definitions:
               description: The sequence strand where the hit was found; '+' or '-'.
             ali_start:
               type: integer
-              description: The start position of the hit within the sequence.
+              description: The start position of the hit within the sequence (one-based).
             ali_end:
               type: integer
-              description: The end position of the hit within the sequence.
+              description: The end position of the hit within the sequence (one-based, fully-closed).
             seq_start:
               type: integer
-              description: The start position of the alignment envelope used to reproduce alignments.
+              description: The start position of the alignment envelope used to reproduce alignments (one-based).
             seq_end:
               type: integer
-              description: The end position of the alignment envelope used to reproduce alignments.
+              description: The end position of the alignment envelope used to reproduce alignments (one-based,fully-closed).
       tandem_repeats:
         type: array
         description: List of tandem repetitive sequences within the results range.
@@ -1550,10 +1551,10 @@ definitions:
           properties:
             start:
               type: integer
-              description: The start position of the repeat.
+              description: The start position of the repeat (one-based).
             end:
               type: integer
-              description: The end position of the repeat.
+              description: The end position of the repeat (one-based, fully-closed).
             type:
               type: string
               description: The repetitive sequence, for example 'GT'.
@@ -1571,10 +1572,10 @@ definitions:
         properties:
           start:
             type: integer
-            description: Start position in the model of the alignment.
+            description: Start position in the model of the alignment (one-based).
           end:
             type: integer
-            description: End position in the model of the alignment.
+            description: End position in the model of the alignment (one-based, fully-closed).
           id:
             type: string
             description: An identifier for the model.
@@ -1586,10 +1587,10 @@ definitions:
         properties:
           start:
             type: integer
-            description: Start position in the sequence of the alignment.
+            description: Start position in the sequence of the alignment (one-based).
           end:
             type: integer
-            description: End position in the sequence of the alignment.
+            description: End position in the sequence of the alignment (one-based, fully-closed).
           id:
             type: string
             description: An identifier for the sequence.
