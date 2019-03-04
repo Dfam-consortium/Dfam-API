@@ -1299,21 +1299,21 @@ definitions:
               description: Amino acid translation of the coding sequence.
             cds_start:
               type: integer
-              description: The start position of the coding sequence within the family (zero-based).
+              description: The start position of the coding sequence within the family (one-based).
             cds_end:
               type: integer
-              description: The end position of the coding sequence within the family (zero-based, half-open).
+              description: The end position of the coding sequence within the family (one-based, fully-closed).
             exon_count:
               type: integer
               description: The number of exons in the coding sequence.
             exon_starts:
               type: array
-              description: List of exon start positions (zero-based).
+              description: List of exon start positions (one-based).
               items:
                 type: integer
             exon_ends:
               type: array
-              description: List of exon end positions (zero-based, half-open).
+              description: List of exon end positions (one-based, fully-closed).
               items:
                 type: integer
             external_reference:
