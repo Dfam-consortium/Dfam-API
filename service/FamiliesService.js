@@ -235,8 +235,15 @@ function familyQueryRowToObject(row, format) {
       // 'reverse' is stored as an integer
       cds.reverse = !!cds.reverse;
 
+      // Coordinates are stored 0-based half open, but the API needs to return
+      // 1-based closed. To accomplish this, 1 is added to start and exon_starts.
+      // TODO: When the database becomes 1-based closed, remove the adjusting code.
+      if (cds.start !== undefined && cds.start !== null) {
+        cds.start += 1;
+      }
+
       if (cs.exon_starts) {
-        cds.exon_starts = cs.exon_starts.toString().split(",").map(x => parseInt(x));
+        cds.exon_starts = cs.exon_starts.toString().split(",").map(x => parseInt(x) + 1);
       }
       if (cs.exon_ends) {
         cds.exon_ends = cs.exon_ends.toString().split(",").map(x => parseInt(x));
