@@ -159,7 +159,22 @@ function seedRegionsToStockholm(family) {
       refPos++;
     }
     stockholmSeqs[i] = tmpSeq.replace(/-/g, ".").toUpperCase();
-    stockholmStr += seedRegions[i].seq_id + "  " + stockholmSeqs[i] + "\n";
+
+    // TODO: Ideally data would always have separated id, start, end.
+    // But in reality some id fields have start and end embedded in them.
+    // Remove this check in the future (dropping the else branch)
+    // once we know that no id has an embedded :start-end.
+    //
+    // TODO: Standardize output of start and end with respect to the strand.
+    const seq_id = seedRegions[i].seq_id;
+    if (seq_id.indexOf("-") === -1) {
+      const seq_start = seedRegions[i].seq_start;
+      const seq_end = seedRegions[i].seq_end;
+
+      stockholmStr += `${seq_id}:${seq_start}-${seq_end}  ${stockholmSeqs[i]}\n`;
+    } else {
+      stockholmStr += `${seq_id}  ${stockholmSeqs[i]}\n`;
+    }
   }
 
   stockholmStr += "//\n";
