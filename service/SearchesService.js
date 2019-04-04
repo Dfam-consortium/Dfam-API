@@ -94,7 +94,7 @@ exports.readSearchResults = function(id) {
       return response;
     }
 
-    var startedDate = new Date(jobRec.started);
+    var startedDate = new Date(searchRec.started);
     var dataDir = path.join(resultStore, dateFormat(startedDate,"yy/mm/dd/HH/MM/ss"), id, "1");
 
     const nhmmerResults = promisify(fs.access)(
