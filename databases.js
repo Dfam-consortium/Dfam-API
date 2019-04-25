@@ -13,6 +13,9 @@ function connect(dbinfo) {
       host: dbinfo.host,
       port: dbinfo.port,
       dialect: "mysql",
+      dialectOptions: {
+        charset: "latin1_swedish_ci",
+      },
       define: {
         timestamps: false,
       },
