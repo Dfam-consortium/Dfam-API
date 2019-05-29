@@ -263,6 +263,10 @@ function familyQueryRowToObject(row, format) {
 // result.lineage is a lineage string (useful for searching descendants).
 // result.ids will only contain ancestors if clade_relatives is "ancestors" or "both"
 async function collectClades(clade, clade_relatives) {
+  if (!clade) {
+    return null;
+  }
+
   const result = { ids: [], lineage: null };
 
   // Try clade by ID first
