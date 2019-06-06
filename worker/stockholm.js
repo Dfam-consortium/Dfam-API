@@ -7,16 +7,19 @@ const family = require("./family");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
+const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
 
 seedRegionModel.removeAttribute('id');
 
 familyModel.hasMany(seedRegionModel, { foreignKey: 'family_id' });
+seedRegionModel.belongsTo(assemblyModel, { foreignKey: 'assembly_id' });
 
 module.exports = function stockholm_command(accession) {
   return family.getFamilyForAnnotation(accession).then(function(family) {
     if (family) {
       return seedRegionModel.findAll({
         where: { family_id: family.id },
+        include: [{ model: assemblyModel, attributes: [ 'name' ] }],
       }).then(function(seed_regions) {
         family.seed_regions = seed_regions;
 
@@ -40,8 +43,7 @@ module.exports = function stockholm_command(accession) {
 //  "name": "Name",
 //  "description: "Description",
 //  "seed_regions": [
-//    { a3m_seq: "sequence1" },
-//    { a3m_seq: "sequence2" },
+//    { a3m_seq: "sequence1", seq_start: 1, seq_end: 2, strand: "-", seq_id: "chrN", assembly: { name: "hg38" }, },
 //    ...
 //  ],
 // }
@@ -160,21 +162,28 @@ function seedRegionsToStockholm(family) {
     }
     stockholmSeqs[i] = tmpSeq.replace(/-/g, ".").toUpperCase();
 
-    // TODO: Ideally data would always have separated id, start, end.
-    // But in reality some id fields have start and end embedded in them.
-    // Remove this check in the future (dropping the else branch)
-    // once we know that no id has an embedded :start-end.
-    //
-    // TODO: Standardize output of start and end with respect to the strand.
-    const seq_id = seedRegions[i].seq_id;
-    if (seq_id.indexOf("-") === -1) {
-      const seq_start = seedRegions[i].seq_start;
-      const seq_end = seedRegions[i].seq_end;
+    const assembly = seedRegions[i].assembly && seedRegions[i].assembly.name;
+    const seq_start = seedRegions[i].seq_start;
+    const seq_end = seedRegions[i].seq_end;
+    const strand = seedRegions[i].strand;
 
-      stockholmStr += `${seq_id}:${seq_start}-${seq_end}  ${stockholmSeqs[i]}\n`;
-    } else {
-      stockholmStr += `${seq_id}  ${stockholmSeqs[i]}\n`;
+    let seq_id = seedRegions[i].seq_id;
+
+    // Prepend the assembly, if specified
+    if (assembly && assembly !== "Unspecified") {
+      seq_id = `${assembly}:${seq_id}`;
     }
+
+    // Append :start-end (with start > end on the - strand), if specified
+    if (seq_start !== null && seq_end !== null && strand !== null) {
+      if (strand === "+") {
+        seq_id = `${seq_id}:${seq_start}-${seq_end}`;
+      } else {
+        seq_id = `${seq_id}:${seq_end}-${seq_start}`;
+      }
+    }
+
+    stockholmStr += `${seq_id}  ${stockholmSeqs[i]}\n`;
   }
 
   stockholmStr += "//\n";
