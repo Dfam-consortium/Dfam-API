@@ -23,7 +23,6 @@ function connect(dbinfo) {
       logging: function(message, data) {
         winston.debug(message);
       },
-      operatorsAliases: false,
       pool: {
         max: 5,
         min: 0,
