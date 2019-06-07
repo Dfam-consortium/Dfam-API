@@ -48,6 +48,10 @@ exports.readSearchResults = function(id) {
     include: [ 'job' ],
     where: { '$job.uuid$': id }
   }).then(function(searchRec) {
+    if (!searchRec) {
+      return null;
+    }
+
     const jobRec = searchRec.job;
 
     const response = {
