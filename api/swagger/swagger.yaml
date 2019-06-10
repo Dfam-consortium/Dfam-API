@@ -1157,6 +1157,7 @@ definitions:
     required:
       - accession
       - name
+      - version
     additionalProperties: false
     properties:
       accession:
@@ -1165,6 +1166,9 @@ definitions:
       name:
         type: string
         description: A human-readable short name for the family. Historically, this was known to be unique but this should not be relied upon going forward.
+      version:
+        type: integer
+        description: The version of the family described by this response.
       title:
         type: string
         description: A short description or tagline describing the family.

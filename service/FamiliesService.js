@@ -100,6 +100,7 @@ function familyQueryRowToObject(row, format) {
   const obj = mapFields(row, {}, {
     "accession": "accession",
     "name": "name",
+    "version": "version",
     "title": "title",
     "description": "description",
     "length": "length",
@@ -374,7 +375,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
 
   const replacements = {};
 
-  var selects = [ "family.id AS id", "family.accession", "family.name AS name", "family.title AS title", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
+  var selects = [ "family.id AS id", "family.accession", "family.name AS name", "family.version", "family.title AS title", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
   let from = "family LEFT JOIN classification ON family.classification_id = classification.id" +
 " LEFT JOIN repeatmasker_type ON classification.repeatmasker_type_id = repeatmasker_type.id" +
 " LEFT JOIN repeatmasker_subtype ON classification.repeatmasker_subtype_id = repeatmasker_subtype.id ";
