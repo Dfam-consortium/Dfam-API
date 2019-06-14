@@ -693,6 +693,28 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+  '/taxa/{id}':
+    x-swagger-router-controller: Taxa
+    get:
+      description: Retrieve the name of a single taxon by its identifier.
+      tags:
+        - taxa
+      operationId: readTaxaById
+      parameters:
+        - name: id
+          in: path
+          description: The identifier of the taxonomy node to retrieve.
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/taxonResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   /annotations:
     x-swagger-router-controller: Annotations
     get:
@@ -1073,6 +1095,18 @@ definitions:
         name:
           type: string
           description: The scientific name of the organism this assembly corresponds to.
+  taxonResponse:
+    type: object
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: number
+        description: Taxon identifier, as provided by the NCBI Taxonomy database.
+      name:
+        type: string
+        description: Display name. Intended to be unambiguous, but this should not be relied on.
   taxaResponse:
     required:
       - taxa
@@ -1080,17 +1114,7 @@ definitions:
       taxa:
         type: array
         items:
-          type: object
-          required:
-            - id
-            - name
-          properties:
-            id:
-              type: number
-              description: Taxon identifier, as provided by the NCBI Taxonomy database.
-            name:
-              type: string
-              description: Display name. Intended to be unambiguous, but this should not be relied on.
+          $ref: '#/definitions/taxonResponse'
   classesResponse:
     required:
       - name

@@ -205,6 +205,11 @@ test('get taxa', async t => {
   t.true(body.taxa[0].name == 'Drosophila <basidiomycete fungus>');
 });
 
+test('get one taxon', async t => {
+  const body = await get_body('/taxa/9606');
+  t.true(body.name == 'Homo sapiens');
+});
+
 // Version Service
 test('get version', async t => {
   const body = await get_body('/version');

@@ -52,3 +52,21 @@ exports.readTaxa = function(name,limit,annotated) {
   }
 };
 
+/**
+ * Retrieve information about a single taxon by ID.
+ *
+ * id Integer Taxa ID to look up
+ * returns taxonResponse
+ **/
+exports.readTaxaById = function(id) {
+  return ncbiTaxonomyNames.findOne({
+    attributes: ["tax_id", "name_txt"],
+    where: { tax_id: id, name_class: "scientific name" },
+  }).then(function(taxon) {
+    if (!taxon) {
+      return null;
+    }
+
+    return { "id": taxon.tax_id, "name": taxon.name_txt };
+  });
+}
