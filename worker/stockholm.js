@@ -61,9 +61,39 @@ function seedRegionsToStockholm(family) {
   var matches;
   var matchColCnt = -1;
   var stockholmSeqs = [];
+  var seq_ids = [];
+  var max_id_length = 0;
 
   seedRegions.forEach(function(region) {
     stockholmSeqs.push(region.a3m_seq);
+
+    const assembly = region.assembly && region.assembly.name;
+    const seq_start = region.seq_start;
+    const seq_end = region.seq_end;
+    const strand = region.strand;
+
+    let seq_id = region.seq_id;
+
+    // Prepend the assembly, if specified
+    if (assembly && assembly !== "Unspecified") {
+      seq_id = `${assembly}:${seq_id}`;
+    }
+
+    // Append :start-end (with start > end on the - strand), if specified
+    if (seq_start !== null && seq_end !== null && strand !== null) {
+      if (strand === "+") {
+        seq_id = `${seq_id}:${seq_start}-${seq_end}`;
+      } else {
+        seq_id = `${seq_id}:${seq_end}-${seq_start}`;
+      }
+    }
+
+    if (seq_id.length > max_id_length) {
+      max_id_length = seq_id.length;
+    }
+
+    seq_ids.push(seq_id);
+
     // Create a non-gap RF line with the correct match column length
     if (matchColCnt < 0)
       matchColCnt = (region.a3m_seq.match(/[A-Z-]/g) || []).length;
@@ -139,6 +169,7 @@ function seedRegionsToStockholm(family) {
 
   for (var i = 0; i < stockholmSeqs.length; i++) {
     var seq = stockholmSeqs[i];
+    var seq_id = seq_ids[i].padEnd(max_id_length);
     var j = 0;
     var refPos = 0;
     var tmpSeq = "";
@@ -161,27 +192,6 @@ function seedRegionsToStockholm(family) {
       refPos++;
     }
     stockholmSeqs[i] = tmpSeq.replace(/-/g, ".").toUpperCase();
-
-    const assembly = seedRegions[i].assembly && seedRegions[i].assembly.name;
-    const seq_start = seedRegions[i].seq_start;
-    const seq_end = seedRegions[i].seq_end;
-    const strand = seedRegions[i].strand;
-
-    let seq_id = seedRegions[i].seq_id;
-
-    // Prepend the assembly, if specified
-    if (assembly && assembly !== "Unspecified") {
-      seq_id = `${assembly}:${seq_id}`;
-    }
-
-    // Append :start-end (with start > end on the - strand), if specified
-    if (seq_start !== null && seq_end !== null && strand !== null) {
-      if (strand === "+") {
-        seq_id = `${seq_id}:${seq_start}-${seq_end}`;
-      } else {
-        seq_id = `${seq_id}:${seq_end}-${seq_start}`;
-      }
-    }
 
     stockholmStr += `${seq_id}  ${stockholmSeqs[i]}\n`;
   }
