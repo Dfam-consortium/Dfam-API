@@ -46,7 +46,9 @@ module.exports.readFamilyHmm = function readFamilyHmm (req, res, next) {
   var download = req.swagger.params['download'].value;
   Families.readFamilyHmm(id,format)
     .then(function (response) {
-      if (response) {
+      if (response instanceof APIResponse) {
+        return response.respond(req, res);
+      } else if (response) {
         const headers = {};
         if (download) {
           const extensions = { 'hmm': '.hmm', 'logo': '.json', 'image': '.png' };
@@ -85,7 +87,9 @@ module.exports.readFamilySeed = function readFamilySeed (req, res, next) {
   var download = req.swagger.params['download'].value;
   Families.readFamilySeed(id,format)
     .then(function (response) {
-      if (response) {
+      if (response instanceof APIResponse) {
+        return response.respond(req, res);
+      } else if (response) {
         const headers = {};
         if (download) {
           const extensions = { 'stockholm': '.stk', 'alignment_summary': '.json' };
@@ -113,7 +117,9 @@ module.exports.readFamilySequence = function readFamilySequence (req, res, next)
   var download = req.swagger.params['download'].value;
   Families.readFamilySequence(id,format)
     .then(function (response) {
-      if (response) {
+      if (response instanceof APIResponse) {
+        return response.respond(req, res);
+      } else if (response) {
         const headers = {};
         if (download) {
           const extensions = { 'embl': '.embl', };

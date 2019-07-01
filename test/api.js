@@ -137,6 +137,9 @@ test('get family HMM', async t => {
     .get('/families/DF0000001/hmm?format=image')
     .expect('Content-Type', 'image/png');
   t.pass();
+
+  const bad = request.get('/families/DF0000001/sequence?format=fake&download=true');
+  await bad.expect(400);
 });
 
 test('get family relationships', async t => {
@@ -152,11 +155,17 @@ test('get family seed', async t => {
 
   t.truthy(body.alignments.length);
   t.is(body.qualityBlockLen, 10);
+
+  const bad = request.get('/families/DF0000001/seed?format=fake&download=true');
+  await bad.expect(400);
 });
 
 test('get family sequence', async t => {
   const text = await get_text('/families/DF0000001/sequence?format=embl');
   t.regex(text, /SQ\s*Sequence \d* BP;/);
+
+  const bad = request.get('/families/DF0000001/sequence?format=fake&download=true');
+  await bad.expect(400);
 });
 
 // FamilyAssembliesService
