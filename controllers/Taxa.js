@@ -25,4 +25,4 @@ module.exports.readTaxaById = function readTaxaById (req, res, next) {
     .catch(function (err) {
       next(err);
     });
-}
+};

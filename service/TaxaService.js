@@ -69,4 +69,4 @@ exports.readTaxaById = function(id) {
 
     return { "id": taxon.tax_id, "name": taxon.name_txt };
   });
-}
+};
