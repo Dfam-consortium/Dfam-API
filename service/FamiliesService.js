@@ -562,7 +562,7 @@ exports.readFamilyHmm = async function(id, format) {
       return {
         data: hmm,
         content_type: "text/plain",
-        encoding: "gzip",
+        encoding: "identity",
       };
     } else {
       return null;
@@ -690,7 +690,7 @@ exports.readFamilySeed = function(id,format) {
         return {
           data: stockholm,
           content_type: "text/plain",
-          encoding: "gzip",
+          encoding: "identity",
         };
       } else {
         return null;

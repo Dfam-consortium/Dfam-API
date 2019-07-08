@@ -1,6 +1,5 @@
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
-const zlib = require("zlib");
 const wrap = require('word-wrap');
 
 const family = require("./family");
@@ -25,7 +24,7 @@ module.exports = function stockholm_command(accession) {
 
         const stockholm = seedRegionsToStockholm(family);
         if (stockholm) {
-          return zlib.gzipSync(stockholm);
+          return stockholm;
         } else {
           return "";
         }

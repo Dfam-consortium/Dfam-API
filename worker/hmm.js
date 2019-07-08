@@ -17,7 +17,7 @@ module.exports = function hmm_command(accession) {
         where: { family_id: family.id }
       }).then(function(hmm_data) {
         if (hmm_data) {
-          return zlib.gzipSync(annotateHmm(family, zlib.gunzipSync(hmm_data.hmm).toString()));
+          return annotateHmm(family, zlib.gunzipSync(hmm_data.hmm).toString());
         } else {
           return "";
         }
