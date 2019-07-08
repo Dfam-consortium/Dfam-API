@@ -122,7 +122,7 @@ module.exports.readFamilySequence = function readFamilySequence (req, res, next)
       } else if (response) {
         const headers = {};
         if (download) {
-          const extensions = { 'embl': '.embl', };
+          const extensions = { 'embl': '.embl', 'fasta': '.fa', };
           const filename = id + extensions[format];
           headers["Content-Disposition"] = 'attachment; filename="' + filename + '"';
         }

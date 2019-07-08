@@ -37,7 +37,7 @@ winston.configure({
   ],
 });
 
-const ALLOWED_COMMANDS = ['stockholm', 'hmm', 'embl'];
+const ALLOWED_COMMANDS = ['stockholm', 'hmm', 'embl', 'fasta'];
 
 if (process.argv.length > 2) {
   const command = process.argv[2];

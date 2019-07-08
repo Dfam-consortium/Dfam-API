@@ -362,7 +362,7 @@ paths:
       parameters:
         - name: format
           in: query
-          description: 'The desired output format. currently only "embl" is supported.'
+          description: 'The desired output format. "embl" and "fasta" are the currently supported formats.'
           required: true
           type: string
         - name: download

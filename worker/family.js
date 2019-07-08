@@ -80,3 +80,16 @@ module.exports.getFamilyForAnnotation = function(accession) {
     return family;
   });
 };
+
+module.exports.getFamilyWithConsensus = function(accession) {
+  return familyModel.findOne({
+    attributes: [ "id", "name", "accession", "version", "consensus" ],
+    where: { accession },
+  }).then(function(family) {
+    if (family) {
+      family.accessionAndVersion = family.accession + "." + (family.version || 0);
+    }
+
+    return family;
+  });
+};

@@ -729,13 +729,10 @@ exports.readFamilySeed = function(id,format) {
  * returns String
  **/
 exports.readFamilySequence = function(id, format) {
-  if (format == "embl") {
-    return runWorkerAsync(["embl", id]).then(function(embl) {
-      if (embl && embl.length) {
-        return {
-          data: embl,
-          content_type: "text/plain",
-        };
+  if (format === "embl" || format === "fasta") {
+    return runWorkerAsync([format, id]).then(function(data) {
+      if (data && data.length) {
+        return { data, content_type: "text/plain" };
       } else {
         return null;
       }

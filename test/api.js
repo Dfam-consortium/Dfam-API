@@ -161,8 +161,11 @@ test('get family seed', async t => {
 });
 
 test('get family sequence', async t => {
-  const text = await get_text('/families/DF0000001/sequence?format=embl');
-  t.regex(text, /SQ\s*Sequence \d* BP;/);
+  const embl = await get_text('/families/DF0000001/sequence?format=embl');
+  t.regex(embl, /SQ\s*Sequence \d* BP;/);
+
+  const fasta = await get_text('/families/DF0000001/sequence?format=fasta');
+  t.regex(fasta, /^>DF0000001.\d .*\n[acgtACGT\n]*$/);
 
   const bad = request.get('/families/DF0000001/sequence?format=fake&download=true');
   await bad.expect(400);
