@@ -197,7 +197,7 @@ paths:
       parameters:
         - name: format
           in: query
-          description: Desired output format. "summary" and "full" are the only formats currently recognized. Defaults to "summary".
+          description: Desired output format. Supported formats include "summary", "full", "embl", "fasta", and "hmm". Defaults to "summary".
           required: false
           type: string
         - name: sort
@@ -278,6 +278,11 @@ paths:
           description: Maxium number of records to return.
           required: false
           type: integer
+        - name: download
+          in: query
+          description: If true, adds headers to trigger a browser download.
+          required: false
+          type: boolean
       responses:
         '200':
           description: Success

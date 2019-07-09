@@ -113,6 +113,15 @@ test('search families', async t => {
   t.regex(response.body.message, /per-query limit/);
 });
 
+test('download families', async t => {
+  const body_fa = await get_text('/families?clade=9263&format=fasta');
+  t.is(body_fa.match(/^>/gm).length, 6);
+  const body_embl = await get_text('/families?clade=9263&format=embl');
+  t.is(body_embl.match(/^SQ/gm).length, 6);
+  const body_hmm = await get_text('/families?clade=9263&format=hmm');
+  t.is(body_hmm.match(/^HMMER3\/f/gm).length, 6);
+});
+
 test('get family', async t => {
   const body = await get_body('/families/DF0001010');
 

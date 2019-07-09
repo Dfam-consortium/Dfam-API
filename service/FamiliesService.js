@@ -68,7 +68,7 @@ function familySubqueries(rows, format) {
 
     subqueries.push(conn.query("SELECT lineage FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
 
-    if (format != "summary") {
+    if (format == "full") {
       subqueries.push(conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }).then(a => row.aliases = a));
       subqueries.push(conn.query("SELECT name FROM family_has_search_stage INNER JOIN repeatmasker_stage ON family_has_search_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(ss => row.search_stages = ss));
       subqueries.push(conn.query("SELECT name, start_pos, end_pos FROM family_has_buffer_stage INNER JOIN repeatmasker_stage ON family_has_buffer_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(function(buffer_stages) {
@@ -340,6 +340,8 @@ async function collectClades(clade, clade_relatives) {
   return result;
 }
 
+
+
 /**
  * Returns a list of Dfam families optionally filtered and sorted.
  *
@@ -367,7 +369,61 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     format = "summary";
   }
 
-  if (format !== "summary" && format !== "full") {
+  async function familyRowsToObjects(total_count, rows, format_rules) {
+    rows = rows.map(function(row) {
+      row.classification = {
+        id: row.classification_id,
+        lineage: row.classification_lineage,
+        rm_type: { name: row.type },
+        rm_subtype: { name: row.subtype }
+      };
+      row.curation_state = {
+        name: row.curation_state_name,
+        description: row.curation_state_description,
+      };
+      return row;
+    });
+
+    const objs = rows.map(row => familyQueryRowToObject(row, format));
+    const data = { total_count, results: objs };
+    return {
+      data,
+      content_type: 'application/json',
+      encoding: 'identity',
+    };
+  }
+
+  async function familyAccessionsToWorker(total_count, rows, format_rules) {
+    let accessions = "";
+    rows.forEach(row => accessions += row.accession + "\n");
+
+    const data = await runWorkerAsync([format], accessions);
+    if (!data) {
+      // An error occurred.
+      // TODO: This returns 404. Throw an exception instead?
+      return null;
+    }
+
+    return {
+      data,
+      content_type: format_rules.content_type,
+      encoding: 'identity',
+    };
+  }
+
+  // TODO: Consider making these configurable in Dfam.conf
+  const HARD_LIMIT = 5000, HMM_LIMIT = 2000;
+  const export_formats = {
+    "summary": { metadata: 1, mapper: familyRowsToObjects,      limit: HARD_LIMIT },
+    "full":    { metadata: 2, mapper: familyRowsToObjects,      limit: HARD_LIMIT },
+    "fasta":   { metadata: 0, mapper: familyAccessionsToWorker, limit: HARD_LIMIT, content_type: 'text/plain' },
+    "embl":    { metadata: 0, mapper: familyAccessionsToWorker, limit: HARD_LIMIT, content_type: 'text/plain' },
+    "hmm":     { metadata: 0, mapper: familyAccessionsToWorker, limit: HMM_LIMIT, content_type: 'text/plain' },
+  };
+
+  const format_rules = export_formats[format];
+
+  if (!format_rules) {
     return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
   }
 
@@ -375,13 +431,19 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
 
   const replacements = {};
 
-  var selects = [ "family.id AS id", "family.accession", "family.name AS name", "family.version", "family.title AS title", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ];
+  // TODO: If at all possible, this should really be done through the sequelize
+  // query syntax.
+  var selects = [ "family.id AS id", "family.accession" ];
   let from = "family LEFT JOIN classification ON family.classification_id = classification.id" +
 " LEFT JOIN repeatmasker_type ON classification.repeatmasker_type_id = repeatmasker_type.id" +
 " LEFT JOIN repeatmasker_subtype ON classification.repeatmasker_subtype_id = repeatmasker_subtype.id ";
   const where = ["1"];
 
-  if (format != "summary") {
+  if (format_rules.metadata >= 1) {
+    selects = selects.concat([ "family.name AS name", "family.version", "family.title AS title", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ]);
+  }
+
+  if (format_rules.metadata >= 2) {
     from += " LEFT JOIN curation_state ON family.curation_state_id = curation_state.id ";
     selects = selects.concat([
       "consensus", "author", "deposited_by_id", "date_created", "date_modified",
@@ -497,31 +559,15 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   const count_result = await conn.query(count_sql, { type: "SELECT", replacements });
   const total_count = count_result[0].total_count;
 
-  // TODO: Consider making this configurable in Dfam.conf
-  const HARD_LIMIT = 5000;
-  if ((limit === undefined || limit > HARD_LIMIT) && total_count > HARD_LIMIT) {
-    const message = `Result size of ${total_count} is above the per-query limit of ${HARD_LIMIT}. Please use the limit and start parameters.`;
+  if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
+    const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please use the limit and start parameters.`;
     return Promise.resolve(new APIResponse({ message }, 400));
   }
 
+
   let rows = await conn.query(sql, { type: "SELECT", replacements });
   rows = await familySubqueries(rows, format);
-  rows = rows.map(function(row) {
-    row.classification = {
-      id: row.classification_id,
-      lineage: row.classification_lineage,
-      rm_type: { name: row.type },
-      rm_subtype: { name: row.subtype }
-    };
-    row.curation_state = {
-      name: row.curation_state_name,
-      description: row.curation_state_description,
-    };
-    return row;
-  });
-
-  const objs = rows.map(row => familyQueryRowToObject(row, format));
-  return { total_count, results: objs };
+  return format_rules.mapper(total_count, rows, format_rules);
 };
 
 

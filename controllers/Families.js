@@ -20,9 +20,27 @@ module.exports.readFamilies = function readFamilies (req, res, next) {
   var keywords = req.swagger.params['keywords'].value;
   var start = req.swagger.params['start'].value;
   var limit = req.swagger.params['limit'].value;
+  var download = req.swagger.params['download'].value;
   Families.readFamilies(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit)
     .then(function (response) {
-      return new APIResponse(response).respond(req, res);
+      if (response instanceof APIResponse) {
+        return response.respond(req, res);
+      } else if (response) {
+        const headers = {};
+        if (download) {
+          const extensions = { 'hmm': '.hmm', 'embl': '.embl', 'fasta': '.fa', 'summary': '.json', 'full': '.json' };
+          const filename = "families" + extensions[format];
+          headers["Content-Disposition"] = 'attachment; filename="' + filename + '"';
+        }
+
+        return new APIResponse(response.data, {
+          headers,
+          contentType: response.content_type,
+          encoding: response.encoding,
+        }).respond(req, res);
+      } else {
+        return new APIResponse().respond(req, res);
+      }
     })
     .catch(function (err) {
       next(err);
