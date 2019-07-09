@@ -1,8 +1,12 @@
+const process = require('process');
+
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const wrap = require('word-wrap');
+const winston = require('winston');
 
 const family = require("./family");
+const util = require("./util");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
@@ -13,24 +17,26 @@ seedRegionModel.removeAttribute('id');
 familyModel.hasMany(seedRegionModel, { foreignKey: 'family_id' });
 seedRegionModel.belongsTo(assemblyModel, { foreignKey: 'assembly_id' });
 
-module.exports = function stockholm_command(accession) {
-  return family.getFamilyForAnnotation(accession).then(function(family) {
-    if (family) {
-      return seedRegionModel.findAll({
-        where: { family_id: family.id },
-        include: [{ model: assemblyModel, attributes: [ 'name' ] }],
-      }).then(function(seed_regions) {
-        family.seed_regions = seed_regions;
+module.exports = async function stockholm_command(output) {
+  await util.forEachLine(process.stdin, async function(accession) {
+    const fam = await family.getFamilyForAnnotation(accession);
+    if (!fam) {
+      winston.error(`Missing family for accession: ${accession}`);
+      return;
+    }
 
-        const stockholm = seedRegionsToStockholm(family);
-        if (stockholm) {
-          return stockholm;
-        } else {
-          return "";
-        }
-      });
+    const seed_regions = await seedRegionModel.findAll({
+      where: { family_id: fam.id },
+      include: [{ model: assemblyModel, attributes: [ 'name' ] }],
+    });
+    fam.seed_regions = seed_regions;
+
+    const stockholm = seedRegionsToStockholm(fam);
+    if (stockholm) {
+      output.write(stockholm);
     } else {
-      return "";
+      winston.error(`Failed to convert to stockholm: ${accession}`);
+      return;
     }
   });
 };

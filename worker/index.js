@@ -1,14 +1,13 @@
 const process = require('process');
 const fs = require('fs');
 
-let writeOutput = process.stdout.write.bind(process.stdout);
+let outputStream = process.stdout;
 
 // Don't trust any libraries not to use standard output.
 // If DFAM_WORKER_FD is present, the result is sent there
 // instead of to standard output.
 if (process.env.DFAM_WORKER_FD) {
-  const outputStream = fs.createWriteStream(null, { fd: parseInt(process.env.DFAM_WORKER_FD) });
-  writeOutput = outputStream.write.bind(outputStream);
+  outputStream = fs.createWriteStream(null, { fd: parseInt(process.env.DFAM_WORKER_FD) });
 }
 
 const winston = require('winston');
@@ -43,8 +42,8 @@ if (process.argv.length > 2) {
   const command = process.argv[2];
   if (ALLOWED_COMMANDS.indexOf(command) !== -1) {
     const args = process.argv.slice(3);
-    require('./' + command).apply(undefined, args).then(function(result) {
-      writeOutput(result || "", (err) => process.exit(err ? 1 : 0));
+    require('./' + command).call(undefined, outputStream, args).then(function() {
+      outputStream.end("", (err) => process.exit(err ? 1 : 0));
     }).catch(function(error) {
       console.error(error);
       process.exit(1);

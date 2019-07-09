@@ -1,11 +1,17 @@
-const family = require("./family");
+const process = require("process");
 
-module.exports = function fasta_command(accession) {
-  return family.getFamilyWithConsensus(accession).then(function(family) {
-    if (family) {
-      return exportFasta(family);
+const winston = require("winston");
+
+const family = require("./family");
+const util = require("./util");
+
+module.exports = async function fasta_command(output) {
+  await util.forEachLine(process.stdin, async function(accession) {
+    const fam = await family.getFamilyWithConsensus(accession);
+    if (fam) {
+      output.write(exportFasta(fam));
     } else {
-      return "";
+      winston.error(`Missing family for accession: ${accession}`);
     }
   });
 };

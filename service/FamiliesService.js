@@ -560,7 +560,7 @@ exports.readFamilyHmm = async function(id, format) {
   var field;
   var content_type;
   if (format == "hmm") {
-    const hmm = await runWorkerAsync(["hmm", id]);
+    const hmm = await runWorkerAsync(["hmm"], id);
     if (hmm && hmm.length) {
       return {
         data: hmm,
@@ -688,7 +688,7 @@ exports.readFamilyRelationships = function(id) {
  **/
 exports.readFamilySeed = function(id,format) {
   if (format == "stockholm") {
-    return runWorkerAsync(["stockholm", id]).then(function(stockholm) {
+    return runWorkerAsync(["stockholm"], id).then(function(stockholm) {
       if (stockholm && stockholm.length) {
         return {
           data: stockholm,
@@ -733,7 +733,7 @@ exports.readFamilySeed = function(id,format) {
  **/
 exports.readFamilySequence = function(id, format) {
   if (format === "embl" || format === "fasta") {
-    return runWorkerAsync([format, id]).then(function(data) {
+    return runWorkerAsync([format], id).then(function(data) {
       if (data && data.length) {
         return { data, content_type: "text/plain" };
       } else {

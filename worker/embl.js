@@ -1,13 +1,18 @@
+const process = require('process');
+
 const wrap = require('word-wrap');
+const winston = require('winston');
 
 const family = require("./family");
+const util = require("./util");
 
-module.exports = function embl_command(accession) {
-  return family.getFamilyForAnnotation(accession).then(function(family) {
-    if (family) {
-      return exportEmbl(family);
+module.exports = async function embl_command(output) {
+  await util.forEachLine(process.stdin, async function(accession) {
+    const fam = await family.getFamilyForAnnotation(accession);
+    if (fam) {
+      output.write(exportEmbl(fam));
     } else {
-      return "";
+      winston.error(`Missing family for accession: ${accession}`);
     }
   });
 };

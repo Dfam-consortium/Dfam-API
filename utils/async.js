@@ -42,7 +42,7 @@ function runReady() {
 // Wrapper around child_process.fork. A helper function for running
 // the 'worker' module and getting its result, spawning a limited number
 // of workers at a time.
-exports.runWorkerAsync = function(args) {
+exports.runWorkerAsync = function(args, input) {
   return new Promise(function(resolve, reject) {
     waiting.push(resolve);
     runReady();
@@ -65,6 +65,11 @@ exports.runWorkerAsync = function(args) {
           reject("Worker exited with code " + code);
         }
       });
+
+      if (input) {
+        workerProc.stdin.write(input);
+      }
+      workerProc.stdin.end();
     });
   }).then(function(result) {
     running_workers -= 1;

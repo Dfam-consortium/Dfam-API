@@ -1,30 +1,38 @@
+const process = require('process');
+
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
 const wrap = require('word-wrap');
+const winston = require('winston');
 
 const family = require("./family");
+const util = require("./util");
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
 familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
-module.exports = function hmm_command(accession) {
-  return family.getFamilyForAnnotation(accession).then(function(family) {
-    if (family) {
-      return hmmModelDataModel.findOne({
-        attributes: [ "hmm" ],
-        where: { family_id: family.id }
-      }).then(function(hmm_data) {
-        if (hmm_data) {
-          return annotateHmm(family, zlib.gunzipSync(hmm_data.hmm).toString());
-        } else {
-          return "";
-        }
-      });
-    } else {
-      return "";
+module.exports = async function hmm_command(output) {
+  await util.forEachLine(process.stdin, async function(accession) {
+    const fam = await family.getFamilyForAnnotation(accession);
+
+    if (!fam) {
+      winston.error(`Missing family for accession: ${accession}`);
+      return;
     }
+
+    const hmm_data = await hmmModelDataModel.findOne({
+      attributes: [ "hmm" ],
+      where: { family_id: fam.id }
+    });
+
+    if (!hmm_data) {
+      winston.error(`Missing HMM for family: ${accession}`);
+      return;
+    }
+
+    output.write(annotateHmm(fam, zlib.gunzipSync(hmm_data.hmm).toString()));
   });
 };
 
