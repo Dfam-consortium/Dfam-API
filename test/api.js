@@ -107,6 +107,10 @@ test('search families', async t => {
   t.regex(charlie1.title, /Charlie DNA transposon/);
   t.regex(charlie1.description, /8 bp TSD./);
   t.is(charlie1.repeat_subtype_name, 'hAT-Charlie');
+
+  const bad = request.get('/families?clade=1&clade_relatives=descendants');
+  const response = await bad.expect(400);
+  t.regex(response.body.message, /per-query limit/);
 });
 
 test('get family', async t => {

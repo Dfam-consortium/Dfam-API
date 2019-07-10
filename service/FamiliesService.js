@@ -494,31 +494,34 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     replacements.offset = start;
   }
 
-  return Promise.all([
-    conn.query(count_sql, { type: "SELECT", replacements }),
-    conn.query(sql, { type: "SELECT", replacements }),
-  ]).then(function([count_result, rows]) {
-    const total_count = count_result[0].total_count;
+  const count_result = await conn.query(count_sql, { type: "SELECT", replacements });
+  const total_count = count_result[0].total_count;
 
-    return familySubqueries(rows, format).then(function(rows) {
-      return rows.map(function(row) {
-        row.classification = {
-          id: row.classification_id,
-          lineage: row.classification_lineage,
-          rm_type: { name: row.type },
-          rm_subtype: { name: row.subtype }
-        };
-        row.curation_state = {
-          name: row.curation_state_name,
-          description: row.curation_state_description,
-        };
-        return row;
-      });
-    }).then(function(rows) {
-      const objs = rows.map(row => familyQueryRowToObject(row, format));
-      return { total_count, results: objs };
-    });
+  // TODO: Consider making this configurable in Dfam.conf
+  const HARD_LIMIT = 5000;
+  if ((limit === undefined || limit > HARD_LIMIT) && total_count > HARD_LIMIT) {
+    const message = `Result size of ${total_count} is above the per-query limit of ${HARD_LIMIT}. Please use the limit and start parameters.`;
+    return Promise.resolve(new APIResponse({ message }, 400));
+  }
+
+  let rows = await conn.query(sql, { type: "SELECT", replacements });
+  rows = await familySubqueries(rows, format);
+  rows = rows.map(function(row) {
+    row.classification = {
+      id: row.classification_id,
+      lineage: row.classification_lineage,
+      rm_type: { name: row.type },
+      rm_subtype: { name: row.subtype }
+    };
+    row.curation_state = {
+      name: row.curation_state_name,
+      description: row.curation_state_description,
+    };
+    return row;
   });
+
+  const objs = rows.map(row => familyQueryRowToObject(row, format));
+  return { total_count, results: objs };
 };
 
 
