@@ -560,7 +560,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   const total_count = count_result[0].total_count;
 
   if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
-    const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please use the limit and start parameters.`;
+    const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
     return Promise.resolve(new APIResponse({ message }, 400));
   }
 
