@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+### Added
+- Added support for single sequence downloads in 'fasta' format:
+  `/family/{id}/sequence?format=fasta`
+- Added support for bulk downloads in 'fasta', 'embl', and 'hmm' formats
+  via `/families`. This supports the same filtering and sorting options
+  as the existing JSON output formats ('full' and 'summary').
+### Changed
+- Queries to `/families` will now fail if too many results would be returned from one query.
+### Fixed
+- Attempts to download invalid formats respond with a 400 error instead of a 500
+
 ## 0.3.2
 ### Added
 - New endpoint '/taxa/{id}' to retrieve information on a single taxon
