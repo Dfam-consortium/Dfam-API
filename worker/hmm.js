@@ -6,6 +6,7 @@ const zlib = require("zlib");
 const wrap = require('word-wrap');
 const winston = require('winston');
 
+const copyright = require("./copyright");
 const family = require("./family");
 const util = require("./util");
 
@@ -13,7 +14,11 @@ const familyModel = require("../models/family.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
 familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
-module.exports = async function hmm_command(output) {
+module.exports = async function hmm_command(output, args) {
+  if (args.indexOf("--copyright") !== -1) {
+    output.write(await copyright("#   "));
+  }
+
   await util.forEachLine(process.stdin, async function(accession) {
     const fam = await family.getFamilyForAnnotation(accession);
 

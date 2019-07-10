@@ -3,10 +3,15 @@ const process = require('process');
 const wrap = require('word-wrap');
 const winston = require('winston');
 
+const copyright = require("./copyright");
 const family = require("./family");
 const util = require("./util");
 
-module.exports = async function embl_command(output) {
+module.exports = async function embl_command(output, args) {
+  if (args.indexOf("--copyright") !== -1) {
+    output.write(await copyright("CC   "));
+  }
+
   await util.forEachLine(process.stdin, async function(accession) {
     const fam = await family.getFamilyForAnnotation(accession);
     if (fam) {

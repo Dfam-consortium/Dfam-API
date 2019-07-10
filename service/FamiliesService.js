@@ -397,7 +397,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     let accessions = "";
     rows.forEach(row => accessions += row.accession + "\n");
 
-    const data = await runWorkerAsync([format], accessions);
+    const data = await runWorkerAsync([format, "--copyright"], accessions);
     if (!data) {
       // An error occurred.
       // TODO: This returns 404. Throw an exception instead?
