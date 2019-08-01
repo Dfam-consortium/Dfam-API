@@ -7,6 +7,7 @@ const mapFields = require("../utils/mapFields.js");
 const child_process = require('child_process');
 const config = require("../config");
 const path = require("path");
+const winston = require("winston");
 const runWorkerAsync = require('../utils/async').runWorkerAsync;
 const APIResponse = require('../utils/response').APIResponse;
 
@@ -16,6 +17,8 @@ const classificationModel = require("../models/classification.js")(conn, Sequeli
 const rmTypeModel = require("../models/repeatmasker_type.js")(conn, Sequelize);
 const rmSubTypeModel = require("../models/repeatmasker_subtype.js")(conn, Sequelize);
 const rmStageModel = require("../models/repeatmasker_stage.js")(conn, Sequelize);
+const familyHasCitationModel = require("../models/family_has_citation.js")(conn, Sequelize);
+const familyHasSearchStageModel = require("../models/family_has_search_stage.js")(conn, Sequelize);
 const familyHasBufferStageModel = require("../models/family_has_buffer_stage.js")(conn, Sequelize);
 const citationModel = require("../models/citation.js")(conn, Sequelize);
 const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
@@ -29,6 +32,8 @@ const curationStateModel = require("../models/curation_state.js")(conn, Sequeliz
 const familyFeatureModel = require("../models/family_feature.js")(conn, Sequelize);
 const featureAttributeModel = require("../models/feature_attribute.js")(conn, Sequelize);
 const codingSequenceModel = require("../models/coding_sequence.js")(conn, Sequelize);
+const familyCladeModel = require("../models/family_clade.js")(conn, Sequelize);
+const familyDatabaseAliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
 
 const conn_users = require('../databases').users;
 const userModel = require('../models/auth/user')(conn_users, Sequelize);
@@ -45,6 +50,13 @@ familyModel.belongsToMany(dfamTaxdbModel, { as: 'clades', through: 'family_clade
 familyModel.hasMany(familyFeatureModel, { foreignKey: 'family_id', as: 'features' });
 familyFeatureModel.hasMany(featureAttributeModel, { foreignKey: 'family_feature_id', as: 'feature_attributes' });
 familyModel.hasMany(codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
+familyModel.hasOne(familyCladeModel, { foreignKey: 'family_id', as: 'family_clade' });
+
+familyHasCitationModel.belongsTo(citationModel, { as: 'citation', foreignKey: 'citation_pmid' });
+
+familyHasSearchStageModel.belongsTo(rmStageModel, { as: 'repeatmasker_stage', foreignKey: 'repeatmasker_stage_id' });
+familyHasBufferStageModel.belongsTo(rmStageModel, { as: 'repeatmasker_stage', foreignKey: 'repeatmasker_stage_id' });
+familyCladeModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id', as: 'dfam_taxdb' });
 
 ncbiTaxdbNamesModel.belongsTo(ncbiTaxdbNodesModel, { foreignKey: 'tax_id' });
 ncbiTaxdbNamesModel.belongsTo(dfamTaxdbModel, { foreignKey: 'tax_id' });
@@ -62,26 +74,64 @@ familyOverlapModel.hasMany(overlapSegmentModel, { foreignKey: 'family_overlap_id
 
 function familySubqueries(rows, format) {
   return Promise.all(rows.map(function(row) {
-    var replacements = { family_id: row.id };
+    const family_id = row.id;
+    var replacements = { family_id };
 
     const subqueries = [];
 
-    subqueries.push(conn.query("SELECT lineage FROM family_clade INNER JOIN dfam_taxdb ON family_clade.dfam_taxdb_tax_id = dfam_taxdb.tax_id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cla => row.clades = cla));
+    subqueries.push(familyCladeModel.findAll({
+      where: { family_id },
+      include: { model: dfamTaxdbModel, as: 'dfam_taxdb', attributes: ["lineage"], }
+    }).then(fcs => row.clades = fcs.map(fc => {
+      return { lineage: fc.dfam_taxdb.lineage };
+    })));
 
     if (format == "full") {
-      subqueries.push(conn.query("SELECT db_id, db_link FROM family_database_alias WHERE family_id = :family_id", { type: "SELECT", replacements }).then(a => row.aliases = a));
-      subqueries.push(conn.query("SELECT name FROM family_has_search_stage INNER JOIN repeatmasker_stage ON family_has_search_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(ss => row.search_stages = ss));
-      subqueries.push(conn.query("SELECT name, start_pos, end_pos FROM family_has_buffer_stage INNER JOIN repeatmasker_stage ON family_has_buffer_stage.repeatmasker_stage_id = repeatmasker_stage.id WHERE family_id = :family_id", { type: "SELECT", replacements }).then(function(buffer_stages) {
-        row.buffer_stages = buffer_stages.map(function(bs) {
-          return { name: bs.name, family_has_buffer_stage: { start_pos: bs.start_pos, end_pos: bs.end_pos } };
-        });
-      }));
-      subqueries.push(conn.query("SELECT pmid, title, authors, journal, pubdate FROM family_has_citation INNER JOIN citation ON family_has_citation.citation_pmid = citation.pmid WHERE family_id = :family_id", { type: "SELECT", replacements }).then(cit => row.citations = cit));
+      subqueries.push(familyDatabaseAliasModel.findAll({
+        attributes: ["db_id", "db_link"],
+        where: { family_id },
+      }).then(as => row.aliases = as));
+
+      subqueries.push(familyHasSearchStageModel.findAll({
+        where: { family_id },
+        include: { model: rmStageModel, as: 'repeatmasker_stage', attributes: ["name"] }
+      }).then(fss => row.search_stages = fss.map(fs => {
+        return { name: fs.repeatmasker_stage.name };
+      })));
+
+      subqueries.push(familyHasBufferStageModel.findAll({
+        attributes: ["start_pos", "end_pos"],
+        where: { family_id },
+        include: { model: rmStageModel, as: 'repeatmasker_stage', attributes: ["name"] }
+      }).then(fbs => row.buffer_stages = fbs.map(fs => {
+        return { name: fs.repeatmasker_stage.name, family_has_buffer_stage: {
+          start_pos: fs.start_pos,
+          end_pos: fs.end_pos,
+        } };
+      })));
+
+      subqueries.push(familyHasCitationModel.findAll({
+        where: { family_id },
+        include: { model: citationModel, as: 'citation', attributes: [
+          "pmid", "title", "authors", "journal", "pubdate",
+        ] },
+        order: [ ['order_added', 'ASC'] ],
+      }).then(fhcs => row.citations = fhcs.map(fhc => {
+        return {
+          pmid: fhc.citation.pmid,
+          title: fhc.citation.title,
+          authors: fhc.citation.authors,
+          journal: fhc.citation.journal,
+          pubdate: fhc.citation.pubdate,
+        };
+      })));
+
       subqueries.push(userModel.findOne({ where: { id: row.deposited_by_id }, attributes: [ 'full_name' ] }).then(function(user) {
         if (user) {
           row.submitter = user.full_name;
         }
       }));
+
       subqueries.push(familyFeatureModel.findAll({
         where: { family_id: row.id },
         include: [
@@ -370,20 +420,6 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   }
 
   async function familyRowsToObjects(total_count, rows, format_rules) {
-    rows = rows.map(function(row) {
-      row.classification = {
-        id: row.classification_id,
-        lineage: row.classification_lineage,
-        rm_type: { name: row.type },
-        rm_subtype: { name: row.subtype }
-      };
-      row.curation_state = {
-        name: row.curation_state_name,
-        description: row.curation_state_description,
-      };
-      return row;
-    });
-
     const objs = rows.map(row => familyQueryRowToObject(row, format));
     const data = { total_count, results: objs };
     return {
@@ -429,135 +465,139 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
 
   const clade_info = await collectClades(clade, clade_relatives);
 
-  const replacements = {};
-
-  // TODO: If at all possible, this should really be done through the sequelize
-  // query syntax.
-  var selects = [ "family.id AS id", "family.accession" ];
-  let from = "family LEFT JOIN classification ON family.classification_id = classification.id" +
-" LEFT JOIN repeatmasker_type ON classification.repeatmasker_type_id = repeatmasker_type.id" +
-" LEFT JOIN repeatmasker_subtype ON classification.repeatmasker_subtype_id = repeatmasker_subtype.id ";
-  const where = ["1"];
+  const query = { };
+  query.attributes = ["id", "accession"];
+  query.where = [];
+  query.include = [
+    { model: classificationModel, as: 'classification', include: [
+      { model: rmTypeModel, as: 'rm_type' },
+      { model: rmSubTypeModel, as: 'rm_subtype' },
+    ] },
+  ];
+  query.order = [];
 
   if (format_rules.metadata >= 1) {
-    selects = selects.concat([ "family.name AS name", "family.version", "family.title AS title", "length", "family.description AS description", "classification.id AS classification_id", "classification.lineage as classification_lineage", "repeatmasker_type.name AS type", "repeatmasker_subtype.name AS subtype" ]);
+    query.attributes = query.attributes.concat(["name", "version", "title", "length", "description"]);
   }
 
   if (format_rules.metadata >= 2) {
-    from += " LEFT JOIN curation_state ON family.curation_state_id = curation_state.id ";
-    selects = selects.concat([
+    query.attributes = query.attributes.concat([
       "consensus", "author", "deposited_by_id", "date_created", "date_modified",
       "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_threshold",
-      "curation_state.name AS curation_state_name",
-      "curation_state.description AS curation_state_description"
     ]);
+    query.include = query.include.push({ model: curationStateModel, as: 'curation_state' });
   }
 
   if (name) {
-    where.push("family.name LIKE :where_name ESCAPE '#'");
-    replacements.where_name = "%" + escape.escape_sql_like(name, '#') + "%";
+    query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name, '\\') + "%" } });
   } else if (name_prefix) {
-    where.push("family.name LIKE :where_name ESCAPE '#'");
-    replacements.where_name = escape.escape_sql_like(name_prefix, '#') + "%";
+    query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name_prefix, '\\') + "%" } });
   } else if (name_accession) {
-    where.push("(family.name LIKE :where_name_acc ESCAPE '#' OR family.accession LIKE :where_name_acc ESCAPE '#')");
-    replacements.where_name_acc = "%" + escape.escape_sql_like(name_accession, '#') + "%";
+    const where_name_acc = "%" + escape.escape_sql_like(name_accession, '\\') + "%";
+    query.where.push({ [Sequelize.Op.or]: [
+      { name: { [Sequelize.Op.like]: where_name_acc } },
+      { accession: { [Sequelize.Op.like]: where_name_acc } },
+    ] });
   }
 
   if (classification) {
-    where.push("(classification.lineage = :where_classification OR classification.lineage LIKE :where_classification_descendants ESCAPE '#')");
-    replacements.where_classification = classification;
-    replacements.where_classification_descendants = escape.escape_sql_like(classification, '#') + ";%";
+    query.where.push({ [Sequelize.Op.or]: [
+      { "$classification.lineage$": classification },
+      { "$classification.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(classification, '\\') + ";%" } },
+    ] });
   }
 
   if (clade_info) {
-    const clade_where = [];
+    const clade_where_query = [];
 
-    clade_where.push("family_clade.dfam_taxdb_tax_id IN (:where_ancestors)");
-    from += "LEFT JOIN family_clade ON family_clade.family_id = family.id ";
-    replacements.where_ancestors = clade_info.ids;
+    const familyCladeInclude = { model: familyCladeModel, as: 'family_clade', include: [] };
+
+    clade_where_query.push({
+      "$family_clade.dfam_taxdb_tax_id$": { [Sequelize.Op.in]: clade_info.ids },
+    });
+
+    query.include.push(familyCladeInclude);
 
     if (clade_relatives === "descendants" || clade_relatives === "both") {
-      clade_where.push("dfam_taxdb.lineage LIKE :where_lineage ESCAPE '#'");
-      from += "LEFT JOIN dfam_taxdb ON dfam_taxdb.tax_id = family_clade.dfam_taxdb_tax_id ";
-      replacements.where_lineage = escape.escape_sql_like(clade_info.lineage, '#') + ";%";
+      familyCladeInclude.include.push({ model: dfamTaxdbModel, as: 'dfam_taxdb' });
+
+      clade_where_query.push({
+        "$family_clade.dfam_taxdb.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(clade_info.lineage, '\\') + ";%" }
+      });
     }
 
-    where.push("( " + clade_where.join(" OR ") + " )");
+    query.where.push({ [Sequelize.Op.or]: clade_where_query });
   }
 
   if (desc) {
-    where.push("family.description LIKE :where_desc ESCAPE '#'");
-    replacements.where_desc = "%" + escape.escape_sql_like(desc, '#') + "%";
+    query.where.push({
+      description: { [Sequelize.Op.like]: escape.escape_sql_like(desc, '#') + "%" }
+    });
   }
 
   if (type) {
-    where.push("repeatmasker_type.name = :where_type");
-    replacements.where_type = type;
+    query.where.push({ '$classification.rm_type.name$': type });
   }
 
   if (subtype) {
-    where.push("repeatmasker_subtype.name = :where_subtype");
-    replacements.where_subtype = subtype;
+    query.where.push({ '$classification.rm_subtype.name$': subtype });
   }
 
   // TODO: new Date(...) is full of surprises.
 
   if (updated_after) {
-    where.push("(date_modified > :where_after OR date_created > :where_after)");
-    replacements.where_after = new Date(updated_after);
+    query.where.push({ [Sequelize.Op.or]: [
+      { date_modified: { [Sequelize.Op.gt]: new Date(updated_after) } },
+      { date_created: { [Sequelize.Op.gt]: new Date(updated_after) } },
+    ] });
   }
 
   if (updated_before) {
-    where.push("(date_modified < :where_before OR date_created < :where_before)");
-    replacements.where_before = new Date(updated_before);
+    query.where.push({ [Sequelize.Op.or]: [
+      { date_modified: { [Sequelize.Op.lt]: new Date(updated_before) } },
+      { date_created: { [Sequelize.Op.lt]: new Date(updated_before) } },
+    ] });
   }
 
   if (keywords) {
-    var i = 0;
     keywords.split(" ").forEach(function(word) {
-      i++;
-      var key = "where_keywords" + i;
-
-      where.push(`((family.name LIKE :${key} ESCAPE '#') OR (family.title LIKE :${key} ESCAPE '#') OR (family.description LIKE :${key} ESCAPE '#') OR (accession LIKE :${key} ESCAPE '#') OR (author LIKE :${key} ESCAPE '#'))`);
-      replacements[key] = "%" + escape.escape_sql_like(word, '#') + "%";
+      const word_esc = "%" + escape.escape_sql_like(word, '\\') + "%";
+      query.where.push({ [Sequelize.Op.or]: [
+        { name:        { [Sequelize.Op.like]: word_esc } },
+        { title:       { [Sequelize.Op.like]: word_esc } },
+        { description: { [Sequelize.Op.like]: word_esc } },
+        { accession:   { [Sequelize.Op.like]: word_esc } },
+        { author:      { [Sequelize.Op.like]: word_esc } },
+      ] });
     });
   }
-
-  var count_sql = "SELECT COUNT(DISTINCT family.id) as total_count FROM " + from + " WHERE " + where.join(" AND ");
-  var sql = "SELECT DISTINCT " + selects.join(",") + " FROM " + from + " WHERE " + where.join(" AND ");
 
   // TODO: Implement more complex sort keys
   const sortKeys = [ "accession", "name", "length", "type", "subtype", "date_created", "date_modified" ];
 
-  const orderBy = [];
   if (sort) {
     sort.split(",").forEach(function(term) {
       const match = /(\S+):(asc|desc)/.exec(term);
       if (match && sortKeys.find(sk => sk == match[1])) {
-        orderBy.push(match[1] + " " + match[2]);
+        query.order.push([match[1], match[2]]);
       }
     });
   }
 
-  if (orderBy.length) {
-    sql += " ORDER BY " + orderBy.join(",");
-  } else {
-    sql += " ORDER BY accession";
+  if (!query.order.length) {
+    query.order.push(["accession", "ASC"]);
   }
 
   if (limit !== undefined) {
-    sql += " LIMIT :limit";
-    replacements.limit = limit;
+    query.limit = limit;
   }
 
   if (start !== undefined) {
-    sql += " OFFSET :offset";
-    replacements.offset = start;
+    query.offset = start;
   }
 
-  const count_result = await conn.query(count_sql, { type: "SELECT", replacements });
-  const total_count = count_result[0].total_count;
+  const count_result = await familyModel.findAndCountAll(query);
+  const total_count = count_result.count;
 
   if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
     const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
@@ -565,7 +605,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   }
 
 
-  let rows = await conn.query(sql, { type: "SELECT", replacements });
+  let rows = await familyModel.findAll(query);
   rows = await familySubqueries(rows, format);
   return format_rules.mapper(total_count, rows, format_rules);
 };
