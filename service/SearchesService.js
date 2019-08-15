@@ -6,7 +6,7 @@ const { tmpFileAsync, execFileAsync } = require('../utils/async');
 const fs = require('fs');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
-const conn = require('../databases').dfam;
+const dfam = require('../databases').dfam_models;
 const conn_users = require('../databases').users;
 const uuidv1 = require('uuid/v1');
 const md5 = require('md5');
@@ -17,15 +17,6 @@ const path = require('path');
 const APIResponse = require('../utils/response.js').APIResponse;
 
 const AlignmentService = require('./AlignmentService');
-
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const classificationModel = require("../models/classification.js")(conn, Sequelize);
-const rmTypeModel = require("../models/repeatmasker_type.js")(conn, Sequelize);
-const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
-
-familyModel.belongsTo(classificationModel, { foreignKey: 'classification_id' });
-classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id' });
-hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 
 const streamModel = require('../models/auth/stream.js')(conn_users, Sequelize);
 const jobModel = require('../models/auth/job.js')(conn_users, Sequelize);
@@ -203,9 +194,9 @@ exports.readSearchResultAlignment = function(id,sequence,start,end,family) {
     var startedDate = new Date(jobRec.started);
     var dataDir = path.join(resultStore, dateFormat(startedDate,"yy/mm/dd/HH/MM/ss"), id, "1");
 
-    return hmmModelDataModel.findOne({
+    return dfam.hmmModelDataModel.findOne({
       attributes: [ "hmm" ],
-      include: [ { model: familyModel, where: { accession: family }, attributes: [] } ],
+      include: [ { model: dfam.familyModel, where: { accession: family }, attributes: [] } ],
     }).then(function(model) {
       return promisify(zlib.gunzip)(model.hmm).then(function(hmm_data) {
         return reAlignSearchHMM(dataDir, sequence, start, end, hmm_data);
@@ -401,19 +392,19 @@ function parseNhmmscan( filePath ) {
     }
 
     // TODO: maybe deduplicate with similar code in AnnotationsService
-    return familyModel.findAll({
+    return dfam.familyModel.findAll({
       where: { accession: { [Op.in]: Object.keys(family_acc_mappings) } },
       attributes: ["accession"],
-      include: [ { model: classificationModel, include: [
-        { model: rmTypeModel, attributes: ["name"] }
+      include: [ { model: dfam.classificationModel, as: 'classification', include: [
+        { model: dfam.rmTypeModel, as: 'rm_type', attributes: ["name"] }
       ] } ],
     }).then(function(families) {
       families.forEach(function(family) {
         family_acc_mappings[family.accession].forEach(function(hit) {
           hit.type = null;
           if (family.classification) {
-            if (family.classification.repeatmasker_type) {
-              hit.type = family.classification.repeatmasker_type.name;
+            if (family.classification.rm_type) {
+              hit.type = family.classification.rm_type.name;
             }
           }
         });

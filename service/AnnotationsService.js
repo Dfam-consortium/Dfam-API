@@ -4,17 +4,9 @@ const APIResponse = require('../utils/response.js').APIResponse;
 
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const conn = require("../databases.js").dfam;
+const dfam = require("../databases.js").dfam_models;
 const getAssemblyModels = require("../databases.js").getAssemblyModels;
 const mapFields = require("../utils/mapFields.js");
-
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const classificationModel = require("../models/classification.js")(conn, Sequelize);
-const rmTypeModel = require("../models/repeatmasker_type.js")(conn, Sequelize);
-const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
-
-familyModel.belongsTo(classificationModel, { foreignKey: 'classification_id' });
-classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id' });
 
 /**
  * Retrieve annotations for a given assembly in a given range.
@@ -35,7 +27,7 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
     ));
   }
 
-  return assemblyModel.findOne({
+  return dfam.assemblyModel.findOne({
     attributes: ["schema_name"],
     where: { "name": assembly },
   }).then(function(assembly) {
@@ -113,11 +105,11 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
       });
 
       // Retrieve the names and types of all matched families
-      return familyModel.findAll({
+      return dfam.familyModel.findAll({
         where: { accession: { [Op.in]: Object.keys(family_name_mappings) } },
         attributes: ["name", "accession"],
-        include: [ { model: classificationModel, include: [
-          { model: rmTypeModel, attributes: ["name"] }
+        include: [ { model: dfam.classificationModel, as: 'classification', include: [
+          { model: dfam.rmTypeModel, as: 'rm_type', attributes: ["name"] }
         ] } ],
       }).then(function(families) {
         families.forEach(function(family) {
@@ -125,8 +117,8 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
             hit.query = family.name;
             hit.type = null;
             if (family.classification) {
-              if (family.classification.repeatmasker_type) {
-                hit.type = family.classification.repeatmasker_type.name;
+              if (family.classification.rm_type) {
+                hit.type = family.classification.rm_type.name;
               }
             }
           });

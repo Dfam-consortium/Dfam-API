@@ -1,18 +1,9 @@
 'use strict';
 
-const Sequelize = require("sequelize");
-const conn = require("../databases.js").dfam;
+const dfam = require("../databases.js").dfam_models;
 const getAssemblyModels = require("../databases.js").getAssemblyModels;
 
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const familyAssemblyDataModel = require("../models/family_assembly_data.js")(conn, Sequelize);
-const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
-const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
 const mapFields = require("../utils/mapFields.js");
-
-familyAssemblyDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
-familyAssemblyDataModel.belongsTo(assemblyModel, { foreignKey: 'assembly_id' });
-assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
 
 /**
  * Retrieve an individual Dfam family's list of linked annotated assemblies
@@ -21,11 +12,11 @@ assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
  * returns familyAssembliesResponse
  **/
 exports.readFamilyAssemblies = function(id) {
-  return familyAssemblyDataModel.findAll({
+  return dfam.familyAssemblyDataModel.findAll({
     attributes: ["hmm_hit_GA", "hmm_hit_TC", "hmm_fdr"],
     include: [
-      { model: familyModel, where: { 'accession': id }, attributes: [] },
-      { model: assemblyModel, include: [ dfamTaxdbModel ], attributes: ["name"] },
+      { model: dfam.familyModel, where: { 'accession': id }, attributes: [] },
+      { model: dfam.assemblyModel, include: [ dfam.dfamTaxdbModel ], attributes: ["name"] },
     ],
   }).then(function(data) {
     return data.map(function(family_assembly) {
@@ -49,10 +40,10 @@ exports.readFamilyAssemblies = function(id) {
  * returns familyAssemblyAnnotationStatsResponse
  **/
 exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
-  return familyAssemblyDataModel.findOne({
+  return dfam.familyAssemblyDataModel.findOne({
     include: [
-      { model: familyModel, where: { 'accession': id }, attributes: [] },
-      { model: assemblyModel, where: { 'name': assembly_id }, attributes: [] },
+      { model: dfam.familyModel, where: { 'accession': id }, attributes: [] },
+      { model: dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
     ],
   }).then(function(family_assembly) {
     if (!family_assembly) {
@@ -99,7 +90,7 @@ exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
  * returns String
  **/
 exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
-  return assemblyModel.findOne({
+  return dfam.assemblyModel.findOne({
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
@@ -138,7 +129,7 @@ exports.readFamilyAssemblyAnnotations = function(id,assembly_id,nrph) {
  * returns File
  **/
 exports.readFamilyAssemblyKaryotype = function(id,assembly_id) {
-  return assemblyModel.findOne({
+  return dfam.assemblyModel.findOne({
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
@@ -171,7 +162,7 @@ exports.readFamilyAssemblyKaryotype = function(id,assembly_id) {
  * no response value expected for this operation
  **/
 exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
-  return assemblyModel.findOne({
+  return dfam.assemblyModel.findOne({
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {
@@ -210,7 +201,7 @@ exports.readFamilyAssemblyModelCoverage = function(id,assembly_id,model) {
  * no response value expected for this operation
  **/
 exports.readFamilyAssemblyModelConservation = function(id,assembly_id,model) {
-  return assemblyModel.findOne({
+  return dfam.assemblyModel.findOne({
     attributes: ["schema_name"],
     where: { 'name': assembly_id }
   }).then(function(assembly) {

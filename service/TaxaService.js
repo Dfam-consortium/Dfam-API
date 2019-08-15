@@ -2,11 +2,8 @@
 
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
+const dfam = require("../databases.js").dfam_models;
 const escape_sql_like = require("../utils/escape").escape_sql_like;
-const assembly = require("../models/assembly.js")(conn, Sequelize);
-const ncbiTaxonomyNames = require("../models/ncbi_taxdb_names.js")(conn, Sequelize);
-
-ncbiTaxonomyNames.belongsTo(assembly, { foreignKey: 'tax_id', targetKey: 'dfam_taxdb_tax_id' });
 
 /**
  * Query the local copy of the NCBI taxonomy database
@@ -17,21 +14,21 @@ ncbiTaxonomyNames.belongsTo(assembly, { foreignKey: 'tax_id', targetKey: 'dfam_t
  **/
 exports.readTaxa = function(name,limit,annotated) {
   if (annotated) {
-    return ncbiTaxonomyNames.findAll({
+    return dfam.ncbiTaxdbNamesModel.findAll({
       attributes: ["tax_id", "name_txt"],
       where: {
         name_class: "scientific name",
         name_txt: { [Sequelize.Op.like]: "%" + name + "%" },
       },
       include: {
-        model: assembly,
+        model: dfam.assemblyModel,
         attributes: ["name"],
         where: {
           schema_name: { [Sequelize.Op.like]: "_%" },
         }
       },
       order: [
-        [ { model: assembly}, 'display_order' ],
+        [ { model: dfam.assemblyModel }, 'display_order' ],
       ],
       limit: limit || 20,
     }).then(function(results) {
@@ -59,7 +56,7 @@ exports.readTaxa = function(name,limit,annotated) {
  * returns taxonResponse
  **/
 exports.readTaxaById = function(id) {
-  return ncbiTaxonomyNames.findOne({
+  return dfam.ncbiTaxdbNamesModel.findOne({
     attributes: ["tax_id", "name_txt"],
     where: { tax_id: id, name_class: "scientific name" },
   }).then(function(taxon) {

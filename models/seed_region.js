@@ -24,11 +24,11 @@ module.exports = function(sequelize, DataTypes) {
     },
     seq_start: {
       type: DataTypes.BIGINT,
-      allowNull: false
+      allowNull: true
     },
     seq_end: {
       type: DataTypes.BIGINT,
-      allowNull: false
+      allowNull: true
     },
     a3m_seq: {
       type: DataTypes.TEXT,
@@ -36,7 +36,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     strand: {
       type: DataTypes.ENUM('+','-'),
-      allowNull: false
+      allowNull: true
     },
     model_start: {
       type: DataTypes.INTEGER(8).UNSIGNED,

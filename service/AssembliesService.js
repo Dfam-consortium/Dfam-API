@@ -2,12 +2,7 @@
 
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const conn = require("../databases.js").dfam;
-
-const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
-const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
-
-assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
+const dfam = require("../databases.js").dfam_models;
 
 /**
  * Retrieve a list of annotated assemblies in Dfam
@@ -15,9 +10,9 @@ assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
  * returns assembliesResponse
  **/
 exports.readAssemblies = function() {
-  return assemblyModel.findAll({
+  return dfam.assemblyModel.findAll({
     where: { display_order: { [Op.gt]: 0 } },
-    include: [ dfamTaxdbModel ],
+    include: [ dfam.dfamTaxdbModel ],
     order_by: [ "display_order" ],
   }).then(function(assemblies) {
     return assemblies.map(function(row) {

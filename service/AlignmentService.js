@@ -7,15 +7,9 @@ const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
 const config = require("../config");
 const APIResponse = require("../utils/response").APIResponse;
-const Sequelize = require("sequelize");
-const conn = require("../databases.js").dfam;
+const dfam = require("../databases.js").dfam_models;
 const getAssemblyModels = require("../databases.js").getAssemblyModels;
 const zlib = require("zlib");
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
-const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
-
-hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
 
 exports.formatAlignment = function(seqID, ordStart, ordEnd, nhmmer_out) {
   var alignRec = {};
@@ -173,7 +167,7 @@ exports.readAlignment = async function(assembly,chrom,start,end,family) {
     ));
   }
 
-  const assembly_rec = await assemblyModel.findOne({
+  const assembly_rec = await dfam.assemblyModel.findOne({
     where: { name: assembly },
     attributes: ['schema_name'],
   });
@@ -193,9 +187,9 @@ exports.readAlignment = async function(assembly,chrom,start,end,family) {
     return null;
   }
 
-  const model = await hmmModelDataModel.findOne({
+  const model = await dfam.hmmModelDataModel.findOne({
     attributes: [ "hmm" ],
-    include: [ { model: familyModel, where: { accession: family }, attributes: [] } ],
+    include: [ { model: dfam.familyModel, where: { accession: family }, attributes: [] } ],
   });
 
   const hmm_data = await promisify(zlib.gunzip)(model.hmm);

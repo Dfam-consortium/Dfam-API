@@ -1,108 +1,51 @@
 'use strict';
 
 const Sequelize = require("sequelize");
-const conn = require("../databases.js").dfam;
 const zlib = require("zlib");
 const mapFields = require("../utils/mapFields.js");
 const child_process = require('child_process');
 const config = require("../config");
 const path = require("path");
-const winston = require("winston");
 const runWorkerAsync = require('../utils/async').runWorkerAsync;
 const APIResponse = require('../utils/response').APIResponse;
 
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
-const classificationModel = require("../models/classification.js")(conn, Sequelize);
-const rmTypeModel = require("../models/repeatmasker_type.js")(conn, Sequelize);
-const rmSubTypeModel = require("../models/repeatmasker_subtype.js")(conn, Sequelize);
-const rmStageModel = require("../models/repeatmasker_stage.js")(conn, Sequelize);
-const familyHasCitationModel = require("../models/family_has_citation.js")(conn, Sequelize);
-const familyHasSearchStageModel = require("../models/family_has_search_stage.js")(conn, Sequelize);
-const familyHasBufferStageModel = require("../models/family_has_buffer_stage.js")(conn, Sequelize);
-const citationModel = require("../models/citation.js")(conn, Sequelize);
-const dfamTaxdbModel = require("../models/dfam_taxdb.js")(conn, Sequelize);
-const ncbiTaxdbNamesModel = require("../models/ncbi_taxdb_names.js")(conn, Sequelize);
-const ncbiTaxdbNodesModel = require("../models/ncbi_taxdb_nodes.js")(conn, Sequelize);
-const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
-const seedAlignDataModel = require("../models/seed_align_data.js")(conn, Sequelize);
-const familyOverlapModel = require("../models/family_overlap.js")(conn, Sequelize);
-const overlapSegmentModel = require("../models/overlap_segment.js")(conn, Sequelize);
-const curationStateModel = require("../models/curation_state.js")(conn, Sequelize);
-const familyFeatureModel = require("../models/family_feature.js")(conn, Sequelize);
-const featureAttributeModel = require("../models/feature_attribute.js")(conn, Sequelize);
-const codingSequenceModel = require("../models/coding_sequence.js")(conn, Sequelize);
-const familyCladeModel = require("../models/family_clade.js")(conn, Sequelize);
-const familyDatabaseAliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
+const dfam = require("../databases").dfam_models;
 
 const conn_users = require('../databases').users;
 const userModel = require('../models/auth/user')(conn_users, Sequelize);
 
 const escape = require("../utils/escape.js");
 
-familyModel.hasMany(aliasModel, { foreignKey: 'family_id', as: 'aliases' });
-familyModel.belongsTo(curationStateModel, { foreignKey: 'curation_state_id', as: 'curation_state' });
-familyModel.belongsTo(classificationModel, { foreignKey: 'classification_id', as: 'classification' });
-familyModel.belongsToMany(rmStageModel, { as: 'search_stages', through: 'family_has_search_stage', foreignKey: 'family_id', otherKey: 'repeatmasker_stage_id' });
-familyModel.belongsToMany(rmStageModel, { as: 'buffer_stages', through: familyHasBufferStageModel, foreignKey: 'family_id', otherKey: 'repeatmasker_stage_id' });
-familyModel.belongsToMany(citationModel, { as: 'citations', through: 'family_has_citation', foreignKey: 'family_id', otherKey: 'citation_pmid' });
-familyModel.belongsToMany(dfamTaxdbModel, { as: 'clades', through: 'family_clade', foreignKey: 'family_id', otherKey: 'dfam_taxdb_tax_id' });
-familyModel.hasMany(familyFeatureModel, { foreignKey: 'family_id', as: 'features' });
-familyFeatureModel.hasMany(featureAttributeModel, { foreignKey: 'family_feature_id', as: 'feature_attributes' });
-familyModel.hasMany(codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
-familyModel.hasOne(familyCladeModel, { foreignKey: 'family_id', as: 'family_clade' });
-
-familyHasCitationModel.belongsTo(citationModel, { as: 'citation', foreignKey: 'citation_pmid' });
-
-familyHasSearchStageModel.belongsTo(rmStageModel, { as: 'repeatmasker_stage', foreignKey: 'repeatmasker_stage_id' });
-familyHasBufferStageModel.belongsTo(rmStageModel, { as: 'repeatmasker_stage', foreignKey: 'repeatmasker_stage_id' });
-familyCladeModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id', as: 'dfam_taxdb' });
-
-ncbiTaxdbNamesModel.belongsTo(ncbiTaxdbNodesModel, { foreignKey: 'tax_id' });
-ncbiTaxdbNamesModel.belongsTo(dfamTaxdbModel, { foreignKey: 'tax_id' });
-
-ncbiTaxdbNodesModel.hasMany(ncbiTaxdbNamesModel, { foreignKey: 'tax_id' });
-
-classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id', as: 'rm_type' });
-classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtype_id', as: 'rm_subtype' });
-
-hmmModelDataModel.belongsTo(familyModel, { foreignKey: 'family_id' });
-
-familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family1_id', as: 'family1' });
-familyOverlapModel.belongsTo(familyModel, { foreignKey: 'family2_id', as: 'family2' });
-familyOverlapModel.hasMany(overlapSegmentModel, { foreignKey: 'family_overlap_id' });
-
 function familySubqueries(rows, format) {
   return Promise.all(rows.map(function(row) {
     const family_id = row.id;
-    var replacements = { family_id };
 
     const subqueries = [];
 
-    subqueries.push(familyCladeModel.findAll({
+    subqueries.push(dfam.familyCladeModel.findAll({
       where: { family_id },
-      include: { model: dfamTaxdbModel, as: 'dfam_taxdb', attributes: ["lineage"], }
+      include: { model: dfam.dfamTaxdbModel, as: 'dfam_taxdb', attributes: ["lineage"], }
     }).then(fcs => row.clades = fcs.map(fc => {
       return { lineage: fc.dfam_taxdb.lineage };
     })));
 
     if (format == "full") {
-      subqueries.push(familyDatabaseAliasModel.findAll({
+      subqueries.push(dfam.familyDatabaseAliasModel.findAll({
         attributes: ["db_id", "db_link"],
         where: { family_id },
       }).then(as => row.aliases = as));
 
-      subqueries.push(familyHasSearchStageModel.findAll({
+      subqueries.push(dfam.familyHasSearchStageModel.findAll({
         where: { family_id },
-        include: { model: rmStageModel, as: 'repeatmasker_stage', attributes: ["name"] }
+        include: { model: dfam.rmStageModel, as: 'repeatmasker_stage', attributes: ["name"] }
       }).then(fss => row.search_stages = fss.map(fs => {
         return { name: fs.repeatmasker_stage.name };
       })));
 
-      subqueries.push(familyHasBufferStageModel.findAll({
+      subqueries.push(dfam.familyHasBufferStageModel.findAll({
         attributes: ["start_pos", "end_pos"],
         where: { family_id },
-        include: { model: rmStageModel, as: 'repeatmasker_stage', attributes: ["name"] }
+        include: { model: dfam.rmStageModel, as: 'repeatmasker_stage', attributes: ["name"] }
       }).then(fbs => row.buffer_stages = fbs.map(fs => {
         return { name: fs.repeatmasker_stage.name, family_has_buffer_stage: {
           start_pos: fs.start_pos,
@@ -110,9 +53,9 @@ function familySubqueries(rows, format) {
         } };
       })));
 
-      subqueries.push(familyHasCitationModel.findAll({
+      subqueries.push(dfam.familyHasCitationModel.findAll({
         where: { family_id },
-        include: { model: citationModel, as: 'citation', attributes: [
+        include: { model: dfam.citationModel, as: 'citation', attributes: [
           "pmid", "title", "authors", "journal", "pubdate",
         ] },
         order: [ ['order_added', 'ASC'] ],
@@ -132,12 +75,12 @@ function familySubqueries(rows, format) {
         }
       }));
 
-      subqueries.push(familyFeatureModel.findAll({
+      subqueries.push(dfam.familyFeatureModel.findAll({
         where: { family_id: row.id },
         include: [
-          { model: featureAttributeModel, as: 'feature_attributes' }
+          { model: dfam.featureAttributeModel, as: 'feature_attributes' }
         ] }).then(function(features) { row.features = features; }));
-      subqueries.push(codingSequenceModel.findAll({
+      subqueries.push(dfam.codingSequenceModel.findAll({
         where: { family_id: row.id }
       }).then(function(coding_sequences) { row.coding_sequences = coding_sequences; }));
     }
@@ -324,22 +267,22 @@ async function collectClades(clade, clade_relatives) {
   const id = parseInt(clade);
   let record;
   if (!isNaN(id)) {
-    record = await ncbiTaxdbNamesModel.findOne({
+    record = await dfam.ncbiTaxdbNamesModel.findOne({
       where: { tax_id: id, name_class: 'scientific name' },
       attributes: [ 'tax_id', 'name_txt' ],
       include: [
-        { model: ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
+        { model: dfam.ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
       ],
     });
   }
 
   // Then try by scientific name
   if (!record) {
-    record = await ncbiTaxdbNamesModel.findOne({
+    record = await dfam.ncbiTaxdbNamesModel.findOne({
       where: { name_class: 'scientific name', name_txt: clade },
       attributes: [ 'tax_id', 'name_txt' ],
       include: [
-        { model: ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
+        { model: dfam.ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
       ],
     });
   }
@@ -354,11 +297,11 @@ async function collectClades(clade, clade_relatives) {
 
   // Secondary query: parent IDs
   const recurseParents = async function(parent_id) {
-    const parent = await ncbiTaxdbNodesModel.findOne({
+    const parent = await dfam.ncbiTaxdbNodesModel.findOne({
       attributes: [ 'tax_id', 'parent_id' ],
       where: { tax_id: parent_id },
       include: [
-        { model: ncbiTaxdbNamesModel, where: { name_class: 'scientific name' }, attributes: [ 'name_txt' ] },
+        { model: dfam.ncbiTaxdbNamesModel, where: { name_class: 'scientific name' }, attributes: [ 'name_txt' ] },
       ]
     });
 
@@ -469,9 +412,9 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   query.attributes = ["id", "accession"];
   query.where = [];
   query.include = [
-    { model: classificationModel, as: 'classification', include: [
-      { model: rmTypeModel, as: 'rm_type' },
-      { model: rmSubTypeModel, as: 'rm_subtype' },
+    { model: dfam.classificationModel, as: 'classification', include: [
+      { model: dfam.rmTypeModel, as: 'rm_type' },
+      { model: dfam.rmSubTypeModel, as: 'rm_subtype' },
     ] },
   ];
   query.order = [];
@@ -485,7 +428,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
       "consensus", "author", "deposited_by_id", "date_created", "date_modified",
       "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_threshold",
     ]);
-    query.include = query.include.push({ model: curationStateModel, as: 'curation_state' });
+    query.include = query.include.push({ model: dfam.curationStateModel, as: 'curation_state' });
   }
 
   if (name) {
@@ -510,7 +453,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   if (clade_info) {
     const clade_where_query = [];
 
-    const familyCladeInclude = { model: familyCladeModel, as: 'family_clade', include: [] };
+    const familyCladeInclude = { model: dfam.familyCladeModel, as: 'family_clade', include: [] };
 
     clade_where_query.push({
       "$family_clade.dfam_taxdb_tax_id$": { [Sequelize.Op.in]: clade_info.ids },
@@ -519,7 +462,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     query.include.push(familyCladeInclude);
 
     if (clade_relatives === "descendants" || clade_relatives === "both") {
-      familyCladeInclude.include.push({ model: dfamTaxdbModel, as: 'dfam_taxdb' });
+      familyCladeInclude.include.push({ model: dfam.dfamTaxdbModel, as: 'dfam_taxdb' });
 
       clade_where_query.push({
         "$family_clade.dfam_taxdb.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(clade_info.lineage, '\\') + ";%" }
@@ -596,7 +539,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     query.offset = start;
   }
 
-  const count_result = await familyModel.findAndCountAll(query);
+  const count_result = await dfam.familyModel.findAndCountAll(query);
   const total_count = count_result.count;
 
   if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
@@ -605,7 +548,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   }
 
 
-  let rows = await familyModel.findAll(query);
+  let rows = await dfam.familyModel.findAll(query);
   rows = await familySubqueries(rows, format);
   return format_rules.mapper(total_count, rows, format_rules);
 };
@@ -618,11 +561,11 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
  * returns familyResponse
  **/
 exports.readFamilyById = async function(id) {
-  const row = await familyModel.findOne({
+  const row = await dfam.familyModel.findOne({
     where: { accession: id },
     include: [
-      { model: classificationModel, as: 'classification', include: [ 'rm_type', 'rm_subtype' ] },
-      { model: curationStateModel, as: 'curation_state' },
+      { model: dfam.classificationModel, as: 'classification', include: [ 'rm_type', 'rm_subtype' ] },
+      { model: dfam.curationStateModel, as: 'curation_state' },
     ],
   });
 
@@ -666,9 +609,9 @@ exports.readFamilyHmm = async function(id, format) {
     return Promise.resolve(new APIResponse("Unrecognized format: " + format, 400));
   }
 
-  const model = await hmmModelDataModel.findOne({
+  const model = await dfam.hmmModelDataModel.findOne({
     attributes: [ field ],
-    include: [ { model: familyModel, where: { accession: id }, attributes: [] } ],
+    include: [ { model: dfam.familyModel, where: { accession: id }, attributes: [] } ],
   });
 
   if (!model || !model[field]) {
@@ -718,14 +661,14 @@ exports.readFamilyHmm = async function(id, format) {
  * returns String
  **/
 exports.readFamilyRelationships = function(id) {
-  return familyOverlapModel.findAll({
+  return dfam.familyOverlapModel.findAll({
     include: [
       {
-        model: familyModel, as: 'family1', attributes: ["name", "accession", "length"],
+        model: dfam.familyModel, as: 'family1', attributes: ["name", "accession", "length"],
         where: { 'accession': id },
       },
-      { model: familyModel, as: 'family2', attributes: ["name", "accession", "length"] },
-      overlapSegmentModel,
+      { model: dfam.familyModel, as: 'family2', attributes: ["name", "accession", "length"] },
+      dfam.overlapSegmentModel,
     ],
   }).then(function(overlaps) {
     var all_overlaps = [];
@@ -786,11 +729,11 @@ exports.readFamilySeed = function(id,format) {
       }
     });
   } else if (format == "alignment_summary") {
-    return familyModel.findOne({
+    return dfam.familyModel.findOne({
       attributes: [ "id", "name" ],
       where: { accession: id },
     }).then(function(family) {
-      return seedAlignDataModel.findOne({
+      return dfam.seedAlignDataModel.findOne({
         attributes: ["graph_json"],
         where: { family_id: family.id },
       }).then(function(seedAlignData) {
