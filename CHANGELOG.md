@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Queries to `/families` will now fail if too many results would be returned from one query.
 ### Fixed
 - Attempts to download invalid formats respond with a 400 error instead of a 500
+- Citations will always be returned in the correct order
 
 ## 0.3.2
 ### Added
