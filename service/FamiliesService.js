@@ -10,9 +10,7 @@ const runWorkerAsync = require('../utils/async').runWorkerAsync;
 const APIResponse = require('../utils/response').APIResponse;
 
 const dfam = require("../databases").dfam_models;
-
-const conn_users = require('../databases').users;
-const userModel = require('../models/auth/user')(conn_users, Sequelize);
+const dfam_user = require('../databases').dfam_user_models;
 
 const escape = require("../utils/escape.js");
 
@@ -69,7 +67,7 @@ function familySubqueries(rows, format) {
         };
       })));
 
-      subqueries.push(userModel.findOne({ where: { id: row.deposited_by_id }, attributes: [ 'full_name' ] }).then(function(user) {
+      subqueries.push(dfam_user.userModel.findOne({ where: { id: row.deposited_by_id }, attributes: [ 'full_name' ] }).then(function(user) {
         if (user) {
           row.submitter = user.full_name;
         }

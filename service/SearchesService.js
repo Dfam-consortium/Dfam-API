@@ -7,7 +7,7 @@ const fs = require('fs');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const dfam = require('../databases').dfam_models;
-const conn_users = require('../databases').users;
+const dfam_user = require('../databases').dfam_user_models;
 const uuidv1 = require('uuid/v1');
 const md5 = require('md5');
 const dateFormat = require('dateformat');
@@ -17,12 +17,6 @@ const path = require('path');
 const APIResponse = require('../utils/response.js').APIResponse;
 
 const AlignmentService = require('./AlignmentService');
-
-const streamModel = require('../models/auth/stream.js')(conn_users, Sequelize);
-const jobModel = require('../models/auth/job.js')(conn_users, Sequelize);
-const searchModel = require('../models/auth/search.js')(conn_users, Sequelize);
-
-searchModel.belongsTo(jobModel, { as: 'job', foreignKey: 'job_id' });
 
 const resultStore = config.dfamdequeuer.result_store;
 
@@ -35,7 +29,7 @@ const resultStore = config.dfamdequeuer.result_store;
 exports.readSearchResults = function(id) {
   // Query the database to get the start time so we can
   // build the data directory path.
-  return searchModel.findOne({
+  return dfam_user.searchModel.findOne({
     include: [ 'job' ],
     where: { '$job.uuid$': id }
   }).then(function(searchRec) {
@@ -64,7 +58,7 @@ exports.readSearchResults = function(id) {
     if (jobRec.status === "PEND") {
       response.status = "PEND";
 
-      return jobModel.count({
+      return dfam_user.jobModel.count({
         where: {
           "status": { [Op.in]: [ "RUNNING", "PEND" ] },
           "opened": { [Op.lt]: jobRec.opened }
@@ -184,7 +178,7 @@ exports.readSearchResults = function(id) {
  * no response value expected for this operation
  **/
 exports.readSearchResultAlignment = function(id,sequence,start,end,family) {
-  return jobModel.findOne({ where: { uuid: id } }).then(function(jobRec) {
+  return dfam_user.jobModel.findOne({ where: { uuid: id } }).then(function(jobRec) {
     if (jobRec.status === "PEND") {
       return { status: "Pending" };
     } else if (jobRec.status === "ERROR") {
@@ -258,14 +252,14 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
   }
 
   // Create job request
-  return jobModel.create({
+  return dfam_user.jobModel.create({
     uuid: uuid,
     status: '',
     opened: now,
     interactive: 1
   }).then(function(jobRec) {
     // Create search record
-    return searchModel.create({
+    return dfam_user.searchModel.create({
       algo: 'nhmmer',
       job_id: jobRec.id,
       targetdb: 'dfamhmm',
@@ -275,7 +269,7 @@ exports.submitSearch = function(sequence,organism,cutoff,evalue) {
       position: 1
     }).then(function(searchRec) {
       // Create stream entry for job id
-      return streamModel.create({
+      return dfam_user.streamModel.create({
         search_id: searchRec.id,
         raw_stdin: sequence,
         stdin: sanSeq

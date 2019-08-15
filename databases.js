@@ -36,6 +36,7 @@ var dfam_connection = connect(config.schema.Dfam);
 const dfam_models = require("./dbmodels").getDfamModels(dfam_connection);
 
 var users_connection = connect(config.schema.DfamUser);
+const dfam_user_models = require("./dbmodels").getDfamUserModels(users_connection);
 
 const assemblyModels = {};
 function getAssemblyModels(schema_name) {
@@ -71,5 +72,6 @@ module.exports = {
   "dfam": dfam_connection,
   dfam_models,
   "users": users_connection,
+  dfam_user_models,
   "getAssemblyModels": getAssemblyModels
 };

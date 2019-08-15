@@ -68,3 +68,16 @@ exports.getDfamModels = function(conn) {
 
   return models;
 };
+
+exports.getDfamUserModels = function(conn) {
+  const models = {};
+
+  models.userModel = require('./models/auth/user')(conn, Sequelize);
+  models.streamModel = require('./models/auth/stream.js')(conn, Sequelize);
+  models.jobModel = require('./models/auth/job.js')(conn, Sequelize);
+  models.searchModel = require('./models/auth/search.js')(conn, Sequelize);
+
+  models.searchModel.belongsTo(models.jobModel, { as: 'job', foreignKey: 'job_id' });
+
+  return models;
+};
