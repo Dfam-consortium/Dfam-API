@@ -73,8 +73,6 @@ test('get assemblies', async t => {
   t.is(ficAlb2.name, 'Ficedula albicollis');
 });
 
-// AuthenticateService
-
 // BlogService
 test('get blog posts', async t => {
   const body = await get_body('/blogposts');

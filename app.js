@@ -6,8 +6,6 @@ const process = require('process');
 
 const winston = require('winston');
 
-const auth = require('./auth');
-
 // The 'worker' has to be launched relative to this file.
 global.dfam_app_root = path.resolve(__dirname);
 
@@ -53,8 +51,6 @@ module.exports = function() {
 
     // Interpret Swagger resources and attach metadata to request - must be first in swagger-tools middleware chain
     app.use(middleware.swaggerMetadata());
-
-    app.use(middleware.swaggerSecurity(auth.swaggerHandlers));
 
     // Error handler for security
     app.use(function(err, req, res, next) {
