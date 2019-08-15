@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "578bf46b-3076-4632-9d39-51e8e87bbbfd",
+		"_postman_id": "59d5dd73-36db-4a00-8132-5f57ea73ed68",
 		"name": "Dfam API",
 		"description": "The Dfam API is an interface to the Dfam database.\nRepeats defined in the Dfam database are annotated for use with\nRepeatMasker using a combination of automated and manual steps.\n\n### Authentication\nThe API is secured using a token-based ( \"OAuth\" ) authentication\nsystem.  The token is obtained using the \"/login\" path.  In addition\nthe \"/version\", \"/register\" paths do not require a token to access.\n\n### Known Consumers\n\nTODO (none yet)\n\n#### Authors\nRobert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen\n\nCopyright 2016-2018 Institute for Systems Biology\n",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -14,9 +14,9 @@
 					"script": {
 						"id": "366ef7fd-4a98-46d0-bb7f-7c9b0d0dfa26",
 						"exec": [
-							"pm.test(\"Version is 0.0.3\", function() {",
+							"pm.test(\"Version is 0.3.2\", function() {",
 							"  var version = pm.response.json();",
-							"  pm.expect(version).to.eql({\"major\":\"0\",\"minor\":\"0\",\"bugfix\":\"3\"});",
+							"  pm.expect(version).to.eql({\"major\":\"0\",\"minor\":\"3\",\"bugfix\":\"2\"});",
 							"});"
 						],
 						"type": "text/javascript"
@@ -38,7 +38,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/version",
 					"protocol": "http",
@@ -51,161 +50,6 @@
 					]
 				},
 				"description": "Get the API version."
-			},
-			"response": []
-		},
-		{
-			"name": "authenticate",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "5f391e65-e48d-497f-92d4-28105bb796b0",
-						"exec": [
-							"var response = pm.response.json();",
-							"pm.environment.set(\"dfam_token\", response.token);",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/x-www-form-urlencoded"
-					}
-				],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "email",
-							"value": "john.doe@example.com",
-							"type": "text"
-						},
-						{
-							"key": "password",
-							"value": "password",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "http://localhost:10011/authenticate",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "10011",
-					"path": [
-						"authenticate"
-					]
-				},
-				"description": "Obtain API access token for previously registered user."
-			},
-			"response": []
-		},
-		{
-			"name": "register",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "60352b8b-4d2b-482e-9034-2620c291fe80",
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/x-www-form-urlencoded"
-					}
-				],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "email",
-							"value": "john.doe@example.com",
-							"type": "text"
-						},
-						{
-							"key": "name",
-							"value": "John Doe",
-							"type": "text"
-						},
-						{
-							"key": "password",
-							"value": "password1",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "http://localhost:10011/register",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "10011",
-					"path": [
-						"register"
-					]
-				},
-				"description": "Register a new account with the API."
-			},
-			"response": []
-		},
-		{
-			"name": "verify",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "http://localhost:10011/verify?token=02cc651e965b138e33ebaebdaaa895e8",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "10011",
-					"path": [
-						"verify"
-					],
-					"query": [
-						{
-							"key": "token",
-							"value": "02cc651e965b138e33ebaebdaaa895e8"
-						}
-					]
-				},
-				"description": "Verify a user's email address."
 			},
 			"response": []
 		},
@@ -226,10 +70,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "http://localhost:10011/assemblies",
 					"protocol": "http",
@@ -259,7 +99,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families?format=summary&limit=10",
 					"protocol": "http",
@@ -349,7 +188,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families?format=summary&keywords=hAT auto&limit=20",
 					"protocol": "http",
@@ -406,7 +244,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001",
 					"protocol": "http",
@@ -440,7 +277,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001/hmm?format=hmm",
 					"protocol": "http",
@@ -481,7 +317,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001/seed?format=stockholm",
 					"protocol": "http",
@@ -522,7 +357,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001/relationships",
 					"protocol": "http",
@@ -557,7 +391,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001/assemblies",
 					"protocol": "http",
@@ -592,7 +425,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001/assemblies/hg38/annotations?nrph=false",
 					"protocol": "http",
@@ -635,7 +467,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/annotation_stats",
 					"protocol": "http",
@@ -656,7 +487,7 @@
 			"response": []
 		},
 		{
-			"name": "family assembly karyoimage",
+			"name": "family assembly karyotype",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -672,9 +503,8 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
-					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/karyoimage?part=img_key&nrph=true",
+					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/karyotype?part=img_key&nrph=true",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -685,7 +515,7 @@
 						"DF0000001",
 						"assemblies",
 						"mm10",
-						"karyoimage"
+						"karyotype"
 					],
 					"query": [
 						{
@@ -719,7 +549,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/model_coverage?model=hmm",
 					"protocol": "http",
@@ -762,7 +591,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/families/DF0000001/assemblies/mm10/model_conservation?model=hmm",
 					"protocol": "http",
@@ -802,7 +630,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/classes",
 					"protocol": "http",
@@ -832,7 +659,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {},
 				"url": {
 					"raw": "http://localhost:10011/taxa?name=Homo sapiens&limit=20",
 					"protocol": "http",
@@ -872,10 +698,6 @@
 						"value": "application/json"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "http://localhost:10011/taxa?name&limit=20&annotated=true",
 					"protocol": "http",
@@ -910,10 +732,6 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "http://localhost:10011/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true",
 					"protocol": "http",
@@ -956,10 +774,6 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "http://localhost:10011/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF0004191",
 					"protocol": "http",
@@ -1001,10 +815,6 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "http://localhost:10011/alignment?assembly=mm10&chrom=chr1&start=35700469&end=35700145&family=DF0004191",
 					"protocol": "http",
@@ -1046,10 +856,6 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "http://localhost:10011/alignment?assembly=hg38&chrom=chr3&start=147747582&end=147747419&family=DF0000147",
 					"protocol": "http",
@@ -1083,211 +889,6 @@
 						}
 					]
 				}
-			},
-			"response": []
-		},
-		{
-			"name": "submittedFiles",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {},
-				"url": {
-					"raw": "http://localhost:10011/users/1/files",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "10011",
-					"path": [
-						"users",
-						"1",
-						"files"
-					]
-				},
-				"description": "Get details on submitted and unproccesed files"
-			},
-			"response": []
-		},
-		{
-			"name": "fileSubmission",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {},
-				"url": {
-					"raw": "http://localhost:10011/fileSubmission?flowChunkNumber={{flowChunkNumber}}&flowChunkSize={{flowChunkSize}}&flowCurrentChunkSize={{flowCurrentChunkSize}}&flowTotalSize={{flowTotalSize}}&flowIdentifier={{flowIdentifier}}&flowFilename={{flowFilename}}&flowRelativePath={{flowRelativePath}}&flowTotalChunks={{flowTotalChunks}}",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "10011",
-					"path": [
-						"fileSubmission"
-					],
-					"query": [
-						{
-							"key": "flowChunkNumber",
-							"value": "{{flowChunkNumber}}"
-						},
-						{
-							"key": "flowChunkSize",
-							"value": "{{flowChunkSize}}"
-						},
-						{
-							"key": "flowCurrentChunkSize",
-							"value": "{{flowCurrentChunkSize}}"
-						},
-						{
-							"key": "flowTotalSize",
-							"value": "{{flowTotalSize}}"
-						},
-						{
-							"key": "flowIdentifier",
-							"value": "{{flowIdentifier}}"
-						},
-						{
-							"key": "flowFilename",
-							"value": "{{flowFilename}}"
-						},
-						{
-							"key": "flowRelativePath",
-							"value": "{{flowRelativePath}}"
-						},
-						{
-							"key": "flowTotalChunks",
-							"value": "{{flowTotalChunks}}"
-						}
-					]
-				},
-				"description": "Upload misc datasets for submission to Dfam"
-			},
-			"response": []
-		},
-		{
-			"name": "fileSubmission",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					},
-					{
-						"key": "Content-Type",
-						"value": "multipart/form-data"
-					}
-				],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "guid",
-							"value": "{{guid}}",
-							"type": "text"
-						},
-						{
-							"key": "title",
-							"value": "{{title}}",
-							"type": "text"
-						},
-						{
-							"key": "description",
-							"value": "{{description}}",
-							"type": "text"
-						},
-						{
-							"key": "citations",
-							"value": "{{citations}}",
-							"type": "text"
-						},
-						{
-							"key": "fileDescription",
-							"value": "{{fileDescription}}",
-							"type": "text"
-						},
-						{
-							"key": "flowChunkNumber",
-							"value": "{{flowChunkNumber}}",
-							"type": "text"
-						},
-						{
-							"key": "flowChunkSize",
-							"value": "{{flowChunkSize}}",
-							"type": "text"
-						},
-						{
-							"key": "flowCurrentChunkSize",
-							"value": "{{flowCurrentChunkSize}}",
-							"type": "text"
-						},
-						{
-							"key": "flowTotalSize",
-							"value": "{{flowTotalSize}}",
-							"type": "text"
-						},
-						{
-							"key": "flowType",
-							"value": "{{flowType}}",
-							"type": "text"
-						},
-						{
-							"key": "flowIdentifier",
-							"value": "{{flowIdentifier}}",
-							"type": "text"
-						},
-						{
-							"key": "flowFilename",
-							"value": "{{flowFilename}}",
-							"type": "text"
-						},
-						{
-							"key": "flowRelativePath",
-							"value": "{{flowRelativePath}}",
-							"type": "text"
-						},
-						{
-							"key": "flowTotalChunks",
-							"value": "{{flowTotalChunks}}",
-							"type": "text"
-						},
-						{
-							"key": "file",
-							"value": "{{file}}",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "http://localhost:10011/fileSubmission",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "10011",
-					"path": [
-						"fileSubmission"
-					]
-				},
-				"description": "Upload misc datasets for submission to Dfam"
 			},
 			"response": []
 		}
