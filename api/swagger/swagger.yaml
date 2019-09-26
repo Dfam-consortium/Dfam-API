@@ -9,11 +9,11 @@ info:
     use in community developed applications and workflows. 
  
     For more information on getting started with the Dfam API, see
-    the documentation and examples at http://dfam.org/help/api
+    the documentation and examples at https://dfam.org/help/api
 
     ### Known Consumers
 
-    http://dfam.org/
+    https://dfam.org/
 
     #### Authors
     Robert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen
@@ -30,7 +30,6 @@ info:
 host: 'dfam.org'
 basePath: /
 schemes:
-  - http
   - https
 consumes:
   - application/json
