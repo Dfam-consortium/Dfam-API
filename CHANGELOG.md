@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## 0.3.3 - Unreleased
 ### Added
 - Added support for single sequence downloads in 'fasta' format:
   `/family/{id}/sequence?format=fasta`
@@ -17,7 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Attempts to download invalid formats respond with a 400 error instead of a 500
 - Citations will always be returned in the correct order
 
-## 0.3.2
+## 0.3.2 - 2019-06-20
 ### Added
 - New endpoint '/taxa/{id}' to retrieve information on a single taxon
 - Family objects now include a 'version' field

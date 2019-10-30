@@ -236,5 +236,5 @@ test('get one taxon', async t => {
 // Version Service
 test('get version', async t => {
   const body = await get_body('/version');
-  t.deepEqual(body, { major: "0", minor: "3", bugfix: "2" });
+  t.deepEqual(body, { major: "0", minor: "3", bugfix: "3" });
 });
