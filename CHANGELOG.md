@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 0.3.3 - Unreleased
+## Unreleased
+### Fixed
+- "Annotations" search now includes hits that overlap the requested range,
+  in addition to hits that are fully contained within the range.
+
+## 0.3.3 - 2019-11-04
 ### Added
 - Added support for single sequence downloads in 'fasta' format:
   `/family/{id}/sequence?format=fasta`
