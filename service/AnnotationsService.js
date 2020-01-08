@@ -50,8 +50,11 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
         },
       },
       where: {
-        seq_start: { [Op.gte]: start },
-        seq_end: { [Op.lte]: end },
+        // NB: These ranges look funny, but are correct. This is the logical equivalent to
+        // !((hit_start > range_end) || (hit_end < range_start)), which excludes
+        // any hits that end before the start of the range or start after the end of the range
+        seq_start: { [Op.lte]: end },
+        seq_end: { [Op.gte]: start },
       }
     };
 
@@ -67,8 +70,8 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
         },
       },
       where: {
-        seq_start: { [Op.gte]: start },
-        seq_end: { [Op.lte]: end },
+        seq_start: { [Op.lte]: end },
+        seq_end: { [Op.gte]: start },
       }
     };
 
