@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - "Annotations" search now includes hits that overlap the requested range,
   in addition to hits that are fully contained within the range.
+- Fixed a regression that caused `/families` with `format=full` to fail.
 
 ## 0.3.3 - 2019-11-04
 ### Added

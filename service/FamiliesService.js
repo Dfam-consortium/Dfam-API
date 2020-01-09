@@ -426,7 +426,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
       "consensus", "author", "deposited_by_id", "date_created", "date_modified",
       "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_threshold",
     ]);
-    query.include = query.include.push({ model: dfam.curationStateModel, as: 'curation_state' });
+    query.include.push({ model: dfam.curationStateModel, as: 'curation_state' });
   }
 
   if (name) {

@@ -111,6 +111,13 @@ test('search families', async t => {
   t.regex(response.body.message, /per-query limit/);
 });
 
+test('search families with consensi', async t => {
+  const body = await get_body('/families?clade=9606&format=full&name=ltr');
+  t.is(body.total_count, 3);
+  const ltr26c = body.results.find(f => f.name === 'LTR26C');
+  t.regex(ltr26c.consensus_sequence, /^[ACGTN]*$/);
+});
+
 test('download families', async t => {
   const body_fa = await get_text('/families?clade=9263&format=fasta');
   t.is(body_fa.match(/^>/gm).length, 6);
