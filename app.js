@@ -75,6 +75,15 @@ module.exports = function() {
         return;
       }
 
+      if (err.allowedMethods) {
+        // Request using an unsupported method
+        // TODO: 'HEAD' in particular would be nice to
+        // support properly
+
+        res.end(JSON.stringify({ message: "Method not allowed. Allowed methods: " + err.allowedMethods.sort().join(', ') }));
+        return;
+      }
+
       if (err.stack) {
         winston.error(err.stack);
       } else {
