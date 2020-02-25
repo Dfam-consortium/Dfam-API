@@ -120,6 +120,26 @@ module.exports = function(sequelize, DataTypes) {
     curation_notes: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    source_method_id: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'source_method',
+        key: 'id'
+      }
+    },
+    source_method_desc: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    source_assembly_id: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      references: {
+        model: 'assembly',
+        key: 'id'
+      }
     }
   }, {
     tableName: 'family'

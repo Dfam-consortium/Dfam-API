@@ -14,6 +14,10 @@ module.exports = function(sequelize, DataTypes) {
     graph_json: {
       type: "LONGBLOB",
       allowNull: false
+    },
+    avg_kimura_divergence: {
+      type: DataTypes.FLOAT,
+      allowNull: true
     }
   }, {
     tableName: 'seed_align_data'
