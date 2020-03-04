@@ -39,7 +39,6 @@ exports.getDfamModels = function(conn) {
   models.familyModel.hasMany(models.familyFeatureModel, { foreignKey: 'family_id', as: 'features' });
   models.familyFeatureModel.hasMany(models.featureAttributeModel, { foreignKey: 'family_feature_id', as: 'feature_attributes' });
   models.familyModel.hasMany(models.codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
-  models.familyModel.hasOne(models.familyCladeModel, { foreignKey: 'family_id', as: 'family_clade' });
 
   models.familyHasCitationModel.belongsTo(models.citationModel, { as: 'citation', foreignKey: 'citation_pmid' });
 

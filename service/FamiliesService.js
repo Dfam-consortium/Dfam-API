@@ -417,6 +417,9 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   ];
   query.order = [];
 
+  // See sequelize/sequelize#11617
+  query.subQuery = false;
+
   if (format_rules.metadata >= 1) {
     query.attributes = query.attributes.concat(["name", "version", "title", "length", "description"]);
   }
@@ -449,25 +452,25 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   }
 
   if (clade_info) {
+    const cladeInclude = {
+      model: dfam.dfamTaxdbModel,
+      as: 'clades',
+      include: [],
+    };
+    query.include.push(cladeInclude);
+
     const clade_where_query = [];
-
-    const familyCladeInclude = { model: dfam.familyCladeModel, as: 'family_clade', include: [] };
-
     clade_where_query.push({
-      "$family_clade.dfam_taxdb_tax_id$": { [Sequelize.Op.in]: clade_info.ids },
+      "tax_id": { [Sequelize.Op.in]: clade_info.ids },
     });
 
-    query.include.push(familyCladeInclude);
-
     if (clade_relatives === "descendants" || clade_relatives === "both") {
-      familyCladeInclude.include.push({ model: dfam.dfamTaxdbModel, as: 'dfam_taxdb' });
-
       clade_where_query.push({
-        "$family_clade.dfam_taxdb.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(clade_info.lineage, '\\') + ";%" }
+        "lineage": { [Sequelize.Op.like]: escape.escape_sql_like(clade_info.lineage, '\\') + ";%" }
       });
     }
 
-    query.where.push({ [Sequelize.Op.or]: clade_where_query });
+    cladeInclude.where = { [Sequelize.Op.or]: clade_where_query };
   }
 
   if (desc) {
