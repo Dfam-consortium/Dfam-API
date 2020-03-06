@@ -7,6 +7,6 @@
  * returns versionResponse
  **/
 exports.getVersion = function() {
-  return Promise.resolve({ "major": "0", "minor": "3", "bugfix": "4" });
+  return Promise.resolve({ "major": "0", "minor": "3", "bugfix": "5" });
 };
 
