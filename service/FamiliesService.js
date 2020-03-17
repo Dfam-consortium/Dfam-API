@@ -350,11 +350,12 @@ async function collectClades(clade, clade_relatives) {
  * updated_before date Filter by \"updated on or before\" date (optional)
  * desc String Search term for repeat description (optional)
  * keywords String Keywords to search in text fields (optional)
+ * include_raw Boolean Whether to include raw ("DR") families in the results. Default is false.
  * start Integer Start index ( for range queries ) (optional)
  * limit Integer Records to return ( for range queries ) (optional)
  * returns familiesResponse
  **/
-exports.readFamilies = async function(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit) {
+exports.readFamilies = async function(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,include_raw,start,limit) {
 
   if (!format) {
     format = "summary";
@@ -514,6 +515,10 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
         { author:      { [Sequelize.Op.like]: word_esc } },
       ] });
     });
+  }
+
+  if (!include_raw) {
+    query.where.push({ accession: { [Sequelize.Op.like]: "DF%" } });
   }
 
   // TODO: Implement more complex sort keys

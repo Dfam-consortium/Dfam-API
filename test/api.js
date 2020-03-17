@@ -118,6 +118,13 @@ test('search families with consensi', async t => {
   t.regex(ltr26c.consensus_sequence, /^[ACGTN]*$/);
 });
 
+test('search raw families', async t => {
+  const without_raw = await get_body('/families?name_accession=DR0000000');
+  t.is(without_raw.total_count, 0);
+  const with_raw = await get_body('/families?name_accession=DR0000000&include_raw=true');
+  t.is(with_raw.total_count, 1);
+});
+
 test('download families', async t => {
   const body_fa = await get_text('/families?clade=9263&format=fasta');
   t.is(body_fa.match(/^>/gm).length, 6);

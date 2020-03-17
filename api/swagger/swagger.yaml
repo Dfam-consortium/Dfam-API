@@ -171,6 +171,11 @@ paths:
           description: Keywords to search in text fields (currently name, title, description, accession, author).
           required: false
           type: string
+        - name: include_raw
+          in: query
+          description: Whether to include raw ("DR") families in the results. Default is false.
+          required: false
+          type: boolean
         - name: start
           in: query
           description: Index of first record to return. Commonly used along with `limit` to implement paging.

@@ -18,10 +18,11 @@ module.exports.readFamilies = function readFamilies (req, res, next) {
   var updated_before = req.swagger.params['updated_before'].value;
   var desc = req.swagger.params['desc'].value;
   var keywords = req.swagger.params['keywords'].value;
+  var include_raw = req.swagger.params['include_raw'].value;
   var start = req.swagger.params['start'].value;
   var limit = req.swagger.params['limit'].value;
   var download = req.swagger.params['download'].value;
-  Families.readFamilies(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,start,limit)
+  Families.readFamilies(format,sort,name,name_prefix,name_accession,classification,clade,clade_relatives,type,subtype,updated_after,updated_before,desc,keywords,include_raw,start,limit)
     .then(function (response) {
       if (response instanceof APIResponse) {
         return response.respond(req, res);
