@@ -253,7 +253,7 @@ function familyQueryRowToObject(row, format) {
 // If the specified clade is not present, the result is null.
 // Otherwise, result.ids is a list of IDs (self + ancestors) and
 // result.lineage is a lineage string (useful for searching descendants).
-// result.ids will only contain ancestors if clade_relatives is "ancestors" or "both"
+// result.ids will contain ancestors only if clade_relatives is "ancestors" or "both"
 async function collectClades(clade, clade_relatives) {
   if (!clade) {
     return null;
@@ -664,55 +664,114 @@ exports.readFamilyHmm = async function(id, format) {
  * Retrieve an individual Dfam family's relationship information
  *
  * id String The Dfam family name
+ * include string Which families to include. "all" searches all of Dfam, and "related" searches only families that are found in ancestor or descendant clades of the one this family belongs to. Default is "all".
+ * include_raw boolean Whether to include matches to raw ("DR") families. Default is false.
  * returns String
  **/
-exports.readFamilyRelationships = function(id) {
-  return dfam.familyOverlapModel.findAll({
+exports.readFamilyRelationships = async function(id, include, include_raw) {
+  const clade_infos = [];
+
+  // Retrieve lineage + IDs for all clades associated to the family
+  if (include === "related") {
+    const family = await dfam.familyModel.findOne({
+      where: { accession: id },
+      include: [{
+        model: dfam.dfamTaxdbModel,
+        as: "clades",
+        attributes: ["tax_id"],
+      }],
+    });
+
+    for (const cl of family.clades) {
+      clade_infos.push(await collectClades(cl.tax_id, "both"));
+    }
+  }
+
+  // Set up the query for the overlap table
+  const query = {
     include: [
       {
         model: dfam.familyModel, as: 'family1', attributes: ["name", "accession", "length"],
         where: { 'accession': id },
       },
-      { model: dfam.familyModel, as: 'family2', attributes: ["name", "accession", "length"] },
       dfam.overlapSegmentModel,
     ],
-  }).then(function(overlaps) {
-    var all_overlaps = [];
+    subQuery: false,
+  };
 
-    overlaps.forEach(function(overlap) {
-      const family_map = {
-        "name": "id",
-        "accession": "accession",
-        "length": "length",
-      };
-      const model_info = mapFields(overlap.family1, {}, family_map);
-      const target_info = mapFields(overlap.family2, {}, family_map);
+  // Set up the inclusion / where clauses for family2
+  const include_f2 = {
+    model: dfam.familyModel,
+    as: 'family2',
+    attributes: ["name", "accession", "length"],
+    include: [],
+    where: [],
+  };
+  query.include.push(include_f2);
 
-      all_overlaps = all_overlaps.concat(overlap.overlap_segments.map(function(overlap_segment) {
-        const seg = mapFields(overlap_segment, {}, {
-          "strand": "strand",
-          "evalue": "evalue",
-          "identity": "identity",
-          "coverage": "coverage",
-          "cigar": "cigar",
+  // If a clade was specified, add corresponding criteria
+  if (clade_infos.length) {
+    const cladeInclude = {
+      model: dfam.dfamTaxdbModel,
+      as: 'clades',
+      include: [],
+    };
+    include_f2.include.push(cladeInclude);
 
-          "family1_start": "model_start",
-          "family2_start": "target_start",
-          "family1_end": "model_end",
-          "family2_end": "target_end",
-        });
-
-        seg.auto_overlap = {
-          model: model_info,
-          target: target_info,
-        };
-
-        return seg;
-      }));
+    const clade_where_query = [];
+    clade_infos.forEach(ci => {
+      clade_where_query.push({ "tax_id": { [Sequelize.Op.in]: ci.ids } });
+      clade_where_query.push({
+        "lineage": { [Sequelize.Op.like]: escape.escape_sql_like(ci.lineage, '\\') + ";%" }
+      });
     });
+    cladeInclude.where = { [Sequelize.Op.or]: clade_where_query };
+  }
 
-    return all_overlaps;
+  // Add filter for family2 being DF*, if requested
+  if (!include_raw) {
+    include_f2.where.push({
+      accession: { [Sequelize.Op.like]: "DF%" },
+    });
+  }
+
+  // Finally, run the query
+  const overlaps = await dfam.familyOverlapModel.findAll(query);
+  var all_overlaps = [];
+
+  overlaps.forEach(function(overlap) {
+    const family_map = {
+      "name": "id",
+      "accession": "accession",
+      "length": "length",
+    };
+    const model_info = mapFields(overlap.family1, {}, family_map);
+    const target_info = mapFields(overlap.family2, {}, family_map);
+
+    all_overlaps = all_overlaps.concat(overlap.overlap_segments.map(function(overlap_segment) {
+      const seg = mapFields(overlap_segment, {}, {
+        "strand": "strand",
+        "evalue": "evalue",
+        "identity": "identity",
+        "coverage": "coverage",
+        "cigar": "cigar",
+
+        "family1_start": "model_start",
+        "family2_start": "target_start",
+        "family1_end": "model_end",
+        "family2_end": "target_end",
+      });
+
+      seg.auto_overlap = {
+        model: model_info,
+        target: target_info,
+      };
+
+      return seg;
+    }));
   });
+
+  return all_overlaps;
 };
 
 /**

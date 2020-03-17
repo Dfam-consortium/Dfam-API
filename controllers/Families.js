@@ -91,7 +91,9 @@ module.exports.readFamilyHmm = function readFamilyHmm (req, res, next) {
 
 module.exports.readFamilyRelationships = function readFamilyRelationships (req, res, next) {
   var id = req.swagger.params['id'].value;
-  Families.readFamilyRelationships(id)
+  var include = req.swagger.params['include'].value;
+  var include_raw = req.swagger.params['include_raw'].value;
+  Families.readFamilyRelationships(id, include, include_raw)
     .then(function (response) {
       return new APIResponse(response).respond(req, res);
     })

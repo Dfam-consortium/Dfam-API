@@ -337,6 +337,14 @@ paths:
         description: The Dfam family accession.
         required: true
         type: string
+      - name: include
+        in: query
+        description: Which families to include. "all" searches all of Dfam, and "related" searches only families that are found in ancestor or descendant clades of the one this family belongs to. Default is "all".
+        type: string
+      - name: include_raw
+        in: query
+        description: Whether to include matches to raw ("DR") families. Default is false.
+        type: boolean
     get:
       description: Retrieve an individual Dfam family's relationship information.
       tags:
