@@ -23,7 +23,7 @@
     "dateformat": "^3.0.3",
     "js-yaml": "^3.13.1",
     "md5": "^2.2.1",
-    "mysql2": "^1.6.5",
+    "mysql2": "^2.1.0",
     "on-finished": "^2.3.0",
     "rss-parser": "^3.7.3",
     "sequelize": "^5.21.2",
@@ -34,11 +34,11 @@
     "word-wrap": "^1.2.3"
   },
   "devDependencies": {
-    "ava": "^2.4.0",
+    "ava": "^3.5.0",
     "eslint": "^6.6.0",
     "mysql": "^2.17.1",
     "npm-watch": "^0.6.0",
-    "nyc": "^14.1.1",
+    "nyc": "^15.0.0",
     "sequelize-auto": "^0.4.29",
     "spectacle-docs": "^1.0.7",
     "supertest": "^4.0.2"
