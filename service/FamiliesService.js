@@ -127,6 +127,7 @@ function familyQueryRowToObject(row, format) {
     "disabled": "disabled",
     "model_mask": "model_mask",
     "hmm_general_threshold": "hmm_general_threshold",
+    "source_method_desc": "source_method_description",
   });
 
   if (obj.refineable !== undefined) {
@@ -140,6 +141,22 @@ function familyQueryRowToObject(row, format) {
   if (row.curation_state) {
     obj.curation_state_name = row.curation_state.name;
     obj.curation_state_description = row.curation_state.description;
+  }
+
+  if (row.source_method) {
+    obj.source_method = row.source_method.name;
+  }
+
+  if (row.source_assembly) {
+    obj.source_assembly = {
+      label: `${row.source_assembly.name}: ${row.source_assembly.description}`,
+    };
+
+    // TODO: More specific link (i.e. GenBank or RefSeq if the assembly is in one of those)
+    const taxid = obj.source_assembly.dfam_taxdb_tax_id;
+    if (taxid && taxid != 1) {
+      obj.source_assembly.hyperlink = "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=" + taxid.toString();
+    }
   }
 
   const aliases = obj["aliases"] = [];
@@ -429,8 +446,11 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     query.attributes = query.attributes.concat([
       "consensus", "author", "deposited_by_id", "date_created", "date_modified",
       "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_threshold",
+      "source_method_desc",
     ]);
     query.include.push({ model: dfam.curationStateModel, as: 'curation_state' });
+    query.include.push({ model: dfam.sourceMethodModel, as: 'source_method' });
+    query.include.push({ model: dfam.assemblyModel, as: 'source_assembly' });
   }
 
   if (name) {
@@ -572,6 +592,8 @@ exports.readFamilyById = async function(id) {
     include: [
       { model: dfam.classificationModel, as: 'classification', include: [ 'rm_type', 'rm_subtype' ] },
       { model: dfam.curationStateModel, as: 'curation_state' },
+      { model: dfam.sourceMethodModel, as: 'source_method' },
+      { model: dfam.assemblyModel, as: 'source_assembly' },
     ],
   });
 

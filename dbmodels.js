@@ -28,6 +28,7 @@ exports.getDfamModels = function(conn) {
   models.familyDatabaseAliasModel = require("./models/family_database_alias.js")(conn, Sequelize);
   models.familyAssemblyDataModel = require("./models/family_assembly_data.js")(conn, Sequelize);
   models.assemblyModel = require("./models/assembly.js")(conn, Sequelize);
+  models.sourceMethodModel = require("./models/source_method.js")(conn, Sequelize);
 
   models.familyModel.hasMany(models.aliasModel, { foreignKey: 'family_id', as: 'aliases' });
   models.familyModel.belongsTo(models.curationStateModel, { foreignKey: 'curation_state_id', as: 'curation_state' });
@@ -39,6 +40,8 @@ exports.getDfamModels = function(conn) {
   models.familyModel.hasMany(models.familyFeatureModel, { foreignKey: 'family_id', as: 'features' });
   models.familyFeatureModel.hasMany(models.featureAttributeModel, { foreignKey: 'family_feature_id', as: 'feature_attributes' });
   models.familyModel.hasMany(models.codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
+  models.familyModel.belongsTo(models.sourceMethodModel, { foreignKey: 'source_method_id', as: 'source_method' });
+  models.familyModel.belongsTo(models.assemblyModel, { foreignKey: 'source_assembly_id', as: 'source_assembly' });
 
   models.familyHasCitationModel.belongsTo(models.citationModel, { as: 'citation', foreignKey: 'citation_pmid' });
 

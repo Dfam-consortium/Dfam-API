@@ -1003,6 +1003,24 @@ definitions:
       hmm_general_threshold:
         type: number
         description: Threshold used when searching for the family in a DNA sequence from an unknown or new organism.
+      source_method:
+        type: string
+        description: The method originally used to find the family.
+      source_method_description:
+        type: string
+        description: Further details on the family's origin, such as genome information or parameters used for tools.
+      source_assembly:
+        type: object
+        description: Information on the assembly the family was derived from.
+        required:
+          - label
+        properties:
+          label:
+            type: string
+            description: A human-readable label for the assembly.
+          hyperlink:
+            type: string
+            description: A hyperlink to the assembly on an external resource.
       aliases:
         type: array
         items:
