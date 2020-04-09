@@ -1225,7 +1225,7 @@ definitions:
               properties:
                 id:
                   type: string
-                  description: Human-readable identifier for the family (in Dfam, the "name").
+                  description: Human-readable identifier for the family (either the "name" or "accession").
                 accession:
                   type: string
                   description: The Dfam accession for the family.
@@ -1238,7 +1238,7 @@ definitions:
               properties:
                 id:
                   type: string
-                  description: Human-readable identifier for the family (in Dfam, the "name").
+                  description: Human-readable identifier for the family (either the "name" or "accession").
                 accession:
                   type: string
                   description: The Dfam accession for the family.
