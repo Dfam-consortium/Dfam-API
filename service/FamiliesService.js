@@ -8,7 +8,10 @@ const config = require("../config");
 const path = require("path");
 const runWorkerAsync = require('../utils/async').runWorkerAsync;
 const APIResponse = require('../utils/response').APIResponse;
+const promisify = require('util').promisify;
+const winston = require('winston');
 
+const conn = require("../databases.js").dfam;
 const dfam = require("../databases").dfam_models;
 const dfam_user = require('../databases').dfam_user_models;
 
@@ -803,41 +806,45 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
  * id String The Dfam family name
  * returns String
  **/
-exports.readFamilySeed = function(id,format) {
+exports.readFamilySeed = async function(id,format) {
   if (format == "stockholm") {
-    return runWorkerAsync(["stockholm"], id).then(function(stockholm) {
-      if (stockholm && stockholm.length) {
-        return {
-          data: stockholm,
-          content_type: "text/plain",
-          encoding: "identity",
-        };
-      } else {
-        return null;
-      }
-    });
+    const stockholm = await runWorkerAsync(["stockholm"], id);
+    if (stockholm && stockholm.length) {
+      return {
+        data: stockholm,
+        content_type: "text/plain",
+        encoding: "identity",
+      };
+    } else {
+      return null;
+    }
   } else if (format == "alignment_summary") {
-    return dfam.familyModel.findOne({
+    const family = await dfam.familyModel.findOne({
       attributes: [ "id", "name" ],
       where: { accession: id },
-    }).then(function(family) {
-      return dfam.seedAlignDataModel.findOne({
-        attributes: ["graph_json"],
-        where: { family_id: family.id },
-      }).then(function(seedAlignData) {
-        if (seedAlignData) {
-          return {
-            data: seedAlignData.graph_json,
-            content_type: "application/json",
-            encoding: 'gzip',
-          };
-        } else {
-          return null;
-        }
-      });
     });
+
+    const seedAlignData = await dfam.seedAlignDataModel.findOne({
+      attributes: ["graph_json", "avg_kimura_divergence"],
+      where: { family_id: family.id },
+    });
+
+    let graphData = {};
+    if (seedAlignData) {
+      graphData = JSON.parse(await promisify(zlib.gunzip)(seedAlignData.graph_json));
+    } else {
+      winston.warn(`Family with accession ${id} has no seed alignment graph data.`);
+    }
+
+    // TODO: Include values for graphData.publicSequences and
+    // graphData.representedAssemblies, once we are confident we
+    // can calculate them correctly
+
+    graphData.averageKimuraDivergence = seedAlignData.avg_kimura_divergence;
+
+    return { data: graphData, contentType: "application/json", encoding: "identity" };
   } else {
-    return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
+    return new APIResponse({ message: "Unrecognized format: " + format}, 400);
   }
 };
 
