@@ -150,13 +150,8 @@ function familyQueryRowToObject(row, format) {
   if (row.source_assembly) {
     obj.source_assembly = {
       label: `${row.source_assembly.name}: ${row.source_assembly.description}`,
+      hyperlink: row.source_assembly.uri,
     };
-
-    // TODO: More specific link (i.e. GenBank or RefSeq if the assembly is in one of those)
-    const taxid = obj.source_assembly.dfam_taxdb_tax_id;
-    if (taxid && taxid != 1) {
-      obj.source_assembly.hyperlink = "https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=" + taxid.toString();
-    }
   }
 
   const aliases = obj["aliases"] = [];

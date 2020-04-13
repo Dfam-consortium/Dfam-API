@@ -26,7 +26,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     source: {
-      type: DataTypes.ENUM('ensembl','ensembl_genomes','broad','ncbi','ucsc','baylor'),
+      type: DataTypes.STRING(20),
       allowNull: true
     },
     release_date: {
@@ -35,6 +35,10 @@ module.exports = function(sequelize, DataTypes) {
     },
     version: {
       type: DataTypes.STRING(45),
+      allowNull: true
+    },
+    uri: {
+      type: DataTypes.TEXT,
       allowNull: true
     },
     schema_name: {
