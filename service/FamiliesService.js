@@ -768,7 +768,7 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
     }
     const target_info = mapFields(overlap.family2, {}, family_map);
     if (!overlap.family2.name) {
-      target_info.id = overlap.family1.accession;
+      target_info.id = overlap.family2.accession;
     }
 
     all_overlaps = all_overlaps.concat(overlap.overlap_segments.map(function(overlap_segment) {
