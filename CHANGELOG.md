@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+### Added
+- `/families` (only in the "full" format) and `/families/{id}` include three new
+  fields: `source_method`, `source_method_description`, and `source_assembly`.
+  See `api/swagger/swagger.yaml` for more details.
+- `/families/{id}/seed` now reports the average kimura divergence of the
+  alignment if available.
+- `/families` and `/families/{id}/relationships` have a new filter:
+  `include_raw`
+- `/families/{id}/relationships` has a new filter: `include`
+### Changed
+- Some fields will be filled in with an accession where a "name" is usually
+  specified, if the "name" is not available. This is done when the field is
+  intended to be human-readable.
+
 ## 0.3.5 - 2020-03-05
 ### Fixed
 - "Method not allowed" errors respond with a 405 error instead of 500
