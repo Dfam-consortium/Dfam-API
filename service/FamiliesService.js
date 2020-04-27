@@ -830,7 +830,7 @@ exports.readFamilySeed = async function(id,format) {
     });
 
     let graphData = {};
-    if (seedAlignData) {
+    if (seedAlignData && seedAlignData.graph_json && seedAlignData.graph_json.length > 0) {
       graphData = JSON.parse(await promisify(zlib.gunzip)(seedAlignData.graph_json));
     } else {
       winston.warn(`Family with accession ${id} has no seed alignment graph data.`);
