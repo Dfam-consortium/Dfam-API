@@ -614,6 +614,22 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+  /taxa/coverage:
+    x-swagger-router-controller: Taxa
+    get:
+      description: Get statistics on Dfam's coverage of species.
+      tags:
+        - taxa
+      operationId: readCoverage
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/taxaCoverageResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   '/taxa/{id}':
     x-swagger-router-controller: Taxa
     get:
@@ -871,6 +887,12 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/taxonResponse'
+  taxaCoverageResponse:
+    required:
+      - count
+    properties:
+      count:
+        type: number
   classesResponse:
     required:
       - name

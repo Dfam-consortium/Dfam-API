@@ -50,6 +50,19 @@ exports.readTaxa = function(name,limit,annotated) {
 };
 
 /**
+ * Get statistics on Dfam's coverage of species.
+ *
+ * returns taxaCoverageResponse
+ **/
+exports.readCoverage = function() {
+  const query = "SELECT COUNT(DISTINCT dfam_taxdb_tax_id) AS count FROM family_clade WHERE (SELECT COUNT(*) FROM ncbi_taxdb_nodes WHERE parent_id = dfam_taxdb_tax_id) = 0";
+  return conn.query(query, { type: "SELECT" }).then(function(rows) {
+    return { "count": rows[0].count };
+  });
+};
+
+
+/**
  * Retrieve information about a single taxon by ID.
  *
  * id Integer Taxa ID to look up
