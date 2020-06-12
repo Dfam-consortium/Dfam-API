@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `/families` and `/families/{id}/relationships` have a new filter:
   `include_raw`
 - `/families/{id}/relationships` has a new filter: `include`
+- `/taxa/coverage`: New endpoint, reporting a count of leaf species which
+  have Dfam entries assigned to them.
 ### Changed
 - Some fields will be filled in with an accession where a "name" is usually
   specified, if the "name" is not available. This is done when the field is
