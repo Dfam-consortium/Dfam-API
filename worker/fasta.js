@@ -17,9 +17,14 @@ module.exports = async function fasta_command(output) {
 };
 
 function exportFasta(family) {
-  var fastaStr = "";
+  var fastaStr = ">";
 
-  fastaStr += `>${family.accessionAndVersion} ${family.name}\n`;
+  fastaStr += family.accessionAndVersion;
+  if (family.name) {
+    fastaStr += " ";
+    fastaStr += family.name;
+  }
+  fastaStr += "\n";
 
   const seq = family.consensus.toLowerCase();
 
