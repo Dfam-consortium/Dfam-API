@@ -806,6 +806,18 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
   all_overlaps.sort((a, b) => a.evalue - b.evalue);
   all_overlaps.splice(300);
 
+  // TODO: The stored coverage values are incorrect as of Dfam 3.2. This
+  // recalculation can be removed in a future release.
+  all_overlaps.forEach(seg => {
+    let match_count = 0;
+    for (let i = 0; i < seg.cigar.length; i++) {
+      if (seg.cigar[i] === "M") {
+        match_count += 1;
+      }
+    }
+    seg.coverage = match_count / seg.auto_overlap.model.length;
+  });
+
   return all_overlaps;
 };
 
