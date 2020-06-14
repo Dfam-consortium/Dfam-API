@@ -797,6 +797,15 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
     }));
   });
 
+  // Large numbers of hits quickly become cumbersome in all aspects
+  // (serialization/deserialization, display, usability). Until we have more
+  // useful pre- and post-filters in place, we return only the most significant
+  // hits (by e-value).
+  //
+  // TODO: Allow for other sort options in the query and/or a "limit" parameter.
+  all_overlaps.sort((a, b) => a.evalue - b.evalue);
+  all_overlaps.splice(300);
+
   return all_overlaps;
 };
 

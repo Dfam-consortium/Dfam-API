@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Some fields will be filled in with an accession where a "name" is usually
   specified, if the "name" is not available. This is done when the field is
   intended to be human-readable.
+- Results for the `/families/{id}/relationship` endpoint are now limited to 300.
 
 ## 0.3.5 - 2020-03-05
 ### Fixed
