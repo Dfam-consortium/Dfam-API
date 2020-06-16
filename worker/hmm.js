@@ -60,7 +60,7 @@ function annotateHmm(family, hmm) {
   for (var i = 0; i < lines.length; i++) {
     if (lines[i].indexOf("HMMER3") !== -1) {
       result.push(lines[i]);
-      add_header("NAME", family.name);
+      add_header("NAME", family.name || family.accession);
       add_header("ACC", family.accessionAndVersion);
       add_header("DESC", family.title);
     } else if (lines[i].indexOf("NAME") !== -1 ||
