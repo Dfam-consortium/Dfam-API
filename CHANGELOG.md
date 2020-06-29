@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## 0.3.6 - 2020-06-29
 ### Added
 - `/families` (only in the "full" format) and `/families/{id}` include three new
   fields: `source_method`, `source_method_description`, and `source_assembly`.
