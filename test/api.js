@@ -121,7 +121,7 @@ test('search families with consensi', async t => {
 test('search raw families', async t => {
   const without_raw = await get_body('/families?name_accession=DR0000000');
   t.is(without_raw.total_count, 0);
-  const with_raw = await get_body('/families?name_accession=DR0000000&include_raw=true');
+  const with_raw = await get_body('/families?name_accession=DR0006958&include_raw=true');
   t.is(with_raw.total_count, 1);
 });
 
@@ -239,7 +239,7 @@ test.todo('perform search');
 // Taxa Service
 test('get taxa', async t => {
   const body = await get_body('/taxa?name=Drosophila');
-  t.true(body.taxa[0].name == 'Drosophila <basidiomycete fungus>');
+  t.true(body.taxa[0].name == 'Drosophila <basidiomycetes>');
 });
 
 test('get one taxon', async t => {
