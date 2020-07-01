@@ -55,7 +55,7 @@ exports.readTaxa = function(name,limit,annotated) {
  * returns taxaCoverageResponse
  **/
 exports.readCoverage = function() {
-  const query = "SELECT COUNT(DISTINCT dfam_taxdb_tax_id) AS count FROM family_clade WHERE (SELECT COUNT(*) FROM ncbi_taxdb_nodes WHERE parent_id = dfam_taxdb_tax_id) = 0";
+  const query = "SELECT COUNT(DISTINCT dfam_taxdb_tax_id) AS count FROM family_clade JOIN ncbi_taxdb_nodes ON ncbi_taxdb_nodes.tax_id = dfam_taxdb_tax_id WHERE ncbi_taxdb_nodes.rank IN ('species', 'subspecies')";
   return conn.query(query, { type: "SELECT" }).then(function(rows) {
     return { "count": rows[0].count };
   });
