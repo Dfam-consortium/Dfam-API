@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.3.7 - 2020-07-01
+### Fixed
+- Fixed calculation of species on `/taxa/coverage` endpoint.
+
 ## 0.3.6 - 2020-06-29
 ### Added
 - `/families` (only in the "full" format) and `/families/{id}` include three new
