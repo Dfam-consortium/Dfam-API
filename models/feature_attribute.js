@@ -17,7 +17,7 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true
     },
     value: {
-      type: DataTypes.STRING(45),
+      type: DataTypes.STRING(256),
       allowNull: true
     }
   }, {

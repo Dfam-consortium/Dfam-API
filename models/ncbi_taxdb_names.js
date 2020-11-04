@@ -8,22 +8,22 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true
     },
     name_txt: {
-      type: DataTypes.STRING(128),
+      type: DataTypes.STRING(256),
       allowNull: false,
       primaryKey: true
     },
     unique_name: {
-      type: DataTypes.STRING(128),
+      type: DataTypes.STRING(256),
       allowNull: false,
       primaryKey: true
     },
     name_class: {
-      type: DataTypes.STRING(128),
+      type: DataTypes.STRING(256),
       allowNull: false,
       primaryKey: true
     },
     sanitized_name: {
-      type: DataTypes.STRING(128),
+      type: DataTypes.STRING(256),
       allowNull: true
     }
   }, {
