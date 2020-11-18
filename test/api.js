@@ -94,7 +94,7 @@ test('search classifications', async t => {
   const body = await get_body('/classes?name=SINE');
   const cls = body.find(c => c.name == 'SINE');
   t.is(cls.repeatmasker_type, 'SINE');
-  t.is(cls.full_name, 'root;Interspersed_Repeat;Transposable_Element;Retrotransposed_Element;LINE-dependent_Retroposon;SINE');
+  t.is(cls.full_name, 'root;Interspersed_Repeat;Transposable_Element;Class_I_Retrotransposition;LINE-dependent_Retroposon;SINE');
 });
 
 // FamiliesService
