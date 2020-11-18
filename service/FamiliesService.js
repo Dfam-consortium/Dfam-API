@@ -539,14 +539,19 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     query.where.push({ accession: { [Sequelize.Op.like]: "DF%" } });
   }
 
-  // TODO: Implement more complex sort keys
-  const sortKeys = [ "accession", "name", "length", "type", "subtype", "date_created", "date_modified" ];
+  const simpleSortKeys = [ "accession", "name", "length", "date_created", "date_modified" ];
 
   if (sort) {
     sort.split(",").forEach(function(term) {
       const match = /(\S+):(asc|desc)/.exec(term);
-      if (match && sortKeys.find(sk => sk == match[1])) {
-        query.order.push([match[1], match[2]]);
+      if (match) {
+        if (simpleSortKeys.includes(match[1])) {
+          query.order.push([match[1], match[2]]);
+        } else if (match[1] == "type") {
+          query.order.push(["classification", "rm_type", "name", match[2]]);
+        } else if (match[1] == "subtype") {
+          query.order.push(["classification", "rm_subtype", "name", match[2]]);
+        }
       }
     });
   }

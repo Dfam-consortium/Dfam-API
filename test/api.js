@@ -125,6 +125,14 @@ test('search raw families', async t => {
   t.is(with_raw.total_count, 1);
 });
 
+test('search families sorted by subtype', async t => {
+  const body = await get_body('/families?clade=9606&sort=subtype:asc');
+  t.deepEqual(
+    body.results.map(r => r.repeat_subtype_name),
+    ["Alu", "Alu", "Alu", "ERV1", "ERV1", "ERVK", "SVA", "SVA"],
+  );
+});
+
 test('download families', async t => {
   const body_fa = await get_text('/families?clade=9263&format=fasta');
   t.is(body_fa.match(/^>/gm).length, 6);

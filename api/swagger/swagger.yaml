@@ -105,7 +105,7 @@ paths:
           type: string
         - name: sort
           in: query
-          description: A string containing sort columns, for example "name:asc,length:desc". Sorting by any of "accession", "name", "length", and "type", "subtype", "date_created", and "date_modified" are supported. If unspecified, "accession:asc" will be used.
+          description: A string containing sort columns, for example "name:asc,length:desc". Sorting by any of "accession", "name", "length", "type", "subtype", "date_created", and "date_modified" are supported. If unspecified, "accession:asc" will be used.
           required: false
           type: string
         - name: name
