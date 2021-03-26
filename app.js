@@ -44,7 +44,7 @@ module.exports = function() {
 
   // The Swagger document (require it, build it programmatically, fetch it from a URL, ...)
   var spec = fs.readFileSync(path.join(__dirname,'api/swagger/swagger.yaml'), 'utf8');
-  var swaggerDoc = jsyaml.safeLoad(spec);
+  var swaggerDoc = jsyaml.load(spec);
 
   // Initialize the Swagger middleware
   swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
