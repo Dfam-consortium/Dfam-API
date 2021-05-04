@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+### Fixed
+- FASTA sequences submitted for sequence search with blank sequence names (i.e.
+  ">\nACGT") are assumed to have the name "Input", "Input_1", etc., instead of
+  failing to return any results.
+
 ## 0.3.7 - 2020-07-01
 ### Fixed
 - Fixed calculation of species on `/taxa/coverage` endpoint.

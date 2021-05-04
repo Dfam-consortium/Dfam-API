@@ -305,6 +305,9 @@ function sanitizeFASTAInput(sequence) {
 
       // Add first of _1, _2, etc. that makes the recID unambiguous
       recID = matches[1];
+      if (recID === "") {
+        recID = "Input";
+      }
       var inc = 1;
       while (used_IDs.indexOf(recID) !== -1) {
         recID = matches[1] + "_" + inc;
@@ -331,6 +334,22 @@ function sanitizeFASTAInput(sequence) {
   newSequence = newSequence + ">" + recID + "\n" + recSeq + "\n";
   return newSequence;
 }
+
+// TODO: integrate these cases into the main test suite
+// function testInOut(label, input, expected) {
+//   const actual = sanitizeFASTAInput(input);
+//   if (actual === expected) {
+//     console.log(label, "ok");
+//   } else {
+//     console.log(label, "failed");
+//     console.log("Found: <\n" + actual + "\n>\n" + "Expected: <\n" + expected + "\n>");
+//   }
+// }
+//
+// testInOut("had no header", "AAAA", ">Input\nAAAA\n");
+// testInOut("had blank header", ">\nAAAA", ">Input\nAAAA\n");
+// testInOut("preserved existing header", ">b\nAAAA", ">b\nAAAA\n");
+// TODO: test for fail on any invalid DNA nucleotide
 
 // Parse dfamscan.pl generated output from a user-supplied sequence
 // search.
