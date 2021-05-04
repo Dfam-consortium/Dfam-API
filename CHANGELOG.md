@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - FASTA sequences submitted for sequence search with blank sequence names (i.e.
   ">\nACGT") are assumed to have the name "Input", "Input_1", etc., instead of
   failing to return any results.
+- "Annotations" search results that overlapped the requested range but did not
+  completely fit inside it were not included if they were on the '-' strand.
 
 ## 0.3.7 - 2020-07-01
 ### Fixed

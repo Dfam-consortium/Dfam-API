@@ -20,6 +20,12 @@ const mapFields = require("../utils/mapFields.js");
  * no response value expected for this operation
  **/
 exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
+  if (start > end) {
+    const swap = start;
+    start = end;
+    end = swap;
+  }
+
   if (Math.abs(end-start) > 1000000) {
     return Promise.resolve(new APIResponse(
       { message: "Requested range is too long." },
@@ -50,12 +56,13 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
         },
       },
       where: {
-        // NB: These ranges look funny, but are correct. This is the logical equivalent to
-        // !((hit_start > range_end) || (hit_end < range_start)), which excludes
-        // any hits that end before the start of the range or start after the end of the range
-        seq_start: { [Op.lte]: end },
-        seq_end: { [Op.gte]: start },
-      }
+        // We want to find all annotations where either the start or end point
+        // is in between the 'start' and 'end' of the window.
+        [Op.or]: [
+          { seq_start: { [Op.between]: [start, end] } },
+          { seq_end: { [Op.between]: [start, end] } },
+        ],
+      },
     };
 
     const query_trf = {
@@ -70,8 +77,10 @@ exports.readAnnotations = function(assembly,chrom,start,end,family,nrph) {
         },
       },
       where: {
-        seq_start: { [Op.lte]: end },
-        seq_end: { [Op.gte]: start },
+        [Op.or]: [
+          { seq_start: { [Op.between]: [start, end] } },
+          { seq_end: { [Op.between]: [start, end] } },
+        ],
       }
     };
 
