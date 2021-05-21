@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   failing to return any results.
 - "Annotations" search results that overlapped the requested range but did not
   completely fit inside it were not included if they were on the '-' strand.
+### Added
+- `/families/{id}/annotation_stats`: New endpoint, providing the data from
+  two endpoints in one query: `/families/{id}/assemblies` and
+  `/families/{id}/assemblies/{assembly_id}/annotation_stats`.
 
 ## 0.3.7 - 2020-07-01
 ### Fixed

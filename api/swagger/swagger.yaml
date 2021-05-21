@@ -381,6 +381,28 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/ErrorResponse'
+  '/families/{id}/annotation_stats':
+    x-swagger-router-controller: FamilyAssemblies
+    parameters:
+      - name: id
+        in: path
+        description: The Dfam family accession.
+        required: true
+        type: string
+    get:
+      description: Retrieve a family's annotation statistics for all assemblies it is annotated in.
+      tags:
+        - familyAssemblies
+      operationId: readFamilyAnnotationStats
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/familyAnnotationStatsResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
   '/families/{id}/assemblies/{assembly_id}/model_coverage':
     x-swagger-router-controller: FamilyAssemblies
     parameters:
@@ -1290,6 +1312,50 @@ definitions:
         hmm_fdr:
           type: number
           description: The false discovery rate of searching for the family in this assembly.
+  familyAnnotationStatsResponse:
+    type: array
+    items:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: Assembly identifier, used in API parameters and responses.
+        name:
+          type: string
+          description: The scientific name of the organism this assembly corresponds to.
+        hmm_hit_ga:
+          type: number
+          description: The Gathering Threshold used when searching for the family in this assembly.
+        hmm_hit_tc:
+          type: number
+          description: The Trusted Cutoff used when searching for the family in this assembly.
+        hmm_fdr:
+          type: number
+          description: The false discovery rate of searching for the family in this assembly.
+        stats:
+          type: object
+          properties:
+            hmm:
+              type: object
+              properties:
+                divergence:
+                  type: number
+                  description: Kimura average divergence, calculated on non-redundant profile hits above the gathering threshold.
+                gathering_nonredundant:
+                  type: integer
+                  description: Number of non-redundant profile hits above the gathering threshold.
+                gathering_all:
+                  type: integer
+                  description: Total number of hits above the gathering threshold, including redundant hits.
+                trusted_nonredundant:
+                  type: integer
+                  description: Number of non-redundant profile hits above the trusted cutoff.
+                trusted_all:
+                  type: integer
+                  description: Total number of hits above the trusted cutoff, including redundant hits.
   familyAssemblyAnnotationStatsResponse:
     properties:
       hmm:

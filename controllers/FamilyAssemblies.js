@@ -14,6 +14,17 @@ module.exports.readFamilyAssemblies = function readFamilyAssemblies (req, res, n
     });
 };
 
+module.exports.readFamilyAnnotationStats = function readFamilyAnnotationStats (req, res, next) {
+  var id = req.swagger.params['id'].value;
+  FamilyAssemblies.readFamilyAnnotationStats(id)
+    .then(function (response) {
+      return new APIResponse(response).respond(req, res);
+    })
+    .catch(function (err) {
+      next(err);
+    });
+};
+
 module.exports.readFamilyAssemblyAnnotationStats = function readFamilyAssemblyAnnotationStats (req, res, next) {
   var id = req.swagger.params['id'].value;
   var assembly_id = req.swagger.params['assembly_id'].value;

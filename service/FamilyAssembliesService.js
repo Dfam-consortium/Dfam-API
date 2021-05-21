@@ -32,6 +32,65 @@ exports.readFamilyAssemblies = function(id) {
 };
 
 
+function familyAssemblyStatsObject(family_assembly) {
+  let obj = { };
+
+  if (family_assembly.hmm_GA_nrph_hit_count !== null) {
+    obj.hmm = {
+      avg_hit_length: family_assembly.hmm_avg_hit_length,
+      gathering_nonredundant: family_assembly.hmm_GA_nrph_hit_count,
+      gathering_all: family_assembly.hmm_GA_hit_count,
+      gathering_divergence: family_assembly.hmm_genome_avg_kimura_div_GA,
+      trusted_nonredundant: family_assembly.hmm_TC_nrph_hit_count,
+      trusted_all: family_assembly.hmm_TC_hit_count,
+      trusted_divergence: family_assembly.hmm_genome_avg_kimura_div_TC,
+    };
+  }
+
+  if (family_assembly.cons_GA_nrph_hit_count !== null) {
+    obj.cons = {
+      avg_hit_length: family_assembly.cons_avg_hit_length,
+      gathering_nonredundant: family_assembly.cons_GA_nrph_hit_count,
+      gathering_all: family_assembly.cons_GA_hit_count,
+      gathering_divergence: family_assembly.cons_genome_avg_kimura_div_GA,
+      trusted_nonredundant: family_assembly.cons_TC_nrph_hit_count,
+      trusted_all: family_assembly.cons_TC_hit_count,
+      trusted_divergence: family_assembly.cons_genome_avg_kimura_div_TC,
+    };
+  }
+
+  return obj;
+}
+
+
+/**
+ * Retrieve a family's annotation statistics for all assemblies it is annotated in.
+ *
+ * id String The Dfam family accession.
+ * returns familyAnnotationStatsResponse
+ **/
+exports.readFamilyAnnotationStats = async function(id,assembly_id) {
+  return dfam.familyAssemblyDataModel.findAll({
+    include: [
+      { model: dfam.familyModel, where: { 'accession': id }, attributes: [] },
+      { model: dfam.assemblyModel, include: [ dfam.dfamTaxdbModel ], attributes: ["name"] },
+    ],
+  }).then(function(data) {
+    return data.map(function(family_assembly) {
+      return {
+        id: family_assembly.assembly.name,
+        name: family_assembly.assembly.dfam_taxdb.scientific_name,
+        hmm_hit_ga: family_assembly.hmm_hit_GA,
+        hmm_hit_tc: family_assembly.hmm_hit_TC,
+        hmm_fdr: family_assembly.hmm_fdr,
+        stats: familyAssemblyStatsObject(family_assembly),
+      };
+    });
+  });
+};
+
+
+
 /**
  * Retrieve a family's annotation statistics for a given assembly
  *
@@ -50,33 +109,7 @@ exports.readFamilyAssemblyAnnotationStats = function(id,assembly_id) {
       return null;
     }
 
-    let obj = { };
-
-    if (family_assembly.hmm_GA_nrph_hit_count !== null) {
-      obj.hmm = {
-        avg_hit_length: family_assembly.hmm_avg_hit_length,
-        gathering_nonredundant: family_assembly.hmm_GA_nrph_hit_count,
-        gathering_all: family_assembly.hmm_GA_hit_count,
-        gathering_divergence: family_assembly.hmm_genome_avg_kimura_div_GA,
-        trusted_nonredundant: family_assembly.hmm_TC_nrph_hit_count,
-        trusted_all: family_assembly.hmm_TC_hit_count,
-        trusted_divergence: family_assembly.hmm_genome_avg_kimura_div_TC,
-      };
-    }
-
-    if (family_assembly.cons_GA_nrph_hit_count !== null) {
-      obj.cons = {
-        avg_hit_length: family_assembly.cons_avg_hit_length,
-        gathering_nonredundant: family_assembly.cons_GA_nrph_hit_count,
-        gathering_all: family_assembly.cons_GA_hit_count,
-        gathering_divergence: family_assembly.cons_genome_avg_kimura_div_GA,
-        trusted_nonredundant: family_assembly.cons_TC_nrph_hit_count,
-        trusted_all: family_assembly.cons_TC_hit_count,
-        trusted_divergence: family_assembly.cons_genome_avg_kimura_div_TC,
-      };
-    }
-
-    return obj;
+    return familyAssemblyStatsObject(family_assembly);
   });
 };
 
