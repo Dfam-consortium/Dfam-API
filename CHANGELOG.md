@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 ### Fixed
+- Fixed sorting by "type" or "subtype" fields in `/families`
 - FASTA sequences submitted for sequence search with blank sequence names (i.e.
   ">\nACGT") are assumed to have the name "Input", "Input_1", etc., instead of
   failing to return any results.
