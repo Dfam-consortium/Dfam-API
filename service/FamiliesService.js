@@ -798,6 +798,21 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
         target: target_info,
       };
 
+      if (seg.strand === '-') {
+        // HACK: In Dfam 3.4, a bug in familyRelationships stored some swapped start/end coordinates
+        // for reverse-strand overlaps. For reverse strand, model coordinates are always in the
+        // forward orientation and target coordinates are always in the backwards orientation, so
+        // they can be corrected here.
+        if (seg.model_start > seg.model_end) {
+          seg.model_start = overlap_segment.family1_end;
+          seg.model_end = overlap_segment.family1_start;
+        }
+        if (seg.target_start < seg.target_end) {
+          seg.target_start = overlap_segment.family2_end;
+          seg.target_end = overlap_segment.family2_start;
+        }
+      }
+
       return seg;
     }));
   });
