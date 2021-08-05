@@ -18,7 +18,6 @@ exports.getDfamModels = function(conn) {
   models.ncbiTaxdbNodesModel = require("./models/ncbi_taxdb_nodes.js")(conn, Sequelize);
   models.hmmModelDataModel = require("./models/hmm_model_data.js")(conn, Sequelize);
   models.seedAlignDataModel = require("./models/seed_align_data.js")(conn, Sequelize);
-  models.familyOverlapModel = require("./models/family_overlap.js")(conn, Sequelize);
   models.overlapSegmentModel = require("./models/overlap_segment.js")(conn, Sequelize);
   models.curationStateModel = require("./models/curation_state.js")(conn, Sequelize);
   models.familyFeatureModel = require("./models/family_feature.js")(conn, Sequelize);
@@ -60,9 +59,8 @@ exports.getDfamModels = function(conn) {
 
   models.hmmModelDataModel.belongsTo(models.familyModel, { foreignKey: 'family_id' });
 
-  models.familyOverlapModel.belongsTo(models.familyModel, { foreignKey: 'family1_id', as: 'family1' });
-  models.familyOverlapModel.belongsTo(models.familyModel, { foreignKey: 'family2_id', as: 'family2' });
-  models.familyOverlapModel.hasMany(models.overlapSegmentModel, { foreignKey: 'family_overlap_id' });
+  models.overlapSegmentModel.belongsTo(models.familyModel, { foreignKey: 'family1_id', as: 'family1' });
+  models.overlapSegmentModel.belongsTo(models.familyModel, { foreignKey: 'family2_id', as: 'family2' });
 
   models.familyAssemblyDataModel.belongsTo(models.familyModel, { foreignKey: 'family_id' });
   models.familyAssemblyDataModel.belongsTo(models.assemblyModel, { foreignKey: 'assembly_id' });

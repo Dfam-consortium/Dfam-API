@@ -11,7 +11,6 @@ const APIResponse = require('../utils/response').APIResponse;
 const promisify = require('util').promisify;
 const winston = require('winston');
 
-const conn = require("../databases.js").dfam;
 const dfam = require("../databases").dfam_models;
 const dfam_user = require('../databases').dfam_user_models;
 
@@ -719,7 +718,6 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
         model: dfam.familyModel, as: 'family1', attributes: ["name", "accession", "length"],
         where: { 'accession': id },
       },
-      dfam.overlapSegmentModel,
     ],
     subQuery: false,
   };
@@ -761,10 +759,9 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
   }
 
   // Finally, run the query
-  const overlaps = await dfam.familyOverlapModel.findAll(query);
-  var all_overlaps = [];
+  const overlap_segments = await dfam.overlapSegmentModel.findAll(query);
 
-  overlaps.forEach(function(overlap) {
+  const all_overlaps = overlap_segments.map(function(overlap) {
     const family_map = {
       "name": "id",
       "accession": "accession",
@@ -779,42 +776,25 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
       target_info.id = overlap.family2.accession;
     }
 
-    all_overlaps = all_overlaps.concat(overlap.overlap_segments.map(function(overlap_segment) {
-      const seg = mapFields(overlap_segment, {}, {
-        "strand": "strand",
-        "evalue": "evalue",
-        "identity": "identity",
-        "coverage": "coverage",
-        "cigar": "cigar",
+    const seg = mapFields(overlap, {}, {
+      "strand": "strand",
+      "evalue": "evalue",
+      "identity": "identity",
+      "coverage": "coverage",
+      "cigar": "cigar",
 
-        "family1_start": "model_start",
-        "family2_start": "target_start",
-        "family1_end": "model_end",
-        "family2_end": "target_end",
-      });
+      "family1_start": "model_start",
+      "family2_start": "target_start",
+      "family1_end": "model_end",
+      "family2_end": "target_end",
+    });
 
-      seg.auto_overlap = {
-        model: model_info,
-        target: target_info,
-      };
+    seg.auto_overlap = {
+      model: model_info,
+      target: target_info,
+    };
 
-      if (seg.strand === '-') {
-        // HACK: In Dfam 3.4, a bug in familyRelationships stored some swapped start/end coordinates
-        // for reverse-strand overlaps. For reverse strand, model coordinates are always in the
-        // forward orientation and target coordinates are always in the backwards orientation, so
-        // they can be corrected here.
-        if (seg.model_start > seg.model_end) {
-          seg.model_start = overlap_segment.family1_end;
-          seg.model_end = overlap_segment.family1_start;
-        }
-        if (seg.target_start < seg.target_end) {
-          seg.target_start = overlap_segment.family2_end;
-          seg.target_end = overlap_segment.family2_start;
-        }
-      }
-
-      return seg;
-    }));
+    return seg;
   });
 
   // Large numbers of hits quickly become cumbersome in all aspects
@@ -825,18 +805,6 @@ exports.readFamilyRelationships = async function(id, include, include_raw) {
   // TODO: Allow for other sort options in the query and/or a "limit" parameter.
   all_overlaps.sort((a, b) => a.evalue - b.evalue);
   all_overlaps.splice(300);
-
-  // TODO: The stored coverage values are incorrect as of Dfam 3.2. This
-  // recalculation can be removed in a future release.
-  all_overlaps.forEach(seg => {
-    let match_count = 0;
-    for (let i = 0; i < seg.cigar.length; i++) {
-      if (seg.cigar[i] === "M") {
-        match_count += 1;
-      }
-    }
-    seg.coverage = match_count / seg.auto_overlap.model.length;
-  });
 
   return all_overlaps;
 };

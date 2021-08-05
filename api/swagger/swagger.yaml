@@ -1247,7 +1247,7 @@ definitions:
           description: Percentage shared coverage of the two families.
         cigar:
           type: string
-          description: Alignment between the two families, expressed as a sequence of "M", "I", and "D" characters. Not actually a CIGAR alignment, but derived from that format.
+          description: Alignment between the two families, expressed as a sequence of counts paired with the characters "M", "I", and "D" representing a match/insertion/deletion in the alignment.
         model_start:
           type: integer
           description: Start position of the overlap region in the first family (one-based).

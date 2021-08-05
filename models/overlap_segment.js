@@ -2,12 +2,21 @@
 
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('overlap_segment', {
-    family_overlap_id: {
+    family1_id: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
       references: {
-        model: 'family_overlap',
+        model: 'family',
+        key: 'id'
+      }
+    },
+    family2_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'family',
         key: 'id'
       }
     },
