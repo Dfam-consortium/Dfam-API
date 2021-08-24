@@ -1,13 +1,14 @@
-/* jshint indent: 2 */
-
+const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('next_accession', {
     next_acc_id: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.BIGINT.UNSIGNED,
       allowNull: false,
-      defaultValue: '0'
+      defaultValue: 0
     }
   }, {
-    tableName: 'next_accession'
+    sequelize,
+    tableName: 'next_accession',
+    timestamps: false
   });
 };

@@ -24,6 +24,6 @@ pattern is better (note the `catch` callback):
 Auto-generate initial Sequelize models:
 
 mkdir models
-sequelize-auto -o "./models" -d dfam_dev -h localhost -u <user> -x <pass> -e mysql
+../node_modules/.bin/sequelize-auto -o "./models" -d dfam_dev -h localhost -u <user> -x <pass> -e mysql
 mkdir models/auth
-sequelize-auto -o "./models/auth" -d dfam_users_dev -h localhost -u <user> -x <pass> -e mysql
+../node_modules/.bin/sequelize-auto -o "./models/auth" -d dfam_users_dev -h localhost -u <user> -x <pass> -e mysql

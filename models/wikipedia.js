@@ -1,12 +1,11 @@
-/* jshint indent: 2 */
-
+const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('wikipedia', {
     auto_wiki: {
-      type: DataTypes.INTEGER(10).UNSIGNED,
+      autoIncrement: true,
+      type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
-      primaryKey: true,
-      autoIncrement: true
+      primaryKey: true
     },
     title: {
       type: DataTypes.TEXT,
@@ -17,6 +16,25 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
-    tableName: 'wikipedia'
+    sequelize,
+    tableName: 'wikipedia',
+    timestamps: false,
+    indexes: [
+      {
+        name: "PRIMARY",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "auto_wiki" },
+        ]
+      },
+      {
+        name: "UQ_wikipedia_1",
+        using: "BTREE",
+        fields: [
+          { name: "title", length: 100 },
+        ]
+      },
+    ]
   });
 };

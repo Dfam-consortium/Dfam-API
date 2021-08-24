@@ -1,23 +1,53 @@
-/* jshint indent: 2 */
-
+const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('repeatmasker_stage', {
     id: {
-      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      type: DataTypes.BIGINT.UNSIGNED,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true
+      comment: "Surrogate identifier - auto indexed"
     },
     name: {
       type: DataTypes.STRING(25),
       allowNull: false,
-      unique: true
+      comment: "Repeatmasker stage name",
+      unique: "name_UNIQUE"
     },
     description: {
       type: DataTypes.STRING(128),
-      allowNull: false
+      allowNull: false,
+      comment: "Short description of a RepeatMasker stage"
     }
   }, {
-    tableName: 'repeatmasker_stage'
+    sequelize,
+    tableName: 'repeatmasker_stage',
+    timestamps: false,
+    indexes: [
+      {
+        name: "PRIMARY",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "id" },
+        ]
+      },
+      {
+        name: "name_UNIQUE",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "name" },
+        ]
+      },
+      {
+        name: "id_UNIQUE",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "id" },
+        ]
+      },
+    ]
   });
 };

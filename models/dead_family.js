@@ -1,5 +1,4 @@
-/* jshint indent: 2 */
-
+const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('dead_family', {
     accession: {
@@ -16,7 +15,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     user: {
-      type: DataTypes.INTEGER(11),
+      type: DataTypes.INTEGER,
       allowNull: true
     },
     deleted: {
@@ -24,6 +23,18 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     }
   }, {
-    tableName: 'dead_family'
+    sequelize,
+    tableName: 'dead_family',
+    timestamps: false,
+    indexes: [
+      {
+        name: "PRIMARY",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "accession" },
+        ]
+      },
+    ]
   });
 };
