@@ -1,3 +1,4 @@
+const path = require('path');
 const process = require('process');
 const fs = require('fs');
 
@@ -9,6 +10,9 @@ let outputStream = process.stdout;
 if (process.env.DFAM_WORKER_FD) {
   outputStream = fs.createWriteStream(null, { fd: parseInt(process.env.DFAM_WORKER_FD) });
 }
+
+// The 'worker' has to be launched relative to this file.
+global.dfam_app_root = path.dirname(path.resolve(__dirname));
 
 const winston = require('winston');
 const format = winston.format;

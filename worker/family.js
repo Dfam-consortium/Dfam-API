@@ -2,7 +2,6 @@ const Sequelize = require("sequelize");
 const conn = require("../databases.js").dfam;
 
 const familyModel = require("../models/family.js")(conn, Sequelize);
-const seedRegionModel = require("../models/seed_region.js")(conn, Sequelize);
 const aliasModel = require("../models/family_database_alias.js")(conn, Sequelize);
 const classificationModel = require("../models/classification.js")(conn, Sequelize);
 const rmTypeModel = require("../models/repeatmasker_type.js")(conn, Sequelize);
@@ -17,10 +16,7 @@ const familyAssemblyDataModel = require("../models/family_assembly_data.js")(con
 const assemblyModel = require("../models/assembly.js")(conn, Sequelize);
 const codingSequenceModel = require("../models/coding_sequence.js")(conn, Sequelize);
 
-seedRegionModel.removeAttribute('id');
-
 familyModel.hasMany(aliasModel, { foreignKey: 'family_id', as: 'aliases' });
-familyModel.hasMany(seedRegionModel, { foreignKey: 'family_id' });
 familyModel.belongsTo(curationStateModel, { foreignKey: 'curation_state_id', as: 'curation_state' });
 familyModel.belongsTo(classificationModel, { foreignKey: 'classification_id', as: 'classification' });
 familyModel.belongsToMany(rmStageModel, { as: 'search_stages', through: 'family_has_search_stage', foreignKey: 'family_id', otherKey: 'repeatmasker_stage_id' });

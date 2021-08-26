@@ -17,8 +17,8 @@ function check(obj, name) {
 }
 
 [
-  "hmm_logos_dir", "ucsc_utils_bin", "hmmer_bin_dir", "dfam_warehouse_dir",
-  "dfamdequeuer", "apiserver",
+  "hmm_logos_dir", "ucsc_utils_bin", "hmmer_bin_dir", "comsa_bin_dir",
+  "dfam_warehouse_dir", "dfamdequeuer", "apiserver",
 ].forEach(key => check(conf, key));
 
 if (conf.dfamdequeuer) {
