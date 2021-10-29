@@ -14,6 +14,7 @@ const dateFormat = require('dateformat');
 const zlib = require('zlib');
 const config = require('../config');
 const path = require('path');
+const winston = require('winston');
 const APIResponse = require('../utils/response.js').APIResponse;
 
 const AlignmentService = require('./AlignmentService');
@@ -26,145 +27,143 @@ const resultStore = config.dfamdequeuer.result_store;
  * id String A result set ID matching a previous search submission
  * no response value expected for this operation
  **/
-exports.readSearchResults = function(id) {
+exports.readSearchResults = async function(id) {
   // Query the database to get the start time so we can
   // build the data directory path.
-  return dfam_user.searchModel.findOne({
+  const searchRec = await dfam_user.searchModel.findOne({
     include: [ 'job' ],
     where: { '$job.uuid$': id }
-  }).then(function(searchRec) {
-    if (!searchRec) {
-      return null;
-    }
-
-    const jobRec = searchRec.job;
-
-    const response = {
-      submittedAt: jobRec.opened,
-      duration: "Not finished",
-      searchParameters: searchRec.options.split(",").map(s => {
-        if (s.match(/\s/)) {
-          return '"' + s + '"';
-        } else {
-          return s;
-        }
-      }).join(" "),
-    };
-
-    if (jobRec.response_time) {
-      response.duration = jobRec.response_time.toFixed(0) + " seconds";
-    }
-
-    if (jobRec.status === "PEND") {
-      response.status = "PEND";
-
-      return dfam_user.jobModel.count({
-        where: {
-          "status": { [Op.in]: [ "RUNNING", "PEND" ] },
-          "opened": { [Op.lt]: jobRec.opened }
-        },
-      }).then(function(count) {
-        response.message = `Search pending. There are ${count} jobs ahead of this one.`;
-        return response;
-      });
-    } else if (jobRec.status === "RUNNING") {
-      response.status = "RUNNING";
-      response.message = `Search running since ${jobRec.started}.`;
-      return response;
-    } else if (jobRec.status === "ERROR") {
-      response.status = "ERROR";
-      response.message = "Search failed.";
-      return response;
-    } else if (jobRec.status === "DONE") {
-      // handled below
-    } else {
-      response.status = jobRec.status;
-      response.message = "Unknown status.";
-      return response;
-    }
-
-    var startedDate = new Date(searchRec.started);
-    var dataDir = path.join(resultStore, dateFormat(startedDate,"yy/mm/dd/HH/MM/ss"), id, "1");
-
-    const nhmmerResults = promisify(fs.access)(
-      dataDir + "/nhmmer.out",
-      fs.constants.F_OK
-    ).then(function() {
-      return parseNhmmscan(dataDir + "/nhmmer.out");
-    }).catch(function(err) {
-      throw new Error("Error looking for nhmmer.out for id " + id + ": " + err);
-    });
-
-    const trfResults = promisify(fs.access)(
-      dataDir + "/trf.out",
-      fs.constants.F_OK
-    ).then(function() {
-      return parseTRF(dataDir + "/trf.out");
-    }).catch(function(err) {
-      throw new Error("Error looking for trf.out for id " + id + ": " + err);
-    });
-
-    const faSize = path.join(config.ucsc_utils_bin, "faSize");
-    // Use faSize to get Query sizes
-    // e.g.
-    //      Seq1  13283
-    const getQuerySizes = execFileAsync(faSize, [
-      '-detailed',
-      dataDir + '/dfamscan.in'
-    ]).then(function(sizeData) {
-      let lines = sizeData.stdout.split(/\r\n|\n/);
-      let records = {};
-      lines.forEach(function(line) {
-        let flds = line.split(/\s+/);
-        if (flds[0].match(/\S+/)) {
-          records[flds[0]] = flds[1];
-        }
-      });
-      return records;
-    }).catch(function(err) {
-      throw new Error('Error calling faSize on query file: ' + err);
-    });
-
-    // Results:
-    //[
-    //  { "query": "foo", "length": 3838,
-    //    "hits":[{ "ali_end": "597",
-    //                "e_value":"4.8e-12",
-    //                "model_start":"466",
-    //                "query":"L1ME3G_3end",
-    //                "strand":"+",
-    //                "target":"Query",
-    //                "color":"#739025",
-    //                "accession":"DF0000302.4",
-    //                "seq_length":"924"
-    //                "description": "3' end of L1 retrotransposon, L1ME3G_3end subfamily",
-    //                "model_end":"612",
-    //                "bit_score":"46.4",
-    //                "ali_start":"456",
-    //                "bias":"16.6",
-    //                "env_start":"435",
-    //                "env_end":"617"}, ... ],
-    //     "tandem_repeats": [{ "type": "AAGG",
-    //               "period":"4",
-    //               "score":"66",
-    //               "start":"6181",
-    //               "copies":"23.0",
-    //               "end":"6275"}, .. ]
-    //  }, ..
-    //]
-    return Promise.all([nhmmerResults, trfResults, getQuerySizes]).then(function([nhmmer, trf, sizes]) {
-      response.results = Object.keys(sizes).map(function(k) {
-        return {
-          "query": k,
-          "length": sizes[k],
-          "hits": nhmmer[k] || [],
-          "tandem_repeats": trf[k] || [],
-        };
-      });
-
-      return response;
-    });
   });
+
+  if (!searchRec) {
+    return null;
+  }
+
+  const jobRec = searchRec.job;
+
+  const response = {
+    submittedAt: jobRec.opened,
+    duration: "Not finished",
+    searchParameters: searchRec.options.split(",").map(s => {
+      if (s.match(/\s/)) {
+        return '"' + s + '"';
+      } else {
+        return s;
+      }
+    }).join(" "),
+  };
+
+  if (jobRec.response_time) {
+    response.duration = jobRec.response_time.toFixed(0) + " seconds";
+  }
+
+  if (jobRec.status === "PEND") {
+    response.status = "PEND";
+
+    const count = await dfam_user.jobModel.count({
+      where: {
+        "status": { [Op.in]: [ "RUNNING", "PEND" ] },
+        "opened": { [Op.lt]: jobRec.opened }
+      },
+    });
+    response.message = `Search pending. There are ${count} jobs ahead of this one.`;
+    return response;
+  } else if (jobRec.status === "RUNNING") {
+    response.status = "RUNNING";
+    response.message = `Search running since ${jobRec.started}.`;
+    return response;
+  } else if (jobRec.status === "ERROR") {
+    response.status = "ERROR";
+    response.message = "Search failed.";
+    return response;
+  } else if (jobRec.status === "DONE") {
+    // handled below
+  } else {
+    response.status = jobRec.status;
+    response.message = "Unknown status.";
+    return response;
+  }
+
+
+  const FAILURE_MESSAGE = "Failed to retrieve search results. Please try submitting the search again and contact help if the problem continues.";
+
+  var startedDate = new Date(searchRec.started);
+  var dataDir = path.join(resultStore, dateFormat(startedDate,"yy/mm/dd/HH/MM/ss"), id, "1");
+
+  try {
+    await promisify(fs.access)(dataDir + "/nhmmer.out", fs.constants.F_OK);
+    await promisify(fs.access)(dataDir + "/trf.out", fs.constants.F_OK);
+  } catch (err) {
+    winston.error("Missing nhmmer.out or trf.out for id " + id + ": " + err);
+    return new APIResponse({ status: "ERROR", message: FAILURE_MESSAGE });
+  }
+
+  const nhmmerResults = parseNhmmscan(dataDir + "/nhmmer.out");
+  const trfResults = parseTRF(dataDir + "/trf.out");
+
+  const faSize = path.join(config.ucsc_utils_bin, "faSize");
+  // Use faSize to get Query sizes
+  // e.g.
+  //      Seq1  13283
+  const getQuerySizes = execFileAsync(faSize, [
+    '-detailed',
+    dataDir + '/dfamscan.in'
+  ]).then(function(sizeData) {
+    let lines = sizeData.stdout.split(/\r\n|\n/);
+    let records = {};
+    lines.forEach(function(line) {
+      let flds = line.split(/\s+/);
+      if (flds[0].match(/\S+/)) {
+        records[flds[0]] = flds[1];
+      }
+    });
+    return records;
+  }).catch(function(err) {
+    throw new Error('Error calling faSize on query file: ' + err);
+  });
+
+  // Results:
+  //[
+  //  { "query": "foo", "length": 3838,
+  //    "hits":[{ "ali_end": "597",
+  //                "e_value":"4.8e-12",
+  //                "model_start":"466",
+  //                "query":"L1ME3G_3end",
+  //                "strand":"+",
+  //                "target":"Query",
+  //                "color":"#739025",
+  //                "accession":"DF0000302.4",
+  //                "seq_length":"924"
+  //                "description": "3' end of L1 retrotransposon, L1ME3G_3end subfamily",
+  //                "model_end":"612",
+  //                "bit_score":"46.4",
+  //                "ali_start":"456",
+  //                "bias":"16.6",
+  //                "env_start":"435",
+  //                "env_end":"617"}, ... ],
+  //     "tandem_repeats": [{ "type": "AAGG",
+  //               "period":"4",
+  //               "score":"66",
+  //               "start":"6181",
+  //               "copies":"23.0",
+  //               "end":"6275"}, .. ]
+  //  }, ..
+  //]
+  try {
+    const [nhmmer, trf, sizes] = await Promise.all([nhmmerResults, trfResults, getQuerySizes]);
+    response.results = Object.keys(sizes).map(function(k) {
+      return {
+        "query": k,
+        "length": sizes[k],
+        "hits": nhmmer[k] || [],
+        "tandem_repeats": trf[k] || [],
+      };
+    });
+
+    return response;
+  } catch (err) {
+    return new APIResponse({ status: "ERROR", message: FAILURE_MESSAGE });
+  }
 };
 
 /**
