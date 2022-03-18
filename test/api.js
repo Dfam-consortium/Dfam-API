@@ -128,7 +128,7 @@ test('search raw families', async t => {
 test('search families sorted by subtype', async t => {
   const body = await get_body('/families?clade=9606&sort=subtype:asc');
   t.deepEqual(
-    body.results.map(r => r.repeat_subtype_name),
+    body.results.map(r => r.repeat_subtype_name).filter(x => x !== undefined),
     ["Alu", "Alu", "Alu", "ERV1", "ERV1", "ERVK", "SVA", "SVA"],
   );
 });
@@ -258,5 +258,5 @@ test('get one taxon', async t => {
 // Version Service
 test('get version', async t => {
   const body = await get_body('/version');
-  t.deepEqual(body, { major: "0", minor: "3", bugfix: "9" });
+  t.deepEqual(body, { major: "0", minor: "3", bugfix: "10" });
 });
