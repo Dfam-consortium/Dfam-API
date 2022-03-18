@@ -23,14 +23,14 @@
     "dateformat": "^4.5.1",
     "js-yaml": "^4.1.0",
     "md5": "^2.3.0",
-    "mysql2": "^2.2.5",
-    "on-finished": "^2.3.0",
+    "mysql2": "^2.3.3",
+    "on-finished": "^2.4.1",
     "rss-parser": "^3.12.0",
-    "sequelize": "^6.6.2",
+    "sequelize": "^6.17.0",
     "swagger-tools": "^0.10.4",
     "tmp": "^0.2.1",
     "uuid": "^8.3.2",
-    "winston": "^3.3.3",
+    "winston": "^3.6.0",
     "word-wrap": "^1.2.3"
   },
   "devDependencies": {
@@ -39,8 +39,8 @@
     "mysql": "^2.18.1",
     "npm-watch": "^0.11.0",
     "nyc": "^15.1.0",
-    "sequelize-auto": "^0.8.4",
+    "sequelize-auto": "^0.8.8",
     "spectacle-docs": "^1.1.0",
-    "supertest": "^6.1.6"
+    "supertest": "^6.2.2"
   }
 }
