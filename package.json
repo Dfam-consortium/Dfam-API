@@ -1,6 +1,6 @@
 {
   "name": "dfam-api",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "description": "Dfam API server",
   "author": "Jeb Rosen <jeb.rosen@systemsbiology.org>",
   "main": "index.js",
