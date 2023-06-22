@@ -1,0 +1,24 @@
+OpenAPI Generator
+=================
+Website: https://openapi-generator.tech/docs/installation
+
+JAR Installation:
+  wget https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/6.6.0/openapi-generator-cli-6.6.0.jar -O openapi-generator-cli.jar
+
+# Verify version
+java -jar openapi-generator-cli.jar version
+6.6.0
+
+# Validate API YAML file
+java -jar openapi-generator-cli.jar validate -i openapi.yaml
+
+# Generate nodejs express server code 
+#
+#   NOTE: The server is mature at this stage so the use-case for this
+#         code generator is now to generate boilerplate for *new* or
+#         modified API endpoints.  Or to port to newer versions of
+#         the webserver.
+#
+mkdir autogen_code
+java -jar /home/rhubley/src/openapi-generator-cli.jar generate -g nodejs-express-server -i openapi.yaml -o autogen_code
+
