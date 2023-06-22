@@ -404,6 +404,7 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
   }
 
   // TODO: Consider making these configurable in Dfam.conf
+  // TODO: add "count" format that doesn't fill in the summary data and doesn't necessaryily join the classification tables for faster default counts
   const HARD_LIMIT = 5000, HMM_LIMIT = 2000;
   const export_formats = {
     "summary": { metadata: 1, mapper: familyRowsToObjects,      limit: HARD_LIMIT },
