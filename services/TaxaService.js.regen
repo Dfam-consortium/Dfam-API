@@ -1,0 +1,74 @@
+/* eslint-disable no-unused-vars */
+const Service = require('./Service');
+
+/**
+* Retrieve statistics on Dfam's coverage of species.
+* Retrieve statistics on Dfam's coverage of species.
+*
+* returns taxaCoverageResponse
+* */
+const readCoverage = () => new Promise(
+  async (resolve, reject) => {
+    try {
+      resolve(Service.successResponse({
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+/**
+* Query Dfam's copy of the NCBI taxonomy database.
+* Query Dfam's copy of the NCBI taxonomy database.
+*
+* name String Search string for taxonomy name.
+* annotated Boolean Whether only taxa with annotated assemblies should be returned. (optional)
+* limit Integer Only return up to a maximum number of matching taxa. (optional)
+* returns taxaResponse
+* */
+const readTaxa = ({ name, annotated, limit }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      resolve(Service.successResponse({
+        name,
+        annotated,
+        limit,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+/**
+* Retrieve the name of a single taxon by its identifier.
+* Retrieve the name of a single taxon by its identifier.
+*
+* id Integer The identifier of the taxonomy node to retrieve.
+* returns taxonResponse
+* */
+const readTaxaById = ({ id }) => new Promise(
+  async (resolve, reject) => {
+    try {
+      resolve(Service.successResponse({
+        id,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+
+module.exports = {
+  readCoverage,
+  readTaxa,
+  readTaxaById,
+};

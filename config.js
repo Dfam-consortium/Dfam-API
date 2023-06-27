@@ -1,32 +1,31 @@
-const process = require("process");
+const path = require('path');
 const fs = require("fs");
 
-const winston = require("winston");
-
-let conf_file = "../Conf/dfam.conf";
+let conf_file = "../Conf/dfam-rel.conf";
 if (process.env.DFAM_CONF) {
   conf_file = process.env.DFAM_CONF;
 }
-
 const conf = JSON.parse(fs.readFileSync(conf_file));
 
-function check(obj, name) {
-  if (!obj[name]) {
-    winston.error("Missing config value for: " + name);
-  }
+const config = {
+  ROOT_DIR: __dirname,
+  URL_PORT: 10011,
+  URL_PATH: 'https://dfam.org',
+  BASE_VERSION: '',
+  CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
+  PROJECT_DIR: __dirname,
+  VERSION_MAJOR: '10',
+  VERSION_MINOR: '1',
+  VERSION_BUGFIX: '11'
+};
+
+for(var key in conf)
+{
+    config[key] = conf[key];
 }
 
-[
-  "hmm_logos_dir", "ucsc_utils_bin", "hmmer_bin_dir", "comsa_bin_dir",
-  "dfam_warehouse_dir", "dfamdequeuer", "apiserver",
-].forEach(key => check(conf, key));
+config.OPENAPI_YAML = path.join(config.ROOT_DIR, 'api', 'openapi.yaml');
+config.FULL_PATH = `${config.URL_PATH}:${config.URL_PORT}/${config.BASE_VERSION}`;
+config.FILE_UPLOAD_PATH = path.join(config.PROJECT_DIR, 'uploaded_files');
 
-if (conf.dfamdequeuer) {
-  check(conf.dfamdequeuer, "result_store");
-}
-
-if (conf.apiserver) {
-  ["db_timezone", "jwt_secret", "jwt_duration"].forEach(key => check(conf.apiserver, key));
-}
-
-module.exports = conf;
+module.exports = config;
