@@ -568,6 +568,15 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     query.offset = start;
   }
 
+  // To log the queries for debugging
+  //query.logging = console.log;
+  
+  // The query can produce N rows for a given family if the family has more than one
+  // taxonomic label *and* the user asks for all families descendant from a clade 
+  // higher than both labels.  Anthony round that a simple query.distinct here fixes
+  // the problem. 6/27/23
+  query.distinct = true;
+
   const count_result = await dfam.familyModel.findAndCountAll(query);
   const total_count = count_result.count;
 
@@ -576,8 +585,10 @@ exports.readFamilies = async function(format,sort,name,name_prefix,name_accessio
     return Promise.resolve(new APIResponse({ message }, 400));
   }
 
+  // Anthony found that the findAndCountAll query above is redundant with this one. 6/27/23
+  //let rows = await dfam.familyModel.findAll(query);
+  let rows = count_result.rows;
 
-  let rows = await dfam.familyModel.findAll(query);
   rows = await familySubqueries(rows, format);
   return format_rules.mapper(total_count, rows, format_rules);
 };
