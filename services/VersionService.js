@@ -11,7 +11,10 @@ const config = require('../config');
 const getVersion = () => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({ "major": config.VERSION_MAJOR, "minor": config.VERSION_MINOR, "bugfix": config.VERSION_BUGFIX, "bar": "21" }));
+      // The current validator (OpenAPIValidator) when validating the API responses will
+      // only complain if a require field is missing.  If extra field exist in the payload
+      // it will ignore them.
+      resolve(Service.successResponse({ "major": config.VERSION_MAJOR, "minor": config.VERSION_MINOR, "bugfix": config.VERSION_BUGFIX }));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

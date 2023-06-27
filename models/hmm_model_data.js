@@ -34,6 +34,14 @@ module.exports = function(sequelize, DataTypes) {
           { name: "family_id" },
         ]
       },
+      {
+        name: "alt_family_id",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "family_id" },
+        ]
+      },
     ]
   });
 };
