@@ -5,8 +5,8 @@
 This server was generated using the [OpenAPI Generator](https://openapi-generator.tech) project.  The code generator, and it's generated code allows you to develop your system with an API-First attitude, where the API contract is the anchor and definer of your project, and your code and business-logic aims to complete and comply to the terms in the API contract.
 
 ### prerequisites
-- NodeJS >= 10.6
-- NPM >= 6.10.0
+- NodeJS >= 20.3.1
+- NPM >= 9.6.7
 
 The code was written on a mac, so assuming all should work smoothly on Linux-based computers. However, there is no reason not to run this library on Windows-based machines. If you find an OS-related problem, please open an issue and it will be resolved.
 
