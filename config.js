@@ -14,9 +14,9 @@ const config = {
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,
-  VERSION_MAJOR: '10',
-  VERSION_MINOR: '1',
-  VERSION_BUGFIX: '11'
+  VERSION_MAJOR: '0',
+  VERSION_MINOR: '4',
+  VERSION_BUGFIX: '0'
 };
 
 for(var key in conf)

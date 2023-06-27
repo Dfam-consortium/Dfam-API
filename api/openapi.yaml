@@ -1,318 +1,374 @@
 openapi: 3.0.1
 info:
-  title: Dfam REST API
-  description: |-
-    The Dfam REST API provides a means for programs and scripts to access
-    information from the current release of the Dfam database. It provides the
-    core functionality used by the dfam.org website and is offered for use 
-    in community developed applications and workflows. 
-    
-    For more information on getting started with the Dfam API, see
-    the documentation and examples at [https://dfam.org/help/api](https://dfam.org/help/api)
-    
-    ### Known Consumers
-    https://dfam.org/
-    
-    ### Authors
-    Robert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen, Anthony Gray
-    
-    Copyright 2016-2023 Institute for Systems Biology
-  termsOfService: https://creativecommons.org/publicdomain/zero/1.0/
   contact:
+    email: help@dfam.org
     name: Dfam Consortium
     url: https://dfam.org/about
-    email: help@dfam.org
+  description: "The Dfam REST API provides a means for programs and scripts to access\n\
+    information from the current release of the Dfam database. It provides the\ncore\
+    \ functionality used by the dfam.org website and is offered for use \nin community\
+    \ developed applications and workflows. \n\nFor more information on getting started\
+    \ with the Dfam API, see\nthe documentation and examples at [https://dfam.org/help/api](https://dfam.org/help/api)\n\
+    \n### Known Consumers\nhttps://dfam.org/\n\n### Authors\nRobert Hubley, Arian\
+    \ Smit, Travis Wheeler, Jeb Rosen, Anthony Gray\n\nCopyright 2016-2023 Institute\
+    \ for Systems Biology"
   license:
     name: CC0 1.0
     url: https://creativecommons.org/publicdomain/zero/1.0/
+  termsOfService: https://creativecommons.org/publicdomain/zero/1.0/
+  title: Dfam REST API
   version: 0.4.0
 servers:
 - url: https://dfam.org/
 tags:
-  - name: version
-    description: API specification
-  - name: blog
-    description: Access to blog posts
-  - name: families
-    description: Access to Dfam families
-  - name: assemblies
-    description: Access to stored genome assembly details
-  - name: familyAssemblies
-    description: Access to species-specific family charactersitics
-  - name: classification
-    description: Access to Dfam TE classifications
-  - name: taxa
-    description: Access to Dfam taxonomy
-  - name: annotations
-    description: Access to stored genome annotations
-  - name: alignment
-    description: Access to family-assembly alignment data
-  - name: searches
-    description: Access to search submission system
+- description: API specification
+  name: version
+- description: Access to blog posts
+  name: blog
+- description: Access to Dfam families
+  name: families
+- description: Access to stored genome assembly details
+  name: assemblies
+- description: Access to species-specific family charactersitics
+  name: familyAssemblies
+- description: Access to Dfam TE classifications
+  name: classification
+- description: Access to Dfam taxonomy
+  name: taxa
+- description: Access to stored genome annotations
+  name: annotations
+- description: Access to family-assembly alignment data
+  name: alignment
+- description: Access to search submission system
+  name: searches
 paths:
   /version:
     get:
-      tags:
-      - version
-      summary: Return the version of the API.
       description: Return the version of the API.
       operationId: getVersion
       responses:
-        200:
-          description: successful operation
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/versionResponse'
+          description: successful operation
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Return the version of the API.
+      tags:
+      - version
+      x-eov-operation-handler: controllers/VersionController
     x-swagger-router-controller: Version
   /blogposts:
     get:
-      tags:
-      - blog
-      summary: Retrieve a list of recent Dfam blog posts. This API is intended for
-        use only at dfam.org.
-      description: Retrieve a list of recent Dfam blog posts. This API is intended for
-        use only at dfam.org.
+      description: Retrieve a list of recent Dfam blog posts. This API is intended
+        for use only at dfam.org.
       operationId: readBlogPosts
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
-                type: array
                 items:
-                  type: object
                   properties: {}
+                  type: object
+                type: array
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a list of recent Dfam blog posts. This API is intended for
+        use only at dfam.org.
+      tags:
+      - blog
+      x-eov-operation-handler: controllers/BlogController
     x-swagger-router-controller: Blog
   /assemblies:
     get:
-      tags:
-      - assemblies
-      summary: Retrieve a list of all genome assemblies in Dfam that have annotations.
       description: Retrieve a list of all genome assemblies in Dfam that have annotations.
       operationId: readAssemblies
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/assembliesResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a list of all genome assemblies in Dfam that have annotations.
+      tags:
+      - assemblies
+      x-eov-operation-handler: controllers/AssembliesController
     x-swagger-router-controller: Assemblies
   /families:
     get:
-      tags:
-      - families
-      summary: Retrieve a list of families in Dfam, optionally filtered and sorted.
-      description: Retrieve a list of families in Dfam, optionally filtered and sorted.
+      description: "Retrieve a list of families in Dfam, optionally filtered and sorted."
       operationId: readFamilies
       parameters:
-      - name: format
+      - description: "Desired output format. Supported formats include \"summary\"\
+          , \"full\", \"embl\", \"fasta\", and \"hmm\". Defaults to \"summary\"."
+        explode: true
         in: query
-        description: Desired output format. Supported formats include "summary", "full",
-          "embl", "fasta", and "hmm". Defaults to "summary".
+        name: format
+        required: false
         schema:
           type: string
-      - name: sort
+        style: form
+      - description: "A string containing sort columns, for example \"name:asc,length:desc\"\
+          . Sorting by any of \"accession\", \"name\", \"length\", \"type\", \"subtype\"\
+          , \"date_created\", and \"date_modified\" are supported. If unspecified,\
+          \ \"accession:asc\" will be used."
+        explode: true
         in: query
-        description: A string containing sort columns, for example "name:asc,length:desc".
-          Sorting by any of "accession", "name", "length", "type", "subtype", "date_created",
-          and "date_modified" are supported. If unspecified, "accession:asc" will
-          be used.
+        name: sort
+        required: false
         schema:
           type: string
-      - name: name
-        in: query
-        description: Search term for any part of the family name. Takes precedence
+        style: form
+      - description: Search term for any part of the family name. Takes precedence
           over "name_prefix" if both are specified.
+        explode: true
+        in: query
+        name: name
+        required: false
         schema:
           type: string
-      - name: name_prefix
+        style: form
+      - description: Search term for a prefix of the family name.
+        explode: true
         in: query
-        description: Search term for a prefix of the family name.
+        name: name_prefix
+        required: false
         schema:
           type: string
-      - name: name_accession
+        style: form
+      - description: Search term for any part of the family name or accession
+        explode: true
         in: query
-        description: Search term for any part of the family name or accession
+        name: name_accession
+        required: false
         schema:
           type: string
-      - name: classification
-        in: query
-        description: Search term for family classification. Sub-classifications are
+        style: form
+      - description: Search term for family classification. Sub-classifications are
           included. A full classification lineage is expected for this search term;
           such as "root;Interspersed_Repeat".
-        schema:
-          type: string
-      - name: clade
+        explode: true
         in: query
-        description: Search term for family clade. Can be either an NCBI Taxonomy
-          ID or scientific name. If the scientific name is ambiguous (e.g. "Drosophila"),
-          the taxonomy ID should be used instead.
+        name: classification
+        required: false
         schema:
           type: string
-      - name: clade_relatives
+        style: form
+      - description: "Search term for family clade. Can be either an NCBI Taxonomy\
+          \ ID or scientific name. If the scientific name is ambiguous (e.g. \"Drosophila\"\
+          ), the taxonomy ID should be used instead."
+        explode: true
         in: query
-        description: 'Relatives of the requested clade to include: ''ancestors'',
-          ''descendants'', or ''both'''
+        name: clade
+        required: false
         schema:
           type: string
-      - name: type
+        style: form
+      - description: "Relatives of the requested clade to include: 'ancestors', 'descendants',\
+          \ or 'both'"
+        explode: true
         in: query
-        description: Search term for TE type, as understood by RepeatMasker.
+        name: clade_relatives
+        required: false
         schema:
           type: string
-      - name: subtype
+        style: form
+      - description: "Search term for TE type, as understood by RepeatMasker."
+        explode: true
         in: query
-        description: Search term for TE subtype, as understood by RepeatMasker.
+        name: type
+        required: false
         schema:
           type: string
-      - name: updated_after
+        style: form
+      - description: "Search term for TE subtype, as understood by RepeatMasker."
+        explode: true
         in: query
-        description: Filter by "updated on or after" date.
+        name: subtype
+        required: false
         schema:
           type: string
+        style: form
+      - description: Filter by "updated on or after" date.
+        explode: true
+        in: query
+        name: updated_after
+        required: false
+        schema:
           format: date
-      - name: updated_before
-        in: query
-        description: Filter by "updated on or before" date.
-        schema:
           type: string
+        style: form
+      - description: Filter by "updated on or before" date.
+        explode: true
+        in: query
+        name: updated_before
+        required: false
+        schema:
           format: date
-      - name: desc
+          type: string
+        style: form
+      - description: Search term for family description.
+        explode: true
         in: query
-        description: Search term for family description.
+        name: desc
+        required: false
         schema:
           type: string
-      - name: keywords
+        style: form
+      - description: "Keywords to search in text fields (currently name, title, description,\
+          \ accession, author)."
+        explode: true
         in: query
-        description: Keywords to search in text fields (currently name, title, description,
-          accession, author).
+        name: keywords
+        required: false
         schema:
           type: string
-      - name: include_raw
-        in: query
-        description: Whether to include raw ("DR") families in the results. Default
+        style: form
+      - description: Whether to include raw ("DR") families in the results. Default
           is false.
+        explode: true
+        in: query
+        name: include_raw
+        required: false
         schema:
           type: boolean
-      - name: start
-        in: query
-        description: Index of first record to return. Commonly used along with `limit`
+        style: form
+      - description: Index of first record to return. Commonly used along with `limit`
           to implement paging.
+        explode: true
+        in: query
+        name: start
+        required: false
         schema:
           type: integer
-      - name: limit
+        style: form
+      - description: Maxium number of records to return.
+        explode: true
         in: query
-        description: Maxium number of records to return.
+        name: limit
+        required: false
         schema:
           type: integer
-      - name: download
+        style: form
+      - description: "If true, adds headers to trigger a browser download."
+        explode: true
         in: query
-        description: If true, adds headers to trigger a browser download.
+        name: download
+        required: false
         schema:
           type: boolean
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/familiesResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: "Retrieve a list of families in Dfam, optionally filtered and sorted."
+      tags:
+      - families
+      x-eov-operation-handler: controllers/FamiliesController
     x-swagger-router-controller: Families
   /families/{id}:
     get:
-      tags:
-      - families
-      summary: Retrieve full details of an individual Dfam family.
       description: Retrieve full details of an individual Dfam family.
       operationId: readFamilyById
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
+        style: simple
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/familyResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve full details of an individual Dfam family.
+      tags:
+      - families
+      x-eov-operation-handler: controllers/FamiliesController
     x-swagger-router-controller: Families
   /families/{id}/hmm:
     get:
-      tags:
-      - families
-      summary: Retrieve an individual Dfam family's annotated HMM.
       description: Retrieve an individual Dfam family's annotated HMM.
       operationId: readFamilyHmm
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: format
+        style: simple
+      - description: "The desired output format: \"hmm\", \"logo\", or \"image\"."
+        explode: true
         in: query
-        description: 'The desired output format: "hmm", "logo", or "image".'
+        name: format
         required: true
         schema:
           type: string
-      - name: download
+        style: form
+      - description: "If true, adds headers to trigger a browser download."
+        explode: true
         in: query
-        description: If true, adds headers to trigger a browser download.
+        name: download
+        required: false
         schema:
           type: boolean
+        style: form
       responses:
-        200:
+        "200":
+          content:
+            text/plain:
+              schema:
+                type: string
+            image/png:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
           description: Success
-          content:
-            text/plain:
-              schema:
-                type: string
-            image/png:
-              schema:
-                type: string
-            application/json:
-              schema:
-                type: string
         default:
-          description: Error
           content:
             text/plain:
               schema:
@@ -323,1486 +379,2275 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve an individual Dfam family's annotated HMM.
+      tags:
+      - families
+      x-eov-operation-handler: controllers/FamiliesController
     x-swagger-router-controller: Families
   /families/{id}/sequence:
     get:
-      tags:
-      - families
-      summary: Retrieve an individual Dfam family's annotated consensus sequence.
-      description: Retrieve an individual Dfam family's annotated consensus sequence.
-        If only the raw sequence is needed, use the `consensus_sequence` property
-        from the `/families/{id}` endpoint instead.
+      description: "Retrieve an individual Dfam family's annotated consensus sequence.\
+        \ If only the raw sequence is needed, use the `consensus_sequence` property\
+        \ from the `/families/{id}` endpoint instead."
       operationId: readFamilySequence
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: format
-        in: query
-        description: The desired output format. "embl" and "fasta" are the currently
+        style: simple
+      - description: The desired output format. "embl" and "fasta" are the currently
           supported formats.
+        explode: true
+        in: query
+        name: format
         required: true
         schema:
           type: string
-      - name: download
+        style: form
+      - description: "If true, adds headers to trigger a browser download."
+        explode: true
         in: query
-        description: If true, adds headers to trigger a browser download.
+        name: download
+        required: false
         schema:
           type: boolean
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             text/plain:
               schema:
                 type: string
+          description: Success
         default:
-          description: Error
           content:
             text/plain:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve an individual Dfam family's annotated consensus sequence.
+      tags:
+      - families
+      x-eov-operation-handler: controllers/FamiliesController
     x-swagger-router-controller: Families
   /families/{id}/seed:
     get:
-      tags:
-      - families
-      summary: Retrieve an individual Dfam family's seed alignment data.
       description: Retrieve an individual Dfam family's seed alignment data.
       operationId: readFamilySeed
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: format
+        style: simple
+      - description: "The format to return, one of 'stockholm' or 'alignment_summary'."
+        explode: true
         in: query
-        description: The format to return, one of 'stockholm' or 'alignment_summary'.
+        name: format
         required: true
         schema:
           type: string
-      - name: download
+        style: form
+      - description: "If true, adds headers to trigger a browser download."
+        explode: true
         in: query
-        description: If true, adds headers to trigger a browser download.
+        name: download
+        required: false
         schema:
           type: boolean
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             text/plain:
               schema:
                 type: string
+          description: Success
         default:
-          description: Error
           content:
             text/plain:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve an individual Dfam family's seed alignment data.
+      tags:
+      - families
+      x-eov-operation-handler: controllers/FamiliesController
     x-swagger-router-controller: Families
   /families/{id}/relationships:
     get:
-      tags:
-      - families
-      summary: Retrieve an individual Dfam family's relationship information.
       description: Retrieve an individual Dfam family's relationship information.
       operationId: readFamilyRelationships
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: include
+        style: simple
+      - description: "Which families to include. \"all\" searches all of Dfam, and\
+          \ \"related\" searches only families that are found in ancestor or descendant\
+          \ clades of the one this family belongs to. Default is \"all\"."
+        explode: true
         in: query
-        description: Which families to include. "all" searches all of Dfam, and "related"
-          searches only families that are found in ancestor or descendant clades of
-          the one this family belongs to. Default is "all".
+        name: include
+        required: false
         schema:
           type: string
-      - name: include_raw
-        in: query
-        description: Whether to include matches to raw ("DR") families. Default is
+        style: form
+      - description: Whether to include matches to raw ("DR") families. Default is
           false.
+        explode: true
+        in: query
+        name: include_raw
+        required: false
         schema:
           type: boolean
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/familyRelationshipsResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve an individual Dfam family's relationship information.
+      tags:
+      - families
+      x-eov-operation-handler: controllers/FamiliesController
     x-swagger-router-controller: Families
   /families/{id}/assemblies:
     get:
-      tags:
-      - familyAssemblies
-      summary: Retrieve a list of genome assemblies with annotations for a
-        Dfam family.
-      description: Retrieve a list of genome assemblies with annotations for a
-        Dfam family.
+      description: Retrieve a list of genome assemblies with annotations for a Dfam
+        family.
       operationId: readFamilyAssemblies
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
+        style: simple
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/familyAssembliesResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a list of genome assemblies with annotations for a Dfam family.
+      tags:
+      - familyAssemblies
+      x-eov-operation-handler: controllers/FamilyAssembliesController
     x-swagger-router-controller: FamilyAssemblies
   /families/{id}/annotation_stats:
     get:
-      tags:
-      - familyAssemblies
-      summary: Retrieve a family's annotation statistics for all assemblies it
-        is annotated in.
       description: Retrieve a family's annotation statistics for all assemblies it
         is annotated in.
       operationId: readFamilyAnnotationStats
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
+        style: simple
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/familyAnnotationStatsResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a family's annotation statistics for all assemblies it is
+        annotated in.
+      tags:
+      - familyAssemblies
+      x-eov-operation-handler: controllers/FamilyAssembliesController
     x-swagger-router-controller: FamilyAssemblies
   /families/{id}/assemblies/{assembly_id}/model_coverage:
     get:
-      tags:
-      - familyAssemblies
-      summary: Retrieve a family's coverage data associated with a given assembly.
       description: Retrieve a family's coverage data associated with a given assembly.
       operationId: readFamilyAssemblyModelCoverage
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: assembly_id
+        style: simple
+      - description: "The assembly identifier, as shown in /families/{id}/assemblies."
+        explode: false
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies.
+        name: assembly_id
         required: true
         schema:
           type: string
-      - name: model
+        style: simple
+      - description: "Model type, \"cons\" or \"hmm\"."
+        explode: true
         in: query
-        description: Model type, "cons" or "hmm".
+        name: model
         required: true
         schema:
           type: string
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  nrph:
-                    type: string
-                  all:
-                    type: string
-                  "false":
-                    type: string
+                $ref: '#/components/schemas/readFamilyAssemblyModelCoverage_200_response'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a family's coverage data associated with a given assembly.
+      tags:
+      - familyAssemblies
+      x-eov-operation-handler: controllers/FamilyAssembliesController
     x-swagger-router-controller: FamilyAssemblies
   /families/{id}/assemblies/{assembly_id}/model_conservation:
     get:
-      tags:
-      - familyAssemblies
-      summary: Retrieve a family's conservation data associated with a given assembly.
       description: Retrieve a family's conservation data associated with a given assembly.
       operationId: readFamilyAssemblyModelConservation
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: assembly_id
+        style: simple
+      - description: "The assembly identifier, as shown in /families/{id}/assemblies."
+        explode: false
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies.
+        name: assembly_id
         required: true
         schema:
           type: string
-      - name: model
+        style: simple
+      - description: "Model type, \"cons\" or \"hmm\"."
+        explode: true
         in: query
-        description: Model type, "cons" or "hmm".
+        name: model
         required: true
         schema:
           type: string
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
-                type: array
                 items:
-                  type: object
-                  properties:
-                    threshold:
-                      type: string
-                    max_insert:
-                      type: integer
-                    num_seqs:
-                      type: integer
-                    graph:
-                      type: string
+                  $ref: '#/components/schemas/readFamilyAssemblyModelConservation_200_response_inner'
+                type: array
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a family's conservation data associated with a given assembly.
+      tags:
+      - familyAssemblies
+      x-eov-operation-handler: controllers/FamilyAssembliesController
     x-swagger-router-controller: FamilyAssemblies
   /families/{id}/assemblies/{assembly_id}/annotations:
     get:
-      tags:
-      - familyAssemblies
-      summary: Retrieve a family's annotations associated with a given assembly.
       description: Retrieve a family's annotations associated with a given assembly.
       operationId: readFamilyAssemblyAnnotations
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: assembly_id
+        style: simple
+      - description: "The assembly identifier, as shown in /families/{id}/assemblies."
+        explode: false
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies.
+        name: assembly_id
         required: true
         schema:
           type: string
-      - name: nrph
+        style: simple
+      - description: '"true" to include only non-redundant profile hits.'
+        explode: true
         in: query
-        description: '"true" to include only non-redundant profile hits.'
+        name: nrph
         required: true
         schema:
           type: boolean
-      - name: download
+        style: form
+      - description: "If true, adds headers to trigger a browser download."
+        explode: true
         in: query
-        description: If true, adds headers to trigger a browser download.
+        name: download
+        required: false
         schema:
           type: boolean
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             text/plain:
               schema:
                 type: string
+          description: Success
         default:
-          description: Error
           content:
             text/plain:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a family's annotations associated with a given assembly.
+      tags:
+      - familyAssemblies
+      x-eov-operation-handler: controllers/FamilyAssembliesController
     x-swagger-router-controller: FamilyAssemblies
   /families/{id}/assemblies/{assembly_id}/annotation_stats:
     get:
-      tags:
-      - familyAssemblies
-      summary: Retrieve a family's annotation statistics associated with a given
-        assembly.
       description: Retrieve a family's annotation statistics associated with a given
         assembly.
       operationId: readFamilyAssemblyAnnotationStats
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: assembly_id
+        style: simple
+      - description: "The assembly identifier, as shown in /families/{id}/assemblies."
+        explode: false
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies.
+        name: assembly_id
         required: true
         schema:
           type: string
+        style: simple
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/familyAssemblyAnnotationStatsResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a family's annotation statistics associated with a given assembly.
+      tags:
+      - familyAssemblies
+      x-eov-operation-handler: controllers/FamilyAssembliesController
     x-swagger-router-controller: FamilyAssemblies
   /families/{id}/assemblies/{assembly_id}/karyotype:
     get:
-      tags:
-      - familyAssemblies
-      summary: Retrieve a family's karyotype data associated with a given assembly.
       description: Retrieve a family's karyotype data associated with a given assembly.
       operationId: readFamilyAssemblyKaryotype
       parameters:
-      - name: id
+      - description: The Dfam family accession.
+        explode: false
         in: path
-        description: The Dfam family accession.
+        name: id
         required: true
         schema:
           type: string
-      - name: assembly_id
+        style: simple
+      - description: "The assembly identifier, as shown in /families/{id}/assemblies."
+        explode: false
         in: path
-        description: The assembly identifier, as shown in /families/{id}/assemblies.
+        name: assembly_id
         required: true
         schema:
           type: string
+        style: simple
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
-                type: object
                 description: Data in the format recognized by Dfam-consortium/Karotype.
+                type: object
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve a family's karyotype data associated with a given assembly.
+      tags:
+      - familyAssemblies
+      x-eov-operation-handler: controllers/FamilyAssembliesController
     x-swagger-router-controller: FamilyAssemblies
   /classes:
     get:
-      tags:
-      - classification
-      summary: Retrieve the entire TE classification hierarchy used by Dfam.
       description: Retrieve the entire TE classification hierarchy used by Dfam.
       operationId: readClassification
       parameters:
-      - name: name
+      - description: "Classification name to search for. If given, the results will\
+          \ be returned as an array instead of the default hierarchical format."
+        explode: true
         in: query
-        description: Classification name to search for. If given, the results will
-          be returned as an array instead of the default hierarchical format.
+        name: name
+        required: false
         schema:
           type: string
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/classesResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve the entire TE classification hierarchy used by Dfam.
+      tags:
+      - classification
+      x-eov-operation-handler: controllers/ClassificationController
     x-swagger-router-controller: Classification
   /taxa:
     get:
-      tags:
-      - taxa
-      summary: Query Dfam's copy of the NCBI taxonomy database.
       description: Query Dfam's copy of the NCBI taxonomy database.
       operationId: readTaxa
       parameters:
-      - name: name
+      - description: Search string for taxonomy name.
+        explode: true
         in: query
-        description: Search string for taxonomy name.
+        name: name
         required: true
         schema:
           type: string
-      - name: annotated
+        style: form
+      - description: Whether only taxa with annotated assemblies should be returned.
+        explode: true
         in: query
-        description: Whether only taxa with annotated assemblies should be returned.
+        name: annotated
+        required: false
         schema:
           type: boolean
-      - name: limit
+        style: form
+      - description: Only return up to a maximum number of matching taxa.
+        explode: true
         in: query
-        description: Only return up to a maximum number of matching taxa.
+        name: limit
+        required: false
         schema:
           type: integer
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/taxaResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Query Dfam's copy of the NCBI taxonomy database.
+      tags:
+      - taxa
+      x-eov-operation-handler: controllers/TaxaController
     x-swagger-router-controller: Taxa
   /taxa/coverage:
     get:
-      tags:
-      - taxa
-      summary: Retrieve statistics on Dfam's coverage of species.
       description: Retrieve statistics on Dfam's coverage of species.
       operationId: readCoverage
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/taxaCoverageResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve statistics on Dfam's coverage of species.
+      tags:
+      - taxa
+      x-eov-operation-handler: controllers/TaxaController
     x-swagger-router-controller: Taxa
   /taxa/{id}:
     get:
-      tags:
-      - taxa
-      summary: Retrieve the name of a single taxon by its identifier.
       description: Retrieve the name of a single taxon by its identifier.
       operationId: readTaxaById
       parameters:
-      - name: id
+      - description: The identifier of the taxonomy node to retrieve.
+        explode: false
         in: path
-        description: The identifier of the taxonomy node to retrieve.
+        name: id
         required: true
         schema:
           type: integer
+        style: simple
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/taxonResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve the name of a single taxon by its identifier.
+      tags:
+      - taxa
+      x-eov-operation-handler: controllers/TaxaController
     x-swagger-router-controller: Taxa
   /annotations:
     get:
-      tags:
-      - annotations
-      summary: Retrieve annotations for a given genome assembly in a given range.
       description: Retrieve annotations for a given genome assembly in a given range.
       operationId: readAnnotations
       parameters:
-      - name: assembly
-        in: query
-        description: Genome assembly to search. A list of assemblies is available
+      - description: Genome assembly to search. A list of assemblies is available
           at `/assemblies`.
+        explode: true
+        in: query
+        name: assembly
         required: true
         schema:
           type: string
-      - name: chrom
+        style: form
+      - description: "Chromosome to search. Assembly dependent, but normally in the\
+          \ \"chrN\" format."
+        explode: true
         in: query
-        description: Chromosome to search. Assembly dependent, but normally in the
-          "chrN" format.
+        name: chrom
         required: true
         schema:
           type: string
-      - name: start
+        style: form
+      - description: Start of the sequence range (one based).
+        explode: true
         in: query
-        description: Start of the sequence range (one based).
+        name: start
         required: true
         schema:
           type: integer
-      - name: end
+        style: form
+      - description: "End of the sequence range (one based, fully-closed)."
+        explode: true
         in: query
-        description: End of the sequence range (one based, fully-closed).
+        name: end
         required: true
         schema:
           type: integer
-      - name: family
+        style: form
+      - description: An optional family to restrict results to.
+        explode: true
         in: query
-        description: An optional family to restrict results to.
+        name: family
+        required: false
         schema:
           type: string
-      - name: nrph
+        style: form
+      - description: '`true` to exclude redundant profile hits.'
+        explode: true
         in: query
-        description: '`true` to exclude redundant profile hits.'
+        name: nrph
+        required: false
         schema:
           type: boolean
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/annotationsResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve annotations for a given genome assembly in a given range.
+      tags:
+      - annotations
+      x-eov-operation-handler: controllers/AnnotationsController
     x-swagger-router-controller: Annotations
   /alignment:
     get:
-      tags:
-      - alignment
-      summary: Query the alignment of a family to an assembly. This API is meant
-        for use only on dfam.org.
       description: Query the alignment of a family to an assembly. This API is meant
         for use only on dfam.org.
       operationId: readAlignment
       parameters:
-      - name: assembly
-        in: query
-        description: Genome assembly to align to. A list of assemblies is available
+      - description: Genome assembly to align to. A list of assemblies is available
           at `/assemblies`.
+        explode: true
+        in: query
+        name: assembly
         required: true
         schema:
           type: string
-      - name: chrom
+        style: form
+      - description: Chromosome to align to.
+        explode: true
         in: query
-        description: Chromosome to align to.
+        name: chrom
         required: true
         schema:
           type: string
-      - name: start
+        style: form
+      - description: Start of the sequence range (one based).
+        explode: true
         in: query
-        description: Start of the sequence range (one based).
+        name: start
         required: true
         schema:
           type: integer
-      - name: end
+        style: form
+      - description: "End of the sequence range (one based, fully closed)."
+        explode: true
         in: query
-        description: End of the sequence range (one based, fully closed).
+        name: end
         required: true
         schema:
           type: integer
-      - name: family
+        style: form
+      - description: The family to align against.
+        explode: true
         in: query
-        description: The family to align against.
+        name: family
         required: true
         schema:
           type: string
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/alignmentResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Query the alignment of a family to an assembly. This API is meant for
+        use only on dfam.org.
+      tags:
+      - alignment
+      x-eov-operation-handler: controllers/AlignmentController
     x-swagger-router-controller: Alignment
   /searches:
     post:
-      tags:
-      - searches
-      summary: Submit a sequence search request.
       description: Submit a sequence search request.
       operationId: submitSearch
       requestBody:
         content:
           application/x-www-form-urlencoded:
             schema:
-              required:
-              - cutoff
-              - sequence
-              properties:
-                sequence:
-                  type: string
-                  description: Sequence data to search, in FASTA format.
-                organism:
-                  type: string
-                  description: Source organism of the sequence, used for determining
-                    search thresholds.
-                cutoff:
-                  type: string
-                  description: Type of cutoff to use, either 'curated' or 'evalue'.
-                evalue:
-                  type: string
-                  description: E-value cutoff to use in the search. Only effective
-                    if `cutoff` is set to `'evalue'`.
+              $ref: '#/components/schemas/submitSearch_request'
         required: true
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/submitSearchResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Submit a sequence search request.
+      tags:
+      - searches
+      x-eov-operation-handler: controllers/SearchesController
     x-swagger-router-controller: Searches
   /searches/{id}:
     get:
-      tags:
-      - searches
-      summary: Retrieve the results of a sequence search.
       description: Retrieve the results of a sequence search.
       operationId: readSearchResults
       parameters:
-      - name: id
-        in: path
-        description: A result set ID matching the ID returned by a previous search
+      - description: A result set ID matching the ID returned by a previous search
           submission.
+        explode: false
+        in: path
+        name: id
         required: true
         schema:
           type: string
+        style: simple
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/annotationsResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve the results of a sequence search.
+      tags:
+      - searches
+      x-eov-operation-handler: controllers/SearchesController
     x-swagger-router-controller: Searches
   /searches/{id}/alignment:
     get:
-      tags:
-      - searches
-      summary: Retrieve an alignment from a sequence search result.
       description: Retrieve an alignment from a sequence search result.
       operationId: readSearchResultAlignment
       parameters:
-      - name: id
+      - description: The result set ID returned by the API at submission time.
+        explode: false
         in: path
-        description: The result set ID returned by the API at submission time.
+        name: id
         required: true
         schema:
           type: string
-      - name: sequence
+        style: simple
+      - description: The name of the input sequence to align.
+        explode: true
         in: query
-        description: The name of the input sequence to align.
+        name: sequence
         required: true
         schema:
           type: string
-      - name: start
+        style: form
+      - description: Start of the sequence range.
+        explode: true
         in: query
-        description: Start of the sequence range.
+        name: start
         required: true
         schema:
           type: integer
-      - name: end
+        style: form
+      - description: End of the sequence range.
+        explode: true
         in: query
-        description: End of the sequence range.
+        name: end
         required: true
         schema:
           type: integer
-      - name: family
+        style: form
+      - description: The family to align against.
+        explode: true
         in: query
-        description: The family to align against.
+        name: family
         required: true
         schema:
           type: string
+        style: form
       responses:
-        200:
-          description: Success
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/alignmentResponse'
+          description: Success
         default:
-          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+          description: Error
+      summary: Retrieve an alignment from a sequence search result.
+      tags:
+      - searches
+      x-eov-operation-handler: controllers/SearchesController
     x-swagger-router-controller: Searches
 components:
   schemas:
     assembliesResponse:
-      type: array
       items:
-        required:
-        - id
-        - name
-        type: object
-        properties:
-          id:
-            type: string
-            description: Genome assembly identifier, used in API parameters and responses.
-          name:
-            type: string
-            description: The scientific name of the organism this assembly corresponds
-              to.
+        $ref: '#/components/schemas/assembliesResponse_inner'
+      type: array
     taxonResponse:
+      example:
+        name: name
+        id: 1
+      properties:
+        id:
+          description: "Taxon identifier, as provided by the NCBI Taxonomy database."
+          type: number
+        name:
+          description: "Display name. Intended to be unambiguous, but this should\
+            \ not be relied on."
+          type: string
       required:
       - id
       - name
       type: object
-      properties:
-        id:
-          type: number
-          description: Taxon identifier, as provided by the NCBI Taxonomy database.
-        name:
-          type: string
-          description: Display name. Intended to be unambiguous, but this should not
-            be relied on.
     taxaResponse:
+      example:
+        taxa:
+        - name: name
+          id: 2
+        - name: name
+          id: 3 
+      properties:
+        taxa:
+          items:
+            $ref: '#/components/schemas/taxonResponse'
+          type: array
       required:
       - taxa
       type: object
-      properties:
-        taxa:
-          type: array
-          items:
-            $ref: '#/components/schemas/taxonResponse'
     taxaCoverageResponse:
-      required:
-      - count
-      type: object
+      example:
+        count: 0.8008281904610115
       properties:
         count:
           type: number
+      required:
+      - count
+      type: object
     classesResponse:
+      example:
+        hyperlink: hyperlink
+        repbase_equiv: repbase_equiv
+        aliases: aliases
+        tooltip: tooltip
+        count: count
+        description: description
+        piegu_equiv: piegu_equiv
+        full_name: full_name
+        repeatmasker_subtype: repeatmasker_subtype
+        children:
+        - null
+        - null
+        repeatmasker_type: repeatmasker_type
+        curcio_derbyshire_equiv: curcio_derbyshire_equiv
+        name: name
+        wicker_equiv: wicker_equiv
+      properties:
+        name:
+          description: The name of this level of the TE classification hierarchy.
+          type: string
+        tooltip:
+          description: A short description of the classification.
+          type: string
+        description:
+          description: Additional details of the classification.
+          type: string
+        hyperlink:
+          description: Link to an external resource with more information on the classification.
+          type: string
+        full_name:
+          description: "Semicolon-delimited hierarchical path to this classification,\
+            \ starting from the root."
+          type: string
+        repeatmasker_type:
+          description: Corresponding 'Type' for use with RepeatMasker.
+          type: string
+        repeatmasker_subtype:
+          description: Corresponding 'SubType' for use with RepeatMasker.
+          type: string
+        count:
+          description: The number of families in the database with this classification.
+          type: string
+        repbase_equiv:
+          description: The name of the equivalent classification in RepBase.
+          type: string
+        wicker_equiv:
+          description: The name of the equivalent Wicker classification.
+          type: string
+        curcio_derbyshire_equiv:
+          description: The name of the equivalent Curcio-Derbyshire classification.
+          type: string
+        piegu_equiv:
+          description: The name of the equivalent Piegu classification.
+          type: string
+        aliases:
+          description: Comma-separated list of alternative names or abbreviations
+            for this classification.
+          type: string
+        children:
+          description: Hierarchical child classifications of this classification.
+          items:
+            $ref: '#/components/schemas/classesResponse'
+          type: array
       required:
       - children
       - full_name
       - name
       type: object
-      properties:
-        name:
-          type: string
-          description: The name of this level of the TE classification hierarchy.
-        tooltip:
-          type: string
-          description: A short description of the classification.
-        description:
-          type: string
-          description: Additional details of the classification.
-        hyperlink:
-          type: string
-          description: Link to an external resource with more information on the classification.
-        full_name:
-          type: string
-          description: Semicolon-delimited hierarchical path to this classification,
-            starting from the root.
-        repeatmasker_type:
-          type: string
-          description: Corresponding 'Type' for use with RepeatMasker.
-        repeatmasker_subtype:
-          type: string
-          description: Corresponding 'SubType' for use with RepeatMasker.
-        count:
-          type: string
-          description: The number of families in the database with this classification.
-        repbase_equiv:
-          type: string
-          description: The name of the equivalent classification in RepBase.
-        wicker_equiv:
-          type: string
-          description: The name of the equivalent Wicker classification.
-        curcio_derbyshire_equiv:
-          type: string
-          description: The name of the equivalent Curcio-Derbyshire classification.
-        piegu_equiv:
-          type: string
-          description: The name of the equivalent Piegu classification.
-        aliases:
-          type: string
-          description: Comma-separated list of alternative names or abbreviations
-            for this classification.
-        children:
-          type: array
-          description: Hierarchical child classifications of this classification.
-          items:
-            $ref: '#/components/schemas/classesResponse'
     familiesResponse:
+      example:
+        total_count: 0
+        results:
+        - submitter: submitter
+          aliases:
+          - database: database
+            alias: alias
+          - database: database
+            alias: alias
+          description: description
+          consensus_sequence: consensus_sequence
+          accession: accession
+          refineable: true
+          title: title
+          source_assembly:
+            hyperlink: hyperlink
+            label: label
+          curation_state_name: curation_state_name
+          search_stages:
+          - name: name
+          - name: name
+          features:
+          - model_start_pos: 5
+            description: description
+            attributes:
+            - attribute: attribute
+              value: value
+            - attribute: attribute
+              value: value
+            label: label
+            type: type
+            model_end_pos: 9
+          - model_start_pos: 5
+            description: description
+            attributes:
+            - attribute: attribute
+              value: value
+            - attribute: attribute
+              value: value
+            label: label
+            type: type
+            model_end_pos: 9
+          citations:
+          - journal: journal
+            pmid: 7
+            title: title
+            authors: authors
+            pubdate: pubdate
+          - journal: journal
+            pmid: 7
+            title: title
+            authors: authors
+            pubdate: pubdate
+          curation_state_description: curation_state_description
+          disabled: true
+          target_site_cons: target_site_cons
+          source_method: source_method
+          author: author
+          date_created: date_created
+          length: 1
+          source_method_description: source_method_description
+          coding_seqs:
+          - cds_end: 3
+            frameshifts: 1
+            product: product
+            exon_count: 2
+            protein_type: protein_type
+            stop_codons: 1
+            left_unaligned: 7
+            description: description
+            align_data: align_data
+            exon_starts:
+            - 4
+            - 4
+            reverse: true
+            gaps: 1
+            right_unaligned: 1
+            cds_start: 9
+            translation: translation
+            external_reference: external_reference
+            percent_identity: 6.84685269835264
+            exon_ends:
+            - 7
+            - 7
+            classification_id: 4
+          - cds_end: 3
+            frameshifts: 1
+            product: product
+            exon_count: 2
+            protein_type: protein_type
+            stop_codons: 1
+            left_unaligned: 7
+            description: description
+            align_data: align_data
+            exon_starts:
+            - 4
+            - 4
+            reverse: true
+            gaps: 1
+            right_unaligned: 1
+            cds_start: 9
+            translation: translation
+            external_reference: external_reference
+            percent_identity: 6.84685269835264
+            exon_ends:
+            - 7
+            - 7
+            classification_id: 4
+          buffer_stages:
+          - name: name
+            start: 5
+            end: 2
+          - name: name
+            start: 5
+            end: 2
+          classification: classification
+          version: 6
+          repeat_type_name: repeat_type_name
+          hmm_general_threshold: 5.962133916683182
+          date_modified: date_modified
+          clades:
+          - clades
+          - clades
+          model_mask: model_mask
+          name: name
+          repeat_subtype_name: repeat_subtype_name
+        - submitter: submitter
+          aliases:
+          - database: database
+            alias: alias
+          - database: database
+            alias: alias
+          description: description
+          consensus_sequence: consensus_sequence
+          accession: accession
+          refineable: true
+          title: title
+          source_assembly:
+            hyperlink: hyperlink
+            label: label
+          curation_state_name: curation_state_name
+          search_stages:
+          - name: name
+          - name: name
+          features:
+          - model_start_pos: 5
+            description: description
+            attributes:
+            - attribute: attribute
+              value: value
+            - attribute: attribute
+              value: value
+            label: label
+            type: type
+            model_end_pos: 9
+          - model_start_pos: 5
+            description: description
+            attributes:
+            - attribute: attribute
+              value: value
+            - attribute: attribute
+              value: value
+            label: label
+            type: type
+            model_end_pos: 9
+          citations:
+          - journal: journal
+            pmid: 7
+            title: title
+            authors: authors
+            pubdate: pubdate
+          - journal: journal
+            pmid: 7
+            title: title
+            authors: authors
+            pubdate: pubdate
+          curation_state_description: curation_state_description
+          disabled: true
+          target_site_cons: target_site_cons
+          source_method: source_method
+          author: author
+          date_created: date_created
+          length: 1
+          source_method_description: source_method_description
+          coding_seqs:
+          - cds_end: 3
+            frameshifts: 1
+            product: product
+            exon_count: 2
+            protein_type: protein_type
+            stop_codons: 1
+            left_unaligned: 7
+            description: description
+            align_data: align_data
+            exon_starts:
+            - 4
+            - 4
+            reverse: true
+            gaps: 1
+            right_unaligned: 1
+            cds_start: 9
+            translation: translation
+            external_reference: external_reference
+            percent_identity: 6.84685269835264
+            exon_ends:
+            - 7
+            - 7
+            classification_id: 4
+          - cds_end: 3
+            frameshifts: 1
+            product: product
+            exon_count: 2
+            protein_type: protein_type
+            stop_codons: 1
+            left_unaligned: 7
+            description: description
+            align_data: align_data
+            exon_starts:
+            - 4
+            - 4
+            reverse: true
+            gaps: 1
+            right_unaligned: 1
+            cds_start: 9
+            translation: translation
+            external_reference: external_reference
+            percent_identity: 6.84685269835264
+            exon_ends:
+            - 7
+            - 7
+            classification_id: 4
+          buffer_stages:
+          - name: name
+            start: 5
+            end: 2
+          - name: name
+            start: 5
+            end: 2
+          classification: classification
+          version: 6
+          repeat_type_name: repeat_type_name
+          hmm_general_threshold: 5.962133916683182
+          date_modified: date_modified
+          clades:
+          - clades
+          - clades
+          model_mask: model_mask
+          name: name
+          repeat_subtype_name: repeat_subtype_name
+      properties:
+        total_count:
+          description: "The total number of results that match the search terms in\
+            \ the database, regardless of any limit and/or offset provided."
+          type: integer
+        results:
+          items:
+            $ref: '#/components/schemas/familyResponse'
+          type: array
       required:
       - results
       - total_count
       type: object
-      properties:
-        total_count:
-          type: integer
-          description: The total number of results that match the search terms in
-            the database, regardless of any limit and/or offset provided.
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/familyResponse'
     familyResponse:
+      example:
+        submitter: submitter
+        aliases:
+        - database: database
+          alias: alias
+        - database: database
+          alias: alias
+        description: description
+        consensus_sequence: consensus_sequence
+        accession: accession
+        refineable: true
+        title: title
+        source_assembly:
+          hyperlink: hyperlink
+          label: label
+        curation_state_name: curation_state_name
+        search_stages:
+        - name: name
+        - name: name
+        features:
+        - model_start_pos: 5
+          description: description
+          attributes:
+          - attribute: attribute
+            value: value
+          - attribute: attribute
+            value: value
+          label: label
+          type: type
+          model_end_pos: 9
+        - model_start_pos: 5
+          description: description
+          attributes:
+          - attribute: attribute
+            value: value
+          - attribute: attribute
+            value: value
+          label: label
+          type: type
+          model_end_pos: 9
+        citations:
+        - journal: journal
+          pmid: 7
+          title: title
+          authors: authors
+          pubdate: pubdate
+        - journal: journal
+          pmid: 7
+          title: title
+          authors: authors
+          pubdate: pubdate
+        curation_state_description: curation_state_description
+        disabled: true
+        target_site_cons: target_site_cons
+        source_method: source_method
+        author: author
+        date_created: date_created
+        length: 1
+        source_method_description: source_method_description
+        coding_seqs:
+        - cds_end: 3
+          frameshifts: 1
+          product: product
+          exon_count: 2
+          protein_type: protein_type
+          stop_codons: 1
+          left_unaligned: 7
+          description: description
+          align_data: align_data
+          exon_starts:
+          - 4
+          - 4
+          reverse: true
+          gaps: 1
+          right_unaligned: 1
+          cds_start: 9
+          translation: translation
+          external_reference: external_reference
+          percent_identity: 6.84685269835264
+          exon_ends:
+          - 7
+          - 7
+          classification_id: 4
+        - cds_end: 3
+          frameshifts: 1
+          product: product
+          exon_count: 2
+          protein_type: protein_type
+          stop_codons: 1
+          left_unaligned: 7
+          description: description
+          align_data: align_data
+          exon_starts:
+          - 4
+          - 4
+          reverse: true
+          gaps: 1
+          right_unaligned: 1
+          cds_start: 9
+          translation: translation
+          external_reference: external_reference
+          percent_identity: 6.84685269835264
+          exon_ends:
+          - 7
+          - 7
+          classification_id: 4
+        buffer_stages:
+        - name: name
+          start: 5
+          end: 2
+        - name: name
+          start: 5
+          end: 2
+        classification: classification
+        version: 6
+        repeat_type_name: repeat_type_name
+        hmm_general_threshold: 5.962133916683182
+        date_modified: date_modified
+        clades:
+        - clades
+        - clades
+        model_mask: model_mask
+        name: name
+        repeat_subtype_name: repeat_subtype_name
+      properties:
+        accession:
+          description: A name of the form DF1234567 that is a unique identifier for
+            the family.
+          type: string
+        name:
+          description: "A human-readable short name for the family. Historically,\
+            \ this was known to be unique but this should not be relied upon going\
+            \ forward."
+          type: string
+        version:
+          description: The version of the family described by this response.
+          type: integer
+        title:
+          description: A short description or tagline describing the family.
+          type: string
+        description:
+          description: "A more detailed description of the family, including any details\
+            \ that do not fit into another available field."
+          type: string
+        length:
+          description: "The length of the family's seed alignment, consensus sequence,\
+            \ and Profile Hidden Markov Model."
+          type: integer
+        classification:
+          description: The semicolon-delimited full hierarchy of the family's classification.
+          type: string
+        repeat_type_name:
+          description: The RepeatMasker type of the family.
+          type: string
+        repeat_subtype_name:
+          description: The RepeatMasker subtype of the family.
+          type: string
+        consensus_sequence:
+          description: "The family's consensus sequence. This may be derived from\
+            \ the seed alignment, the profile HMM, or hand curation."
+          type: string
+        author:
+          description: Freeform text; a list of authors involved in the curation and
+            description of the family.
+          type: string
+        submitter:
+          description: The name of the user who submitted the family to Dfam.
+          type: string
+        date_created:
+          description: The date upon which the family was registered in Dfam.
+          type: string
+        date_modified:
+          description: The most recent date upon which the family was modified.
+          type: string
+        curation_state_name:
+          description: "The curation state of the family, for example 'Released' or\
+            \ 'Pending'."
+          type: string
+        curation_state_description:
+          description: A human-readable explanation of the meaning of the curation
+            state.
+          type: string
+        target_site_cons:
+          description: "The target site consensus for the family, if known."
+          type: string
+        refineable:
+          description: Deprecated flag used by RepeatMasker.
+          type: boolean
+        disabled:
+          description: '''true'' if the family is disabled or removed in the current
+            release. Disabled families are normally visible only when accessing the
+            API with curator credentials.'
+          type: boolean
+        model_mask:
+          description: Regions of the family's pHMM known to produce many false positive
+            matches.
+          type: string
+        hmm_general_threshold:
+          description: Threshold used when searching for the family in a DNA sequence
+            from an unknown or new organism.
+          type: number
+        source_method:
+          description: The method originally used to find the family.
+          type: string
+        source_method_description:
+          description: "Further details on the family's origin, such as genome information\
+            \ or parameters used for tools."
+          type: string
+        source_assembly:
+          $ref: '#/components/schemas/familyResponse_source_assembly'
+        aliases:
+          items:
+            $ref: '#/components/schemas/familyResponse_aliases_inner'
+          type: array
+        search_stages:
+          items:
+            $ref: '#/components/schemas/familyResponse_search_stages_inner'
+          type: array
+        buffer_stages:
+          items:
+            $ref: '#/components/schemas/familyResponse_buffer_stages_inner'
+          type: array
+        citations:
+          description: Publications pertinent to the family.
+          items:
+            $ref: '#/components/schemas/familyResponse_citations_inner'
+          type: array
+        clades:
+          description: "A list of clades the family is known to be found in, each\
+            \ in semicolon-delimited hierarchical format."
+          items:
+            type: string
+          type: array
+        coding_seqs:
+          description: Known coding sequences in the family.
+          items:
+            $ref: '#/components/schemas/familyResponse_coding_seqs_inner'
+          type: array
+        features:
+          description: "Miscellaneous features of the family, such as strucural defintions\
+            \ and binding sites."
+          items:
+            $ref: '#/components/schemas/familyResponse_features_inner'
+          type: array
       required:
       - accession
       - name
       - version
       type: object
-      properties:
-        accession:
-          type: string
-          description: A name of the form DF1234567 that is a unique identifier for
-            the family.
-        name:
-          type: string
-          description: A human-readable short name for the family. Historically, this
-            was known to be unique but this should not be relied upon going forward.
-        version:
-          type: integer
-          description: The version of the family described by this response.
-        title:
-          type: string
-          description: A short description or tagline describing the family.
-        description:
-          type: string
-          description: A more detailed description of the family, including any details
-            that do not fit into another available field.
-        length:
-          type: integer
-          description: The length of the family's seed alignment, consensus sequence,
-            and Profile Hidden Markov Model.
-        classification:
-          type: string
-          description: The semicolon-delimited full hierarchy of the family's classification.
-        repeat_type_name:
-          type: string
-          description: The RepeatMasker type of the family.
-        repeat_subtype_name:
-          type: string
-          description: The RepeatMasker subtype of the family.
-        consensus_sequence:
-          type: string
-          description: The family's consensus sequence. This may be derived from the
-            seed alignment, the profile HMM, or hand curation.
-        author:
-          type: string
-          description: Freeform text; a list of authors involved in the curation and
-            description of the family.
-        submitter:
-          type: string
-          description: The name of the user who submitted the family to Dfam.
-        date_created:
-          type: string
-          description: The date upon which the family was registered in Dfam.
-        date_modified:
-          type: string
-          description: The most recent date upon which the family was modified.
-        curation_state_name:
-          type: string
-          description: The curation state of the family, for example 'Released' or
-            'Pending'.
-        curation_state_description:
-          type: string
-          description: A human-readable explanation of the meaning of the curation
-            state.
-        target_site_cons:
-          type: string
-          description: The target site consensus for the family, if known.
-        refineable:
-          type: boolean
-          description: Deprecated flag used by RepeatMasker.
-        disabled:
-          type: boolean
-          description: '''true'' if the family is disabled or removed in the current
-            release. Disabled families are normally visible only when accessing the
-            API with curator credentials.'
-        model_mask:
-          type: string
-          description: Regions of the family's pHMM known to produce many false positive
-            matches.
-        hmm_general_threshold:
-          type: number
-          description: Threshold used when searching for the family in a DNA sequence
-            from an unknown or new organism.
-        source_method:
-          type: string
-          description: The method originally used to find the family.
-        source_method_description:
-          type: string
-          description: Further details on the family's origin, such as genome information
-            or parameters used for tools.
-        source_assembly:
-          required:
-          - label
-          type: object
-          properties:
-            label:
-              type: string
-              description: A human-readable label for the assembly.
-            hyperlink:
-              type: string
-              description: A hyperlink to the assembly on an external resource.
-          description: Information on the assembly the family was derived from.
-        aliases:
-          type: array
-          items:
-            required:
-            - alias
-            - database
-            type: object
-            properties:
-              database:
-                type: string
-                description: Name of the database the alias is found in.
-              alias:
-                type: string
-                description: The alias for the family in another database.
-        search_stages:
-          type: array
-          items:
-            required:
-            - name
-            type: object
-            properties:
-              name:
-                type: string
-                description: Names of RepeatMasker search stages the family is processed
-                  in.
-        buffer_stages:
-          type: array
-          items:
-            required:
-            - end
-            - name
-            - start
-            type: object
-            properties:
-              name:
-                type: string
-                description: The name of the RepeatMasker buffer stage the family
-                  is processed in.
-              start:
-                type: integer
-              end:
-                type: integer
-        citations:
-          type: array
-          description: Publications pertinent to the family.
-          items:
-            type: object
-            properties:
-              pmid:
-                type: integer
-                description: The PubMed ID for the citation.
-              title:
-                type: string
-                description: The article title.
-              authors:
-                type: string
-                description: Authors of the article.
-              journal:
-                type: string
-                description: The name of the cited journal.
-              pubdate:
-                type: string
-                description: Date of article publication.
-        clades:
-          type: array
-          description: A list of clades the family is known to be found in, each in
-            semicolon-delimited hierarchical format.
-          items:
-            type: string
-        coding_seqs:
-          type: array
-          description: Known coding sequences in the family.
-          items:
-            type: object
-            properties:
-              product:
-                type: string
-                description: Name of the product of the coding sequence.
-              translation:
-                type: string
-                description: Amino acid translation of the coding sequence.
-              cds_start:
-                type: integer
-                description: The start position of the coding sequence within the
-                  family (one-based).
-              cds_end:
-                type: integer
-                description: The end position of the coding sequence within the family
-                  (one-based, fully-closed).
-              exon_count:
-                type: integer
-                description: The number of exons in the coding sequence.
-              exon_starts:
-                type: array
-                description: List of exon start positions (one-based).
-                items:
-                  type: integer
-              exon_ends:
-                type: array
-                description: List of exon end positions (one-based, fully-closed).
-                items:
-                  type: integer
-              external_reference:
-                type: string
-                description: '''null'' for all coding sequences that come from Dfam
-                  families.'
-              reverse:
-                type: boolean
-                description: '''true'' if the coding sequence is on the reverse strand.'
-              stop_codons:
-                type: integer
-                description: The number of stop codons in the most recent alignment
-                  to the family.
-              frameshifts:
-                type: integer
-                description: The number of frameshifts in the most recent alignment
-                  to the family.
-              gaps:
-                type: integer
-                description: The number of gaps in the most recent alignment to the
-                  family.
-              percent_identity:
-                type: number
-                description: Percent identity with the most recent alignment to the
-                  family.
-              left_unaligned:
-                type: integer
-                description: The number of amino acids not aligned to the 5' end of
-                  the reference sequence.
-              right_unaligned:
-                type: integer
-                description: The number of amino acids not aligned to the 3' end of
-                  the reference sequence.
-              classification_id:
-                type: integer
-                description: '''null'' for all coding sequences that come from Dfam
-                  families.'
-              align_data:
-                type: string
-                description: (For future expansion) The alignment of each coding sequence.
-                  Not currently populated.
-              description:
-                type: string
-                description: Freeform description of the coding sequence.
-              protein_type:
-                type: string
-        features:
-          type: array
-          description: Miscellaneous features of the family, such as strucural defintions
-            and binding sites.
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-                description: The type of the feature.
-              description:
-                type: string
-                description: Human-readable description of the feature.
-              model_start_pos:
-                type: integer
-                description: Start posotion of the feature within the family model
-                  (one-based).
-              model_end_pos:
-                type: integer
-                description: End posotion of the feature within the family model (one-based,
-                  fully-closed).
-              label:
-                type: string
-                description: Short label for this feature.
-              attributes:
-                type: array
-                description: List of additional attributes for this feature.
-                items:
-                  type: object
-                  properties:
-                    attribute:
-                      type: string
-                    value:
-                      type: string
     familyRelationshipsResponse:
-      type: array
       items:
-        type: object
-        properties:
-          strand:
-            type: string
-            description: For a forward strand match, '+'; for a reverse strand match,
-              '-'.
-          evalue:
-            type: string
-            description: The e-value of the hit.
-          identity:
-            type: string
-            description: Percentage identity of the overlap region.
-          coverage:
-            type: string
-            description: Percentage shared coverage of the two families.
-          cigar:
-            type: string
-            description: Alignment between the two families, expressed as a sequence
-              of counts paired with the characters "M", "I", and "D" representing
-              a match/insertion/deletion in the alignment.
-          model_start:
-            type: integer
-            description: Start position of the overlap region in the first family
-              (one-based).
-          target_start:
-            type: integer
-            description: Start position of the overlap region in the second family
-              (one-based).
-          model_end:
-            type: integer
-            description: End position of the overlap region in the first family (one-based,
-              fully-closed).
-          target_end:
-            type: integer
-            description: End position of the overlap region in the second family (one-based,
-              fully-closed).
-          auto_overlap:
-            type: object
-            properties:
-              model:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    description: Human-readable identifier for the family (either
-                      the "name" or "accession").
-                  accession:
-                    type: string
-                    description: The Dfam accession for the family.
-                  length:
-                    type: integer
-                    description: The total length of the family.
-                description: Details of the first family.
-              target:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    description: Human-readable identifier for the family (either
-                      the "name" or "accession").
-                  accession:
-                    type: string
-                    description: The Dfam accession for the family.
-                  length:
-                    type: integer
-                    description: The total length of the family.
-                description: Details of the second family.
+        $ref: '#/components/schemas/familyRelationshipsResponse_inner'
+      type: array
     familyAssembliesResponse:
-      type: array
       items:
-        required:
-        - id
-        - name
-        type: object
-        properties:
-          id:
-            type: string
-            description: Assembly identifier, used in API parameters and responses.
-          name:
-            type: string
-            description: The scientific name of the organism this assembly corresponds
-              to.
-          hmm_hit_ga:
-            type: number
-            description: The Gathering Threshold used when searching for the family
-              in this assembly.
-          hmm_hit_tc:
-            type: number
-            description: The Trusted Cutoff used when searching for the family in
-              this assembly.
-          hmm_fdr:
-            type: number
-            description: The false discovery rate of searching for the family in this
-              assembly.
+        $ref: '#/components/schemas/familyAssembliesResponse_inner'
+      type: array
     familyAnnotationStatsResponse:
-      type: array
       items:
-        required:
-        - id
-        - name
-        type: object
-        properties:
-          id:
-            type: string
-            description: Assembly identifier, used in API parameters and responses.
-          name:
-            type: string
-            description: The scientific name of the organism this assembly corresponds
-              to.
-          hmm_hit_ga:
-            type: number
-            description: The Gathering Threshold used when searching for the family
-              in this assembly.
-          hmm_hit_tc:
-            type: number
-            description: The Trusted Cutoff used when searching for the family in
-              this assembly.
-          hmm_fdr:
-            type: number
-            description: The false discovery rate of searching for the family in this
-              assembly.
-          stats:
-            type: object
-            properties:
-              hmm:
-                type: object
-                properties:
-                  divergence:
-                    type: number
-                    description: Kimura average divergence, calculated on non-redundant
-                      profile hits above the gathering threshold.
-                  gathering_nonredundant:
-                    type: integer
-                    description: Number of non-redundant profile hits above the gathering
-                      threshold.
-                  gathering_all:
-                    type: integer
-                    description: Total number of hits above the gathering threshold,
-                      including redundant hits.
-                  trusted_nonredundant:
-                    type: integer
-                    description: Number of non-redundant profile hits above the trusted
-                      cutoff.
-                  trusted_all:
-                    type: integer
-                    description: Total number of hits above the trusted cutoff, including
-                      redundant hits.
+        $ref: '#/components/schemas/familyAnnotationStatsResponse_inner'
+      type: array
     familyAssemblyAnnotationStatsResponse:
-      type: object
+      example:
+        hmm:
+          divergence: 5.962133916683182
+          gathering_nonredundant: 5
+          trusted_nonredundant: 7
+          trusted_all: 9
+          gathering_all: 2
       properties:
         hmm:
-          type: object
-          properties:
-            divergence:
-              type: number
-              description: Kimura average divergence, calculated on non-redundant
-                profile hits above the gathering threshold.
-            gathering_nonredundant:
-              type: integer
-              description: Number of non-redundant profile hits above the gathering
-                threshold.
-            gathering_all:
-              type: integer
-              description: Total number of hits above the gathering threshold, including
-                redundant hits.
-            trusted_nonredundant:
-              type: integer
-              description: Number of non-redundant profile hits above the trusted
-                cutoff.
-            trusted_all:
-              type: integer
-              description: Total number of hits above the trusted cutoff, including
-                redundant hits.
-    annotationsResponse:
+          $ref: '#/components/schemas/familyAnnotationStatsResponse_inner_stats_hmm'
       type: object
+    annotationsResponse:
+      example:
+        hits:
+        - bit_score: 1.4658129805029452
+          ali_start: 2
+          ali_end: 7
+          query: query
+          e_value: e_value
+          model_end: 5
+          accession: accession
+          type: type
+          seq_end: 3
+          sequence: sequence
+          strand: strand
+          seq_start: 9
+          model_start: 5
+        - bit_score: 1.4658129805029452
+          ali_start: 2
+          ali_end: 7
+          query: query
+          e_value: e_value
+          model_end: 5
+          accession: accession
+          type: type
+          seq_end: 3
+          sequence: sequence
+          strand: strand
+          seq_start: 9
+          model_start: 5
+        tandem_repeats:
+        - repeat_length: 7
+          sequence: sequence
+          start: 2
+          end: 4
+          type: type
+        - repeat_length: 7
+          sequence: sequence
+          start: 2
+          end: 4
+          type: type
+        offset: 0
+        query: query
+        length: 6
       properties:
         offset:
-          type: integer
           description: The start position of the results (one-based).
-        length:
           type: integer
+        length:
           description: The length of the region included in the results.
+          type: integer
         query:
-          type: string
           description: The sequence and region covered by the results.
+          type: string
         hits:
-          type: array
           description: List of hits found by searching profile hidden markov models
             with HMMER.
           items:
-            type: object
-            properties:
-              accession:
-                type: string
-                description: Accession of the matching family.
-              sequence:
-                type: string
-                description: The name of the sequence.
-              query:
-                type: string
-                description: The name of the matching family.
-              type:
-                type: string
-                description: RepeatMasker type of the family.
-              bit_score:
-                type: number
-                description: The bit score of the hit reported by HMMER.
-              e_value:
-                type: string
-                description: The e-value of the hit reported by HMMER.
-              model_start:
-                type: integer
-                description: The start position of the hit within the model.
-              model_end:
-                type: integer
-                description: The end position of the hit within the model.
-              strand:
-                type: string
-                description: The sequence strand where the hit was found; '+' or '-'.
-              ali_start:
-                type: integer
-                description: The start position of the hit within the sequence (one-based).
-              ali_end:
-                type: integer
-                description: The end position of the hit within the sequence (one-based,
-                  fully-closed).
-              seq_start:
-                type: integer
-                description: The start position of the alignment envelope used to
-                  reproduce alignments (one-based).
-              seq_end:
-                type: integer
-                description: The end position of the alignment envelope used to reproduce
-                  alignments (one-based,fully-closed).
-        tandem_repeats:
+            $ref: '#/components/schemas/annotationsResponse_hits_inner'
           type: array
+        tandem_repeats:
           description: List of tandem repetitive sequences within the results range.
           items:
-            type: object
-            properties:
-              start:
-                type: integer
-                description: The start position of the repeat (one-based).
-              end:
-                type: integer
-                description: The end position of the repeat (one-based, fully-closed).
-              type:
-                type: string
-                description: The repetitive sequence, for example 'GT'.
-              repeat_length:
-                type: integer
-                description: The length of the unit of repetition of the sequence.
-              sequence:
-                type: string
-                description: The name of the sequence searched.
-    alignmentResponse:
+            $ref: '#/components/schemas/annotationsResponse_tandem_repeats_inner'
+          type: array
       type: object
+    alignmentResponse:
+      example:
+        pp:
+          string: string
+        match:
+          string: string
+        hmm:
+          string: string
+          start: 0
+          end: 6
+          id: 'id1a'
+        seq:
+          string: string
+          start: 1
+          end: 5
+          id: 'id_2'
       properties:
         hmm:
-          type: object
-          properties:
-            start:
-              type: integer
-              description: Start position in the model of the alignment (one-based).
-            end:
-              type: integer
-              description: End position in the model of the alignment (one-based,
-                fully-closed).
-            id:
-              type: string
-              description: An identifier for the model.
-            string:
-              type: string
-              description: Model string for the aligned region, from nhmmer.
+          $ref: '#/components/schemas/alignmentResponse_hmm'
         seq:
-          type: object
-          properties:
-            start:
-              type: integer
-              description: Start position in the sequence of the alignment (one-based).
-            end:
-              type: integer
-              description: End position in the sequence of the alignment (one-based,
-                fully-closed).
-            id:
-              type: string
-              description: An identifier for the sequence.
-            string:
-              type: string
-              description: Sequence string for the aligned region, from nhmmer.
+          $ref: '#/components/schemas/alignmentResponse_seq'
         match:
-          type: object
-          properties:
-            string:
-              type: string
-              description: String describing the match states of the alignment, from
-                nhmmer.
+          $ref: '#/components/schemas/alignmentResponse_match'
         pp:
-          type: object
-          properties:
-            string:
-              type: string
-              description: String describing the posterior probability of the alignment,
-                from nhmmer.
+          $ref: '#/components/schemas/alignmentResponse_pp'
+      type: object
     submitSearchResponse:
+      example:
+        id: id_3
+      properties:
+        id:
+          description: An identifier for this query that can be used to retrieve results.
+          type: string
       required:
       - id
       type: object
-      properties:
-        id:
-          type: string
-          description: An identifier for this query that can be used to retrieve results.
     versionResponse:
+      example:
+        major: major
+        minor: minor
+        bugfix: bugfix
+      properties:
+        major:
+          description: Major version number.
+          type: string
+        minor:
+          description: Minor version number.
+          type: string
+        bugfix:
+          description: Bugfix version number.
+          type: string
       required:
       - bugfix
       - major
       - minor
       type: object
-      properties:
-        major:
-          type: string
-          description: Major version number.
-        minor:
-          type: string
-          description: Minor version number.
-        bugfix:
-          type: string
-          description: Bugfix version number.
     ErrorResponse:
+      properties:
+        message:
+          description: Human-readable explanation of the error.
+          type: string
       required:
       - message
       type: object
+    readFamilyAssemblyModelCoverage_200_response:
+      example:
+        all: all
+        "false": "false"
+        nrph: nrph
       properties:
-        message:
+        nrph:
           type: string
-          description: Human-readable explanation of the error.
+        all:
+          type: string
+        "false":
+          type: string
+      type: object
+    readFamilyAssemblyModelConservation_200_response_inner:
+      example:
+        max_insert: 0
+        num_seqs: 6
+        threshold: threshold
+        graph: graph
+      properties:
+        threshold:
+          type: string
+        max_insert:
+          type: integer
+        num_seqs:
+          type: integer
+        graph:
+          type: string
+      type: object
+    submitSearch_request:
+      properties:
+        sequence:
+          description: "Sequence data to search, in FASTA format."
+          type: string
+        organism:
+          description: "Source organism of the sequence, used for determining search\
+            \ thresholds."
+          type: string
+        cutoff:
+          description: "Type of cutoff to use, either 'curated' or 'evalue'."
+          type: string
+        evalue:
+          description: E-value cutoff to use in the search. Only effective if `cutoff`
+            is set to `'evalue'`.
+          type: string
+      required:
+      - cutoff
+      - sequence
+    assembliesResponse_inner:
+      example:
+        name: name
+        id: id_4
+      properties:
+        id:
+          description: "Genome assembly identifier, used in API parameters and responses."
+          type: string
+        name:
+          description: The scientific name of the organism this assembly corresponds
+            to.
+          type: string
+      required:
+      - id
+      - name
+      type: object
+    familyResponse_source_assembly:
+      description: Information on the assembly the family was derived from.
+      example:
+        hyperlink: hyperlink
+        label: label
+      properties:
+        label:
+          description: A human-readable label for the assembly.
+          type: string
+        hyperlink:
+          description: A hyperlink to the assembly on an external resource.
+          type: string
+      required:
+      - label
+      type: object
+    familyResponse_aliases_inner:
+      example:
+        database: database
+        alias: alias
+      properties:
+        database:
+          description: Name of the database the alias is found in.
+          type: string
+        alias:
+          description: The alias for the family in another database.
+          type: string
+      required:
+      - alias
+      - database
+      type: object
+    familyResponse_search_stages_inner:
+      example:
+        name: name
+      properties:
+        name:
+          description: Names of RepeatMasker search stages the family is processed
+            in.
+          type: string
+      required:
+      - name
+      type: object
+    familyResponse_buffer_stages_inner:
+      example:
+        name: name
+        start: 5
+        end: 2
+      properties:
+        name:
+          description: The name of the RepeatMasker buffer stage the family is processed
+            in.
+          type: string
+        start:
+          type: integer
+        end:
+          type: integer
+      required:
+      - end
+      - name
+      - start
+      type: object
+    familyResponse_citations_inner:
+      example:
+        journal: journal
+        pmid: 7
+        title: title
+        authors: authors
+        pubdate: pubdate
+      properties:
+        pmid:
+          description: The PubMed ID for the citation.
+          type: integer
+        title:
+          description: The article title.
+          type: string
+        authors:
+          description: Authors of the article.
+          type: string
+        journal:
+          description: The name of the cited journal.
+          type: string
+        pubdate:
+          description: Date of article publication.
+          type: string
+      type: object
+    familyResponse_coding_seqs_inner:
+      example:
+        cds_end: 3
+        frameshifts: 1
+        product: product
+        exon_count: 2
+        protein_type: protein_type
+        stop_codons: 1
+        left_unaligned: 7
+        description: description
+        align_data: align_data
+        exon_starts:
+        - 4
+        - 4
+        reverse: true
+        gaps: 1
+        right_unaligned: 1
+        cds_start: 9
+        translation: translation
+        external_reference: external_reference
+        percent_identity: 6.84685269835264
+        exon_ends:
+        - 7
+        - 7
+        classification_id: 4
+      properties:
+        product:
+          description: Name of the product of the coding sequence.
+          type: string
+        translation:
+          description: Amino acid translation of the coding sequence.
+          type: string
+        cds_start:
+          description: The start position of the coding sequence within the family
+            (one-based).
+          type: integer
+        cds_end:
+          description: "The end position of the coding sequence within the family\
+            \ (one-based, fully-closed)."
+          type: integer
+        exon_count:
+          description: The number of exons in the coding sequence.
+          type: integer
+        exon_starts:
+          description: List of exon start positions (one-based).
+          items:
+            type: integer
+          type: array
+        exon_ends:
+          description: "List of exon end positions (one-based, fully-closed)."
+          items:
+            type: integer
+          type: array
+        external_reference:
+          description: '''null'' for all coding sequences that come from Dfam families.'
+          type: string
+        reverse:
+          description: '''true'' if the coding sequence is on the reverse strand.'
+          type: boolean
+        stop_codons:
+          description: The number of stop codons in the most recent alignment to the
+            family.
+          type: integer
+        frameshifts:
+          description: The number of frameshifts in the most recent alignment to the
+            family.
+          type: integer
+        gaps:
+          description: The number of gaps in the most recent alignment to the family.
+          type: integer
+        percent_identity:
+          description: Percent identity with the most recent alignment to the family.
+          type: number
+        left_unaligned:
+          description: The number of amino acids not aligned to the 5' end of the
+            reference sequence.
+          type: integer
+        right_unaligned:
+          description: The number of amino acids not aligned to the 3' end of the
+            reference sequence.
+          type: integer
+        classification_id:
+          description: '''null'' for all coding sequences that come from Dfam families.'
+          type: integer
+        align_data:
+          description: (For future expansion) The alignment of each coding sequence.
+            Not currently populated.
+          type: string
+        description:
+          description: Freeform description of the coding sequence.
+          type: string
+        protein_type:
+          type: string
+      type: object
+    familyResponse_features_inner_attributes_inner:
+      example:
+        attribute: attribute
+        value: value
+      properties:
+        attribute:
+          type: string
+        value:
+          type: string
+      type: object
+    familyResponse_features_inner:
+      example:
+        model_start_pos: 5
+        description: description
+        attributes:
+        - attribute: attribute
+          value: value
+        - attribute: attribute
+          value: value
+        label: label
+        type: type
+        model_end_pos: 9
+      properties:
+        type:
+          description: The type of the feature.
+          type: string
+        description:
+          description: Human-readable description of the feature.
+          type: string
+        model_start_pos:
+          description: Start posotion of the feature within the family model (one-based).
+          type: integer
+        model_end_pos:
+          description: "End posotion of the feature within the family model (one-based,\
+            \ fully-closed)."
+          type: integer
+        label:
+          description: Short label for this feature.
+          type: string
+        attributes:
+          description: List of additional attributes for this feature.
+          items:
+            $ref: '#/components/schemas/familyResponse_features_inner_attributes_inner'
+          type: array
+      type: object
+    familyRelationshipsResponse_inner_auto_overlap_model:
+      description: Details of the first family.
+      example:
+        length: 5
+        id: id_5
+        accession: accession
+      properties:
+        id:
+          description: Human-readable identifier for the family (either the "name"
+            or "accession").
+          type: string
+        accession:
+          description: The Dfam accession for the family.
+          type: string
+        length:
+          description: The total length of the family.
+          type: integer
+      type: object
+    familyRelationshipsResponse_inner_auto_overlap_target:
+      description: Details of the second family.
+      example:
+        length: 2
+        id: id_6
+        accession: accession
+      properties:
+        id:
+          description: Human-readable identifier for the family (either the "name"
+            or "accession").
+          type: string
+        accession:
+          description: The Dfam accession for the family.
+          type: string
+        length:
+          description: The total length of the family.
+          type: integer
+      type: object
+    familyRelationshipsResponse_inner_auto_overlap:
+      example:
+        model:
+          length: 5
+          id: id_7
+          accession: accession
+        target:
+          length: 2
+          id: id_8
+          accession: accession
+      properties:
+        model:
+          $ref: '#/components/schemas/familyRelationshipsResponse_inner_auto_overlap_model'
+        target:
+          $ref: '#/components/schemas/familyRelationshipsResponse_inner_auto_overlap_target'
+      type: object
+    familyRelationshipsResponse_inner:
+      example:
+        coverage: coverage
+        target_start: 6
+        strand: strand
+        identity: identity
+        cigar: cigar
+        target_end: 5
+        model_end: 1
+        evalue: evalue
+        auto_overlap:
+          model:
+            length: 5
+            id: id_9
+            accession: accession
+          target:
+            length: 2
+            id: id_10
+            accession: accession
+        model_start: 0
+      properties:
+        strand:
+          description: "For a forward strand match, '+'; for a reverse strand match,\
+            \ '-'."
+          type: string
+        evalue:
+          description: The e-value of the hit.
+          type: string
+        identity:
+          description: Percentage identity of the overlap region.
+          type: string
+        coverage:
+          description: Percentage shared coverage of the two families.
+          type: string
+        cigar:
+          description: "Alignment between the two families, expressed as a sequence\
+            \ of counts paired with the characters \"M\", \"I\", and \"D\" representing\
+            \ a match/insertion/deletion in the alignment."
+          type: string
+        model_start:
+          description: Start position of the overlap region in the first family (one-based).
+          type: integer
+        target_start:
+          description: Start position of the overlap region in the second family (one-based).
+          type: integer
+        model_end:
+          description: "End position of the overlap region in the first family (one-based,\
+            \ fully-closed)."
+          type: integer
+        target_end:
+          description: "End position of the overlap region in the second family (one-based,\
+            \ fully-closed)."
+          type: integer
+        auto_overlap:
+          $ref: '#/components/schemas/familyRelationshipsResponse_inner_auto_overlap'
+      type: object
+    familyAssembliesResponse_inner:
+      example:
+        hmm_hit_ga: 0.8008281904610115
+        name: name
+        hmm_fdr: 1.4658129805029452
+        id: id_11
+        hmm_hit_tc: 6.027456183070403
+      properties:
+        id:
+          description: "Assembly identifier, used in API parameters and responses."
+          type: string
+        name:
+          description: The scientific name of the organism this assembly corresponds
+            to.
+          type: string
+        hmm_hit_ga:
+          description: The Gathering Threshold used when searching for the family
+            in this assembly.
+          type: number
+        hmm_hit_tc:
+          description: The Trusted Cutoff used when searching for the family in this
+            assembly.
+          type: number
+        hmm_fdr:
+          description: The false discovery rate of searching for the family in this
+            assembly.
+          type: number
+      required:
+      - id
+      - name
+      type: object
+    familyAnnotationStatsResponse_inner_stats_hmm:
+      example:
+        divergence: 5.962133916683182
+        gathering_nonredundant: 5
+        trusted_nonredundant: 7
+        trusted_all: 9
+        gathering_all: 2
+      properties:
+        divergence:
+          description: "Kimura average divergence, calculated on non-redundant profile\
+            \ hits above the gathering threshold."
+          type: number
+        gathering_nonredundant:
+          description: Number of non-redundant profile hits above the gathering threshold.
+          type: integer
+        gathering_all:
+          description: "Total number of hits above the gathering threshold, including\
+            \ redundant hits."
+          type: integer
+        trusted_nonredundant:
+          description: Number of non-redundant profile hits above the trusted cutoff.
+          type: integer
+        trusted_all:
+          description: "Total number of hits above the trusted cutoff, including redundant\
+            \ hits."
+          type: integer
+      type: object
+    familyAnnotationStatsResponse_inner_stats:
+      example:
+        hmm:
+          divergence: 5.962133916683182
+          gathering_nonredundant: 5
+          trusted_nonredundant: 7
+          trusted_all: 9
+          gathering_all: 2
+      properties:
+        hmm:
+          $ref: '#/components/schemas/familyAnnotationStatsResponse_inner_stats_hmm'
+      type: object
+    familyAnnotationStatsResponse_inner:
+      example:
+        hmm_hit_ga: 0.8008281904610115
+        stats:
+          hmm:
+            divergence: 5.962133916683182
+            gathering_nonredundant: 5
+            trusted_nonredundant: 7
+            trusted_all: 9
+            gathering_all: 2
+        name: name
+        hmm_fdr: 1.4658129805029452
+        id: id_12
+        hmm_hit_tc: 6.027456183070403
+      properties:
+        id:
+          description: "Assembly identifier, used in API parameters and responses."
+          type: string
+        name:
+          description: The scientific name of the organism this assembly corresponds
+            to.
+          type: string
+        hmm_hit_ga:
+          description: The Gathering Threshold used when searching for the family
+            in this assembly.
+          type: number
+        hmm_hit_tc:
+          description: The Trusted Cutoff used when searching for the family in this
+            assembly.
+          type: number
+        hmm_fdr:
+          description: The false discovery rate of searching for the family in this
+            assembly.
+          type: number
+        stats:
+          $ref: '#/components/schemas/familyAnnotationStatsResponse_inner_stats'
+      required:
+      - id
+      - name
+      type: object
+    annotationsResponse_hits_inner:
+      example:
+        bit_score: 1.4658129805029452
+        ali_start: 2
+        ali_end: 7
+        query: query
+        e_value: e_value
+        model_end: 5
+        accession: accession
+        type: type
+        seq_end: 3
+        sequence: sequence
+        strand: strand
+        seq_start: 9
+        model_start: 5
+      properties:
+        accession:
+          description: Accession of the matching family.
+          type: string
+        sequence:
+          description: The name of the sequence.
+          type: string
+        query:
+          description: The name of the matching family.
+          type: string
+        type:
+          description: RepeatMasker type of the family.
+          type: string
+        bit_score:
+          description: The bit score of the hit reported by HMMER.
+          type: number
+        e_value:
+          description: The e-value of the hit reported by HMMER.
+          type: string
+        model_start:
+          description: The start position of the hit within the model.
+          type: integer
+        model_end:
+          description: The end position of the hit within the model.
+          type: integer
+        strand:
+          description: The sequence strand where the hit was found; '+' or '-'.
+          type: string
+        ali_start:
+          description: The start position of the hit within the sequence (one-based).
+          type: integer
+        ali_end:
+          description: "The end position of the hit within the sequence (one-based,\
+            \ fully-closed)."
+          type: integer
+        seq_start:
+          description: The start position of the alignment envelope used to reproduce
+            alignments (one-based).
+          type: integer
+        seq_end:
+          description: "The end position of the alignment envelope used to reproduce\
+            \ alignments (one-based,fully-closed)."
+          type: integer
+      type: object
+    annotationsResponse_tandem_repeats_inner:
+      example:
+        repeat_length: 7
+        sequence: sequence
+        start: 2
+        end: 4
+        type: type
+      properties:
+        start:
+          description: The start position of the repeat (one-based).
+          type: integer
+        end:
+          description: "The end position of the repeat (one-based, fully-closed)."
+          type: integer
+        type:
+          description: "The repetitive sequence, for example 'GT'."
+          type: string
+        repeat_length:
+          description: The length of the unit of repetition of the sequence.
+          type: integer
+        sequence:
+          description: The name of the sequence searched.
+          type: string
+      type: object
+    alignmentResponse_hmm:
+      example:
+        string: string
+        start: 0
+        end: 6
+        id: id_13
+      properties:
+        start:
+          description: Start position in the model of the alignment (one-based).
+          type: integer
+        end:
+          description: "End position in the model of the alignment (one-based, fully-closed)."
+          type: integer
+        id:
+          description: An identifier for the model.
+          type: string
+        string:
+          description: "Model string for the aligned region, from nhmmer."
+          type: string
+      type: object
+    alignmentResponse_seq:
+      example:
+        string: string
+        start: 1
+        end: 5
+        id: id
+      properties:
+        start:
+          description: Start position in the sequence of the alignment (one-based).
+          type: integer
+        end:
+          description: "End position in the sequence of the alignment (one-based,\
+            \ fully-closed)."
+          type: integer
+        id:
+          description: An identifier for the sequence.
+          type: string
+        string:
+          description: "Sequence string for the aligned region, from nhmmer."
+          type: string
+      type: object
+    alignmentResponse_match:
+      example:
+        string: string
+      properties:
+        string:
+          description: "String describing the match states of the alignment, from\
+            \ nhmmer."
+          type: string
+      type: object
+    alignmentResponse_pp:
+      example:
+        string: string
+      properties:
+        string:
+          description: "String describing the posterior probability of the alignment,\
+            \ from nhmmer."
+          type: string
+      type: object
