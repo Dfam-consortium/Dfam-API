@@ -1,5 +1,3 @@
-//const winston = require('winston');
-//const config = require('./config');
 const path = require('path');
 const Piscina = require('piscina'); 
 

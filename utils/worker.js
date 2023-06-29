@@ -1,6 +1,7 @@
 'use strict';
 const Sequelize = require("sequelize");
-const conn = require("../databases.js").dfam;
+//const conn = require("../databases.js").dfam;
+const conn = require("../databases.js").getConn_Dfam();
 const zlib = require("zlib");
 const wrap = require('word-wrap');
 const winston = require('winston');
@@ -16,8 +17,12 @@ const familyModel = require("../models/family.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
 familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
+//const threadId = require('node:worker_threads').threadId;
+//console.log("Worker Starting Up: " + threadId);
+
 
 const hmm_command = async function ({accessions, include_copyright}) {
+  //console.log("Worker: " + threadId + " , command = hmm_command");
   let ret_val = ""
   if (include_copyright) {
     ret_val = await copyright("#   ");

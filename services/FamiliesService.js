@@ -2,7 +2,8 @@
 const Service = require('./Service');
 
 const Sequelize = require("sequelize");
-const conn = require("../databases.js").dfam;
+//const conn = require("../databases.js").dfam;
+const conn = require("../databases.js").getConn_Dfam();
 const zlib = require("zlib");
 const wrap = require('word-wrap');
 const winston = require('winston');

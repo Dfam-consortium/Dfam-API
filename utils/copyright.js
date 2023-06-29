@@ -1,5 +1,6 @@
 const Sequelize = require("sequelize");
-const conn = require("../databases.js").dfam;
+//const conn = require("../databases.js").dfam;
+const conn = require("../databases.js").getConn_Dfam();
 
 const dbVersionModel = require("../models/db_version.js")(conn, Sequelize);
 

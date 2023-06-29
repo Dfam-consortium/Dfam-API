@@ -1,8 +1,10 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const Sequelize = require("sequelize");
-const conn = require("../databases.js").dfam;
-const dfam = require("../databases.js").dfam_models;
+//const conn = require("../databases.js").dfam;
+//const dfam = require("../databases.js").dfam_models;
+const conn = require("../databases.js").getConn_Dfam();
+const dfam = require("../databases.js").getModels_Dfam();
 const escape_sql_like = require("../utils/escape").escape_sql_like;
 
 
