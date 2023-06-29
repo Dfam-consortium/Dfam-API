@@ -34,7 +34,7 @@ assemblyModel.belongsTo(dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
 classificationModel.belongsTo(rmTypeModel, { foreignKey: 'repeatmasker_type_id', as: 'rm_type' });
 classificationModel.belongsTo(rmSubTypeModel, { foreignKey: 'repeatmasker_subtype_id', as: 'rm_subtype' });
 
-module.exports.getFamilyForAnnotation = function(accession) {
+function getFamilyForAnnotation(accession) {
   return familyModel.findOne({
     attributes: [ "id", "name", "accession", "version", "length", "title", "description", "author", "refineable", "consensus", "hmm_general_threshold" ],
     where: { accession },
@@ -78,7 +78,7 @@ module.exports.getFamilyForAnnotation = function(accession) {
   });
 };
 
-module.exports.getFamilyWithConsensus = function(accession) {
+function getFamilyWithConsensus(accession) {
   return familyModel.findOne({
     attributes: [ "id", "name", "accession", "version", "consensus" ],
     where: { accession },
@@ -89,4 +89,10 @@ module.exports.getFamilyWithConsensus = function(accession) {
 
     return family;
   });
+};
+
+
+module.exports = {
+  getFamilyForAnnotation,
+  getFamilyWithConsensus
 };

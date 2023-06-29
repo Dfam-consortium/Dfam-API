@@ -3,18 +3,18 @@ const Service = require('./Service');
 
 const Sequelize = require("sequelize");
 //const conn = require("../databases.js").dfam;
-const conn = require("../databases.js").getConn_Dfam();
+const conn = require("../databases").getConn_Dfam();
 const zlib = require("zlib");
 const wrap = require('word-wrap');
-const winston = require('winston');
+//const logger = require('../logger');
 
 //const copyright = require("./copyright");
 const family = require("../utils/family");
 //const util = require("./util");
 const WorkerPool = require('../worker-pool');
 
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
+const familyModel = require("../models/family")(conn, Sequelize);
+const hmmModelDataModel = require("../models/hmm_model_data")(conn, Sequelize);
 familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
 

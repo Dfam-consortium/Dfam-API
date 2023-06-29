@@ -1,10 +1,10 @@
 'use strict';
 const Sequelize = require("sequelize");
 //const conn = require("../databases.js").dfam;
-const conn = require("../databases.js").getConn_Dfam();
+const conn = require("../databases").getConn_Dfam();
 const zlib = require("zlib");
 const wrap = require('word-wrap');
-const winston = require('winston');
+const logger = require('../logger');
 const copyright = require("./copyright");
 const family = require("./family");
 const hmm = require("./hmm");
@@ -13,8 +13,8 @@ const fasta = require("./fasta");
 //const embl = require("./embl");
 const util = require("./util");
 
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
+const familyModel = require("../models/family")(conn, Sequelize);
+const hmmModelDataModel = require("../models/hmm_model_data")(conn, Sequelize);
 familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
 const threadId = require('node:worker_threads').threadId;
@@ -34,7 +34,7 @@ const hmm_command = async function ({accessions, include_copyright}) {
     const fam = await family.getFamilyForAnnotation(acc);
 
     if (!fam) {
-      winston.error(`Missing family for accession: ${accession}`);
+      logger.error(`Missing family for accession: ${acc}`);
       return;
     }
 
@@ -44,7 +44,7 @@ const hmm_command = async function ({accessions, include_copyright}) {
     });
 
     if (!hmm_data) {
-      winston.error(`Missing HMM for family: ${accession}`);
+      logger.error(`Missing HMM for family: ${acc}`);
       return;
     }
 
