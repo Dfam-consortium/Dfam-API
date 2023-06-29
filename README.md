@@ -1,14 +1,13 @@
-
-# OpenAPI Generated JavaScript/Express Server
+# Dfam API
 
 ## Overview
-This server was generated using the [OpenAPI Generator](https://openapi-generator.tech) project.  The code generator, and it's generated code allows you to develop your system with an API-First attitude, where the API contract is the anchor and definer of your project, and your code and business-logic aims to complete and comply to the terms in the API contract.
+This server provides a RESTful API supporting public access to the Dfam database of Transposable Element (TE) families, hidden Markov Models (HMMs), consensus sequences, and genome annotations.  The API is based on the [OpenAPI 3.0 Specfication](https://swagger.io/specification/v3/).  
+
+This server was scaffolded using the [OpenAPI Generator](https://openapi-generator.tech) tool and relies heavily on the Sequelize, Piscina, and Swagger open source projects.
 
 ### prerequisites
 - NodeJS >= 20.3.1
 - NPM >= 9.6.7
-
-The code was written on a mac, so assuming all should work smoothly on Linux-based computers. However, there is no reason not to run this library on Windows-based machines. If you find an OS-related problem, please open an issue and it will be resolved.
 
 ### Running the server
 #### This is a long read, but there's a lot to understand. Please take the time to go through this.

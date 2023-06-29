@@ -17,12 +17,14 @@ const familyModel = require("../models/family.js")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
 familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
-//const threadId = require('node:worker_threads').threadId;
-//console.log("Worker Starting Up: " + threadId);
+const threadId = require('node:worker_threads').threadId;
+console.log("Worker Starting Up: " + threadId);
+
+//const isMainThread = require('node:worker_threads').isMainThread;
 
 
 const hmm_command = async function ({accessions, include_copyright}) {
-  //console.log("Worker: " + threadId + " , command = hmm_command");
+  console.log("Worker: " + threadId + " , command = hmm_command");
   let ret_val = ""
   if (include_copyright) {
     ret_val = await copyright("#   ");

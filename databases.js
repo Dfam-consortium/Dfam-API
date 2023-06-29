@@ -1,10 +1,16 @@
 var logger = require('./logger');
 var config = require('./config');
+const isMainThread = require('node:worker_threads').isMainThread;
+const threadId = require('node:worker_threads').threadId;
 
 var Sequelize = require('sequelize');
 
 function connect(dbinfo) {
-  logger.info(`Connecting to ${dbinfo.database}`);
+  if ( isMainThread ) {
+    logger.info(`Main thread connecting to ${dbinfo.database}`);
+  }else {
+    logger.info(`Worker thread ` + threadId + ` connecting to ${dbinfo.database}`);
+  }
   return new Sequelize(
     dbinfo.database,
     dbinfo.user,
@@ -15,12 +21,12 @@ function connect(dbinfo) {
       dialect: "mysql",
       dialectOptions: {
         charset: "latin1_swedish_ci",
+	timezone: "local"
       },
       define: {
         timestamps: false,
       },
-      //timezone: config.apiserver.db_timezone,
-      timezone: "America/Los_Angeles",
+      timezone: config.apiserver.db_timezone,
       //logging: false,
       logging: function(message, data) {
         logger.debug(message);
@@ -37,15 +43,10 @@ function connect(dbinfo) {
 var _dfam_conn;
 
 const getConn_Dfam = function () {
-  console.log("getConn_Dfam(): Called");
-  if (_dfam_conn) {
-    console.log("Returning existing connection");
-    return(_dfam_conn);
-  }else {
-    console.log("Initializing connection");
+  if (! _dfam_conn) {
     _dfam_conn = connect(config.schema.Dfam);
-    return(_dfam_conn);
   }
+  return(_dfam_conn);
 }
 
 var _dfam_models;

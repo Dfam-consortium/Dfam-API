@@ -8,6 +8,8 @@
 
 const Controller = require('./Controller');
 const service = require('../services/FamiliesService');
+
+
 const readFamilies = async (request, response) => {
   await Controller.handleRequest(request, response, service.readFamilies);
 };
