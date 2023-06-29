@@ -54,7 +54,7 @@ class ExpressServer {
       OpenApiValidator.middleware({
 	apiSpec: this.openApiPath + ".sans_example",
         operationHandlers: path.join(__dirname),
-        validateResponses: true, // this causes "reference \"id1a\" resolves to more than one schema"
+        validateResponses: false, // this causes "reference \"id1a\" resolves to more than one schema"
         validateApiSpec: true,
         validateRequests: true, // this causes "reference \"id1a\" resolves to more than one schema"
         validateSecurity: true,

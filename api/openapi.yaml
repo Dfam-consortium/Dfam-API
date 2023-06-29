@@ -283,6 +283,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/familiesResponse'
+            text/plain:
+              schema:
+                type: string
+                format: binary
+                description: "Text file return format when download query parameter is used."
           description: Success
         default:
           content:

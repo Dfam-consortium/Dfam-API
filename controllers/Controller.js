@@ -5,14 +5,42 @@ const config = require('../config');
 const logger = require('../logger');
 
 class Controller {
-  static sendResponse(response, payload) {
+
+  /**
+  * Files have been uploaded to the directory defined by config.js as upload directory
+  * Files have a temporary name, that was saved as 'filename' of the file object that is
+  * referenced in request.files array.
+  * This method finds the file and changes it to the file name that was originally called
+  * when it was uploaded. To prevent files from being overwritten, a timestamp is added between
+  * the filename and its extension
+  * @param request
+  * @param fieldName
+  * @returns {string}
+  *    * Supported properties:
+  *          content_type
+  *          attachment
+  *
+  */
+  static sendResponse(response, serviceResponse) {
     /**
     * The default response-code is 200. We want to allow to change that. in That case,
-    * payload will be an object consisting of a code and a payload. If not customized
-    * send 200 and the payload as received in this method.
+    * serviceResponse will be an object consisting of a code and a payload. If not customized
+    * send 200 and the serviceResponse as received in this method.
     */
-    response.status(payload.code || 200);
-    const responsePayload = payload.payload !== undefined ? payload.payload : payload;
+    response.status(serviceResponse.code || 200);
+    // RMH:
+    if ( serviceResponse.attachment !== undefined ) {
+      console.log("attachment = " + serviceResponse.attachment);
+      response.attachment(serviceResponse.attachment);
+    }
+    if ( serviceResponse.content_type !== undefined ) {
+      console.log("content type = " + serviceResponse.content_type);
+      response.type(serviceResponse.content_type);
+    }
+    if ( serviceResponse.payload !== undefined ) {
+      console.log("Outputing serviceResponse");
+    }
+    const responsePayload = serviceResponse.payload !== undefined ? serviceResponse.payload : serviceResponse;
     if (responsePayload instanceof Object) {
       response.json(responsePayload);
     } else {

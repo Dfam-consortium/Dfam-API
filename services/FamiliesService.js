@@ -105,12 +105,28 @@ const readFamilyById = ({ id }) => new Promise(
 const readFamilyHmm = ({ id, format, download }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse(
-        { data: WorkerPool.piscina.run({accessions: [id], include_copyright: 0}, { name: 'hmm_command' }),
-          content_type: "text/plain",
-          encoding: "identity"
-        }
-      ));
+      obj = {};
+      if (download) {
+        const extensions = { 'hmm': '.hmm', 'logo': '.logo', 'image': '.png' };
+        obj.attachment = id + extensions[format];
+      }
+
+      const types = { 'hmm': 'text/plain', 'logo': 'application/json', 'image': 'image/png' };
+      if ( format in types ) {
+        obj.content_type = types[format];
+      }else {
+        throw new Error("Unrecognized format: " + format);
+      }
+
+      if (format == "logo") {
+        console.log("Unimplemented");
+      }else if (format == "image") {
+        console.log("Unimplemented");
+      }else if (format == "hmm") {
+        obj.payload = await WorkerPool.piscina.run({accessions: [id], include_copyright: 0}, { name: 'hmm_command' });
+      }
+
+      resolve(Service.successResponse(obj));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

@@ -20,9 +20,10 @@ function connect(dbinfo) {
         timestamps: false,
       },
       timezone: config.apiserver.db_timezone,
-      logging: function(message, data) {
-        winston.debug(message);
-      },
+      logging: false,
+      //logging: function(message, data) {
+      //  winston.debug(message);
+      //},
       pool: {
         max: 5,
         min: 0,
