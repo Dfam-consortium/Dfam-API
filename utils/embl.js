@@ -1,26 +1,4 @@
-const process = require('process');
-
 const wrap = require('word-wrap');
-const winston = require('winston');
-
-const copyright = require("./copyright");
-const family = require("./family");
-const util = require("./util");
-
-module.exports = async function embl_command(output, args) {
-  if (args.indexOf("--copyright") !== -1) {
-    output.write(await copyright("CC   "));
-  }
-
-  await util.forEachLine(process.stdin, async function(accession) {
-    const fam = await family.getFamilyForAnnotation(accession);
-    if (fam) {
-      output.write(exportEmbl(fam));
-    } else {
-      winston.error(`Missing family for accession: ${accession}`);
-    }
-  });
-};
 
 function exportEmbl(family) {
   var emblStr = "";
@@ -49,6 +27,11 @@ function exportEmbl(family) {
     emblStr += "XX\n";
   }
 
+  // NOTE: While the FASTA format is case agnostic with most software defaulting
+  // to uppercase ( preserving lowercase for masking use ), EMBL format has
+  // traditionally defaulted to lowercase.  As we move toward masking support
+  // I would like to have a per-format default case unless a specific option
+  // is provided to provide a particular type of masking (hard/soft).
   const seq = family.consensus.toLowerCase();
 
   add_header("ID", `${family.accession}; SV ${family.version || 0}; linear; DNA; STD; UNC; ${seq.length} BP.`);
@@ -164,3 +147,8 @@ function exportEmbl(family) {
 
   return emblStr;
 }
+
+module.exports = {
+  exportEmbl
+};
+  

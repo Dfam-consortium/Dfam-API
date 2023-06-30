@@ -1,11 +1,4 @@
-const Sequelize = require("sequelize");
-const conn = require("../databases.js").getConn_Dfam();
 const wrap = require('word-wrap');
-const family = require("./family");
-
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const hmmModelDataModel = require("../models/hmm_model_data.js")(conn, Sequelize);
-familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
 function annotateHmm(family, hmm) {
   const lines = hmm.split(/\r?\n/);
@@ -54,8 +47,8 @@ function annotateHmm(family, hmm) {
         add_header("TH", `TaxId:${id}; TaxName:${name}; GA:${ga}; TC:${tc}; NC:${nc}; fdr:${fdr};`);
       });
 
-      // TODO: BM build method
-      // TODO: SM search method
+      // TODO: BM build method  -- not standardized yet
+      // TODO: SM search method -- not standardized yet
       add_header("CT", family.classification.lineage.replace(/^root;/, ''), true);
       family.clades.forEach(function(clade) {
         add_header("MS", `TaxId:${clade.tax_id} TaxName:${clade.sanitized_name}`);

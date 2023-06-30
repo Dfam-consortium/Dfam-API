@@ -1,20 +1,4 @@
-const process = require("process");
-
-const winston = require("winston");
-
 const family = require("./family");
-const util = require("./util");
-
-module.exports = async function fasta_command(output) {
-  await util.forEachLine(process.stdin, async function(accession) {
-    const fam = await family.getFamilyWithConsensus(accession);
-    if (fam) {
-      output.write(exportFasta(fam));
-    } else {
-      winston.error(`Missing family for accession: ${accession}`);
-    }
-  });
-};
 
 function exportFasta(family) {
   var fastaStr = ">";
@@ -26,7 +10,8 @@ function exportFasta(family) {
   }
   fastaStr += "\n";
 
-  const seq = family.consensus.toLowerCase();
+  // RMH: 6/30/23 - Switched default case to uppercase.
+  const seq = family.consensus.toUpperCase();
 
   let i = 0;
   while (i < seq.length) {
@@ -38,3 +23,8 @@ function exportFasta(family) {
 
   return fastaStr;
 }
+
+module.exports = {
+  exportFasta
+};
+

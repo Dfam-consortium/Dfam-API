@@ -1,6 +1,5 @@
 'use strict';
 const Sequelize = require("sequelize");
-//const conn = require("../databases.js").dfam;
 const conn = require("../databases").getConn_Dfam();
 const zlib = require("zlib");
 const wrap = require('word-wrap');
@@ -10,7 +9,7 @@ const family = require("./family");
 const hmm = require("./hmm");
 const fasta = require("./fasta");
 //const stockholm = require("./stockholm");
-//const embl = require("./embl");
+const embl = require("./embl");
 const util = require("./util");
 
 const familyModel = require("../models/family")(conn, Sequelize);
@@ -20,10 +19,7 @@ familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 const threadId = require('node:worker_threads').threadId;
 console.log("Worker Starting Up: " + threadId);
 
-//const isMainThread = require('node:worker_threads').isMainThread;
-
-
-const hmm_command = async function ({accessions, include_copyright}) {
+const hmm_command = async function ({accessions, include_copyright = 0}) {
   console.log("Worker: " + threadId + " , command = hmm_command");
   let ret_val = ""
   if (include_copyright) {
@@ -54,8 +50,43 @@ const hmm_command = async function ({accessions, include_copyright}) {
 };
 
 
-const embl_command = async function (accessions, include_copyright = 0) {};
-const fasta_command = async function (accessions) {};
+const embl_command = async function ({accessions, include_copyright = 0}) {
+  console.log("Worker: " + threadId + " , command = embl_command");
+  let ret_val = ""
+  if (include_copyright) {
+    ret_val = await copyright("CC   ");
+  }
+
+  for (const acc of accessions) {
+    const fam = await family.getFamilyForAnnotation(acc);
+
+    if (!fam) {
+      logger.error(`Missing family for accession: ${acc}`);
+      return;
+    }
+
+    ret_val = ret_val + await embl.exportEmbl(fam);
+  }
+  return ret_val;
+};
+
+
+const fasta_command = async function ({accessions}) {
+  console.log("Worker: " + threadId + " , command = fasta_command");
+
+  let ret_val = "";
+  for (const acc of accessions) {
+    const fam = await family.getFamilyForAnnotation(acc);
+
+    if (!fam) {
+      logger.error(`Missing family for accession: ${acc}`);
+      return;
+    }
+    ret_val += await fasta.exportFasta(fam);
+  } 
+  return ret_val;
+}
+ 
 const stockholm_command = async function (accessions) {};
 
 module.exports = {

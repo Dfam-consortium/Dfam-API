@@ -1,5 +1,13 @@
 # Dfam API
 
+## TODO
+- In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
+option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
+- I would like to rename /families/{id}/sequence to /families/{id}/consensus
+
+## Changes
+- As a transition towards model masking, I made both the EMBL and FASTA formats uppercase by default.
+
 ## Overview
 This server provides a RESTful API supporting public access to the Dfam database of Transposable Element (TE) families, hidden Markov Models (HMMs), consensus sequences, and genome annotations.  The API is based on the [OpenAPI 3.0 Specfication](https://swagger.io/specification/v3/).  
 

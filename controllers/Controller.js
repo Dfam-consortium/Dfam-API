@@ -39,11 +39,22 @@ class Controller {
     }
     if ( serviceResponse.payload !== undefined ) {
       console.log("Outputing serviceResponse");
+    }else {
+      console.log("Outputing serviceResponse.payload");
+    }
+    if ( serviceResponse.encoding !== undefined ) {
+      console.log("encoding = " + serviceResponse.encoding );
+      response.set('Content-Encoding', serviceResponse.encoding);
     }
     const responsePayload = serviceResponse.payload !== undefined ? serviceResponse.payload : serviceResponse;
     if (responsePayload instanceof Object) {
-      response.json(responsePayload);
-    } else {
+      // TODO is this the best way to check?
+      if ( serviceResponse.encoding !== undefined ) {
+        response.send(responsePayload);
+      }else {
+        response.json(responsePayload);
+      }
+    }else {
       response.end(responsePayload);
     }
   }

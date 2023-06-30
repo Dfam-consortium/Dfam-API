@@ -1,21 +1,18 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
+const path = require('path');
+const config = require('../config');
+const child_process = require('child_process');
+
 
 const Sequelize = require("sequelize");
-//const conn = require("../databases.js").dfam;
-const conn = require("../databases").getConn_Dfam();
+const dfam = require("../databases").getModels_Dfam();
 const zlib = require("zlib");
 const wrap = require('word-wrap');
 //const logger = require('../logger');
 
-//const copyright = require("./copyright");
-const family = require("../utils/family");
-//const util = require("./util");
+//const family = require("../utils/family");
 const WorkerPool = require('../worker-pool');
-
-const familyModel = require("../models/family")(conn, Sequelize);
-const hmmModelDataModel = require("../models/hmm_model_data")(conn, Sequelize);
-familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
 
 /**
@@ -120,9 +117,58 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
       }
 
       if (format == "logo") {
-        console.log("Unimplemented");
+        const model = await dfam.hmmModelDataModel.findOne({
+          attributes: [ "hmm_logo" ],
+          include: [ { model: dfam.familyModel, where: { accession: id }, attributes: [] } ],
+        });
+
+        if (!model || !model["hmm_logo"]) {
+          return null;
+        }
+        obj.payload = model["hmm_logo"];
+        obj.encoding = "gzip";
       }else if (format == "image") {
-        console.log("Unimplemented");
+
+        const model = await dfam.hmmModelDataModel.findOne({
+          attributes: [ "hmm" ],
+          include: [ { model: dfam.familyModel, where: { accession: id }, attributes: [] } ],
+        });
+
+        if (!model || !model["hmm"]) {
+          return null;
+        }
+ 
+        const unzippedHmm = await new Promise(function(resolve, reject) {
+          zlib.gunzip(model["hmm"], function(err, data) {
+          if (err) { reject(err); }
+          else { resolve(data); }
+          });
+        });
+
+        const image = await new Promise(function(resolve, reject) {
+          const webGenLogoImage = path.join(config.hmm_logos_dir, 'webGenLogoImage.pl');
+          const proc = child_process.spawn(webGenLogoImage,
+            { stdio: ['pipe', 'pipe', 'inherit'] }
+          );
+          proc.on('error', err => reject(err));
+  
+          const chunks = [];
+          proc.stdout.on('data', chunk => chunks.push(chunk));
+          proc.on('close', function(code) {
+            if (code == 0) {
+              resolve(Buffer.concat(chunks));
+            } else {
+              reject(new Error("Error converting HMM to PNG image."));
+            }
+          });
+
+          proc.stdin.end(unzippedHmm);
+        });
+
+        obj.payload = image;
+        obj.content_type = "image/png";
+        obj.encoding = "identity";
+
       }else if (format == "hmm") {
         obj.payload = await WorkerPool.piscina.run({accessions: [id], include_copyright: 0}, { name: 'hmm_command' });
       }
@@ -196,13 +242,22 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
 * returns String
 * */
 const readFamilySequence = ({ id, format, download }) => new Promise(
+
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        id,
-        format,
-        download,
-      }));
+      obj = {};
+      if (download) {
+        const extensions = { 'embl': '.embl', 'fasta': '.fa' };
+        obj.attachment = id + extensions[format];
+      }
+      obj.content_type = "text/plain";
+
+      if (format == "embl") {
+        obj.payload = await WorkerPool.piscina.run({accessions: [id]}, { name: 'embl_command' });
+      }else if (format == "fasta") {
+        obj.payload = await WorkerPool.piscina.run({accessions: [id]}, { name: 'fasta_command' });
+      }
+      resolve(Service.successResponse(obj));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -210,6 +265,7 @@ const readFamilySequence = ({ id, format, download }) => new Promise(
       ));
     }
   },
+
 );
 
 module.exports = {
