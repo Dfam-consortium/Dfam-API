@@ -41,7 +41,6 @@ function connect(dbinfo) {
 }
 
 var _dfam_conn;
-
 const getConn_Dfam = function () {
   if (! _dfam_conn) {
     _dfam_conn = connect(config.schema.Dfam);
@@ -50,12 +49,27 @@ const getConn_Dfam = function () {
 }
 
 var _dfam_models;
-
 const getModels_Dfam = function () {
   if (! _dfam_models) {
     _dfam_models = require("./dbmodels").getDfamModels(getConn_Dfam());
   }
   return(_dfam_models);
+}
+
+var _user_conn;
+const getConn_User = function () {
+  if (! _user_conn) {
+    _user_conn = connect(config.schema.DfamUser);
+  }
+  return(_user_conn);
+}
+
+var _user_models;
+const getModels_User = function () {
+  if (! _user_models) {
+    _user_models = require("./dbmodels").getDfamUserModels(getConn_User());
+  }
+  return(_user_models);
 }
     
     
@@ -97,7 +111,9 @@ const getModels_Dfam = function () {
 
 module.exports = {
   getConn_Dfam,
-  getModels_Dfam
+  getModels_Dfam,
+  getConn_User,
+  getModels_User
 };
 
 //module.exports = {
