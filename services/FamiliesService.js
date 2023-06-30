@@ -357,42 +357,42 @@ async function collectClades(clade, clade_relatives) {
 * format String Desired output format. Supported formats include \"summary\", \"full\", \"embl\", \"fasta\", and \"hmm\". Defaults to \"summary\". (optional)
 * sort String A string containing sort columns, for example \"name:asc,length:desc\". Sorting by any of \"accession\", \"name\", \"length\", \"type\", \"subtype\", \"date_created\", and \"date_modified\" are supported. If unspecified, \"accession:asc\" will be used. (optional)
 * name String Search term for any part of the family name. Takes precedence over \"name_prefix\" if both are specified. (optional)
-* nameUnderscoreprefix String Search term for a prefix of the family name. (optional)
-* nameUnderscoreaccession String Search term for any part of the family name or accession (optional)
+* name_prefix String Search term for a prefix of the family name. (optional)
+* name_accession String Search term for any part of the family name or accession (optional)
 * classification String Search term for family classification. Sub-classifications are included. A full classification lineage is expected for this search term; such as \"root;Interspersed_Repeat\". (optional)
 * clade String Search term for family clade. Can be either an NCBI Taxonomy ID or scientific name. If the scientific name is ambiguous (e.g. \"Drosophila\"), the taxonomy ID should be used instead. (optional)
-* cladeUnderscorerelatives String Relatives of the requested clade to include: 'ancestors', 'descendants', or 'both' (optional)
+* clade_relatives String Relatives of the requested clade to include: 'ancestors', 'descendants', or 'both' (optional)
 * type String Search term for TE type, as understood by RepeatMasker. (optional)
 * subtype String Search term for TE subtype, as understood by RepeatMasker. (optional)
-* updatedUnderscoreafter date Filter by \"updated on or after\" date. (optional)
-* updatedUnderscorebefore date Filter by \"updated on or before\" date. (optional)
+* updated_after date Filter by \"updated on or after\" date. (optional)
+* updated_before date Filter by \"updated on or before\" date. (optional)
 * desc String Search term for family description. (optional)
 * keywords String Keywords to search in text fields (currently name, title, description, accession, author). (optional)
-* includeUnderscoreraw Boolean Whether to include raw (\"DR\") families in the results. Default is false. (optional)
+* include_raw Boolean Whether to include raw (\"DR\") families in the results. Default is false. (optional)
 * start Integer Index of first record to return. Commonly used along with `limit` to implement paging. (optional)
 * limit Integer Maxium number of records to return. (optional)
 * download Boolean If true, adds headers to trigger a browser download. (optional)
 * returns familiesResponse
 * */
-const readFamilies = ({ format, sort, name, nameUnderscoreprefix, nameUnderscoreaccession, classification, clade, cladeUnderscorerelatives, type, subtype, updatedUnderscoreafter, updatedUnderscorebefore, desc, keywords, includeUnderscoreraw, start, limit, download }) => new Promise(
+const readFamilies = ({ format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
         format,
         sort,
         name,
-        nameUnderscoreprefix,
-        nameUnderscoreaccession,
+        name_prefix,
+        name_accession,
         classification,
         clade,
-        cladeUnderscorerelatives,
+        clade_relatives,
         type,
         subtype,
-        updatedUnderscoreafter,
-        updatedUnderscorebefore,
+        updated_after,
+        updated_before,
         desc,
         keywords,
-        includeUnderscoreraw,
+        include_raw,
         start,
         limit,
         download,
@@ -537,10 +537,10 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
 *
 * id String The Dfam family accession.
 * include String Which families to include. \"all\" searches all of Dfam, and \"related\" searches only families that are found in ancestor or descendant clades of the one this family belongs to. Default is \"all\". (optional)
-* includeUnderscoreraw Boolean Whether to include matches to raw (\"DR\") families. Default is false. (optional)
+* include_raw Boolean Whether to include matches to raw (\"DR\") families. Default is false. (optional)
 * returns List
 * */
-const readFamilyRelationships = ({ id, include, includeUnderscoreraw }) => new Promise(
+const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
   async (resolve, reject) => {
     try {
 
@@ -603,7 +603,7 @@ const readFamilyRelationships = ({ id, include, includeUnderscoreraw }) => new P
   }
 
   // Add filter for family2 being DF*, if requested
-  if (!includeUnderscoreraw) {
+  if (!include_raw) {
     include_f2.where.push({
       accession: { [Sequelize.Op.like]: "DF%" },
     });

@@ -48,15 +48,15 @@ const readFamilyAssemblies = ({ id }) => new Promise(
 * Retrieve a family's annotation statistics associated with a given assembly.
 *
 * id String The Dfam family accession.
-* assemblyUnderscoreid String The assembly identifier, as shown in /families/{id}/assemblies.
+* assembly_id String The assembly identifier, as shown in /families/{id}/assemblies.
 * returns familyAssemblyAnnotationStatsResponse
 * */
-const readFamilyAssemblyAnnotationStats = ({ id, assemblyUnderscoreid }) => new Promise(
+const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
         id,
-        assemblyUnderscoreid,
+        assembly_id,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -71,17 +71,17 @@ const readFamilyAssemblyAnnotationStats = ({ id, assemblyUnderscoreid }) => new 
 * Retrieve a family's annotations associated with a given assembly.
 *
 * id String The Dfam family accession.
-* assemblyUnderscoreid String The assembly identifier, as shown in /families/{id}/assemblies.
+* assembly_id String The assembly identifier, as shown in /families/{id}/assemblies.
 * nrph Boolean \"true\" to include only non-redundant profile hits.
 * download Boolean If true, adds headers to trigger a browser download. (optional)
 * returns String
 * */
-const readFamilyAssemblyAnnotations = ({ id, assemblyUnderscoreid, nrph, download }) => new Promise(
+const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
         id,
-        assemblyUnderscoreid,
+        assembly_id,
         nrph,
         download,
       }));
@@ -98,15 +98,15 @@ const readFamilyAssemblyAnnotations = ({ id, assemblyUnderscoreid, nrph, downloa
 * Retrieve a family's karyotype data associated with a given assembly.
 *
 * id String The Dfam family accession.
-* assemblyUnderscoreid String The assembly identifier, as shown in /families/{id}/assemblies.
+* assembly_id String The assembly identifier, as shown in /families/{id}/assemblies.
 * returns Object
 * */
-const readFamilyAssemblyKaryotype = ({ id, assemblyUnderscoreid }) => new Promise(
+const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
         id,
-        assemblyUnderscoreid,
+        assembly_id,
       }));
     } catch (e) {
       reject(Service.rejectResponse(
@@ -121,16 +121,16 @@ const readFamilyAssemblyKaryotype = ({ id, assemblyUnderscoreid }) => new Promis
 * Retrieve a family's conservation data associated with a given assembly.
 *
 * id String The Dfam family accession.
-* assemblyUnderscoreid String The assembly identifier, as shown in /families/{id}/assemblies.
+* assembly_id String The assembly identifier, as shown in /families/{id}/assemblies.
 * model String Model type, \"cons\" or \"hmm\".
 * returns List
 * */
-const readFamilyAssemblyModelConservation = ({ id, assemblyUnderscoreid, model }) => new Promise(
+const readFamilyAssemblyModelConservation = ({ id, assembly_id, model }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
         id,
-        assemblyUnderscoreid,
+        assembly_id,
         model,
       }));
     } catch (e) {
@@ -146,16 +146,16 @@ const readFamilyAssemblyModelConservation = ({ id, assemblyUnderscoreid, model }
 * Retrieve a family's coverage data associated with a given assembly.
 *
 * id String The Dfam family accession.
-* assemblyUnderscoreid String The assembly identifier, as shown in /families/{id}/assemblies.
+* assembly_id String The assembly identifier, as shown in /families/{id}/assemblies.
 * model String Model type, \"cons\" or \"hmm\".
 * returns readFamilyAssemblyModelCoverage_200_response
 * */
-const readFamilyAssemblyModelCoverage = ({ id, assemblyUnderscoreid, model }) => new Promise(
+const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Promise(
   async (resolve, reject) => {
     try {
       resolve(Service.successResponse({
         id,
-        assemblyUnderscoreid,
+        assembly_id,
         model,
       }));
     } catch (e) {
