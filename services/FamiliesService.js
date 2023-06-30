@@ -422,7 +422,8 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
 
       accs = [];
       for (const row of rows) {
-        accs.push(row.accessions);
+console.log("Pushing accession " + row.accession);
+        accs.push(row.accession);
       }
  
       // TODO: Consider compressing the results
@@ -620,7 +621,7 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
 
   if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
     const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
-    return Promise.resolve(new APIResponse({ message }, 400));
+    resolve(Service.successResponse( { payload: {message}, code: 400 } ));
   }
 
   // Anthony found that the findAndCountAll query above is redundant with this one. 6/27/23
@@ -628,7 +629,7 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
   let rows = count_result.rows;
 
   rows = await familySubqueries(rows, format);
-  resolve(Service.successResponse( format_rules.mapper(total_count, rows, format_rules) ));
+  resolve(Service.successResponse( format_rules.mapper(total_count, rows, format) ));
 
     } catch (e) {
       reject(Service.rejectResponse(
