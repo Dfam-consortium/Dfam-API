@@ -1,18 +1,16 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const path = require('path');
-const config = require('../config');
 const child_process = require('child_process');
-
-
 const Sequelize = require("sequelize");
-const dfam = require("../databases").getModels_Dfam();
 const zlib = require("zlib");
 const wrap = require('word-wrap');
-//const logger = require('../logger');
+const { promisify } = require("util");
 
-//const family = require("../utils/family");
+const config = require('../config');
+const dfam = require("../databases").getModels_Dfam();
 const WorkerPool = require('../worker-pool');
+//const logger = require('../logger');
 
 
 /**
@@ -219,11 +217,48 @@ const readFamilyRelationships = ({ id, include, includeUnderscoreraw }) => new P
 const readFamilySeed = ({ id, format, download }) => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-        id,
-        format,
-        download,
-      }));
+      obj = {};
+      if (download) {
+        const extensions = { 'stockholm': '.stk', 'alignment_summary': '.json' };
+        if ( format in extensions ) {
+          obj.attachment = id + extensions[format];
+        }else {
+          throw new Error("Unrecognized format: " + format);
+        }
+      }
+
+      if (format == "stockholm") {
+        obj.payload = await WorkerPool.piscina.run({accessions: [id]}, { name: 'stockholm_command' });
+        obj.content_type = "text/plain";
+        obj.encoding = "identity";
+      }else if (format == "alignment_summary") {
+        const family = await dfam.familyModel.findOne({
+          attributes: [ "id", "name" ],
+          where: { accession: id },
+        });
+
+        const seedAlignData = await dfam.seedAlignDataModel.findOne({
+          attributes: ["graph_json", "avg_kimura_divergence"],
+          where: { family_id: family.id },
+        });
+
+        let graphData = {};
+        if (seedAlignData && seedAlignData.graph_json && seedAlignData.graph_json.length > 0) {
+          graphData = JSON.parse(await promisify(zlib.gunzip)(seedAlignData.graph_json));
+        } else {
+          logger.warn(`Family with accession ${id} has no seed alignment graph data.`);
+        }
+
+        // TODO: Include values for graphData.publicSequences and
+        // graphData.representedAssemblies, once we are confident we
+        // can calculate them correctly
+
+        graphData.averageKimuraDivergence = seedAlignData.avg_kimura_divergence;
+        obj.payload = graphData;
+        obj.content_type = "application/json";
+        obj.encoding = "identity";
+      }
+      resolve(Service.successResponse(obj));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -232,6 +267,7 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
     }
   },
 );
+
 /**
 * Retrieve an individual Dfam family's annotated consensus sequence.
 * Retrieve an individual Dfam family's annotated consensus sequence. If only the raw sequence is needed, use the `consensus_sequence` property from the `/families/{id}` endpoint instead.

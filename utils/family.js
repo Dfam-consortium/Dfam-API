@@ -1,5 +1,4 @@
 const Sequelize = require("sequelize");
-//const conn = require("../databases.js").dfam;
 const conn = require("../databases.js").getConn_Dfam();
 
 const familyModel = require("../models/family.js")(conn, Sequelize);

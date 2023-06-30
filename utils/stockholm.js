@@ -1,47 +1,17 @@
 const fs = require('fs');
 const path = require('path');
-const process = require('process');
+// TODO this is confusing as there is a util.js in this project.  Should not pollute the namespace!
 const { promisify } = require('util');
 
-const Sequelize = require("sequelize");
-const conn = require("../databases.js").dfam;
 const wrap = require('word-wrap');
-const winston = require('winston');
-const { tmpFileAsync, execFileAsync } = require('../utils/async');
+const { tmpFileAsync, execFileAsync } = require('./async');
 const config = require('../config');
 
-const family = require("./family");
-const util = require("./util");
+//const family = require("./family");
+//const util = require("./util");
 
-const familyModel = require("../models/family.js")(conn, Sequelize);
-const seedAlignDataModel = require("../models/seed_align_data.js")(conn, Sequelize);
 
-familyModel.hasOne(seedAlignDataModel, { as: "seed_align_data", foreignKey: 'family_id' });
-
-module.exports = async function stockholm_command(output) {
-  await util.forEachLine(process.stdin, async function(accession) {
-    const fam = await family.getFamilyForAnnotation(accession);
-    if (!fam) {
-      winston.error(`Missing family for accession: ${accession}`);
-      return;
-    }
-
-    fam.seed_align_data = await seedAlignDataModel.findOne({
-      attributes: ["comsa_data"],
-      where: { family_id: fam.id },
-    });
-
-    const stockholm = await seedAlignToStockholm(fam);
-    if (stockholm) {
-      output.write(stockholm);
-    } else {
-      winston.error(`Failed to convert to stockholm: ${accession}`);
-      return;
-    }
-  });
-};
-
-async function decompressCoMSA(compressed) {
+decompressCoMSA = async function(compressed) {
   const [compressedFile, decompressedFile] = await Promise.all([
     tmpFileAsync({ detatchDescriptor: true }),
     tmpFileAsync({ detatchDescriptor: true }),
@@ -67,7 +37,7 @@ async function decompressCoMSA(compressed) {
 // }
 //
 // Generates and returns the stockholm-formatted output.
-async function seedAlignToStockholm(family) {
+seedAlignToStockholm = async function(family) {
   if (family == null || family.seed_align_data == null || family.seed_align_data.comsa_data.length < 1) {
     return null;
   }
@@ -172,3 +142,7 @@ async function seedAlignToStockholm(family) {
 
   return stockholmStr;
 }
+
+module.exports={
+  seedAlignToStockholm  
+};
