@@ -120,11 +120,3 @@ module.exports = {
   getModels_User,
   getModels_Assembly
 };
-
-//module.exports = {
-//  "dfam": dfam_connection,
-//  dfam_models,
-//  "users": users_connection,
-//  dfam_user_models,
-//  "getAssemblyModels": getAssemblyModels
-//};

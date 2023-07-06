@@ -7,9 +7,9 @@
 const Sequelize = require("sequelize");
 const conn = require("../databases").getConn_Dfam();
 const dfam = require("../databases").getModels_Dfam();
+const logger = require("../logger");
 const zlib = require("zlib");
 const wrap = require('word-wrap');
-const logger = require('../logger');
 const copyright = require("./copyright");
 const family = require("./family");
 const hmm = require("./hmm");
@@ -100,7 +100,7 @@ const stockholm_command = async function ({accessions}) {
   for (const acc of accessions) {
     const fam = await family.getFamilyForAnnotation(acc);
     if (!fam) {
-      winston.error(`Missing family for accession: ${acc}`);
+      logger.error(`Missing family for accession: ${acc}`);
       return;
     }
 
