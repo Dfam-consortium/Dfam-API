@@ -13,7 +13,7 @@
     "openapi-generator",
     "openapi"
   ],
-  "license": "Unlicense",
+  "license": "CC0-1.0",
   "private": true,
   "dependencies": {
     "body-parser": "^1.19.0",
