@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const config = require('../config');
 

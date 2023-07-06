@@ -12,21 +12,21 @@ require('./workerPool');
 //   out and generating a *.sans_example file. NOTE: In OAS 3.1 the
 //   'example' tag has been renamed 'examples' for future reference.
 function removeExamplesKeys(obj) {
-        if (typeof obj === "object" && obj !== null) {
-                if (Array.isArray(obj)) {
-                        obj.forEach(function (item) {
-                                removeExamplesKeys(item);
-                        });
-                } else {
-                        for (var key in obj) {
-                                if (key === "example") {
-                                        delete obj[key];
-                                } else {
-                                        removeExamplesKeys(obj[key]);
-                                }
-                        }
-                }
+  if (typeof obj === "object" && obj !== null) {
+    if (Array.isArray(obj)) {
+      obj.forEach(function (item) {
+        removeExamplesKeys(item);
+      });
+    } else {
+      for (var key in obj) {
+        if (key === "example") {
+          delete obj[key];
+        } else {
+          removeExamplesKeys(obj[key]);
         }
+      }
+    }
+  }
 }
 
 

@@ -2,8 +2,6 @@
  * Export a family in FASTA format
  *
  */
-const family = require("./family");
-
 function exportFasta(family) {
   var fastaStr = ">";
 

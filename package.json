@@ -7,6 +7,7 @@
     "prestart": "npm install",
     "start": "node index.js",
     "lint": "eslint .; true",
+    "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
     "test": "ava --no-worker-threads",
     "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml",

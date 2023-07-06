@@ -9,7 +9,6 @@ const conn = require("../databases").getConn_Dfam();
 const dfam = require("../databases").getModels_Dfam();
 const logger = require("../logger");
 const zlib = require("zlib");
-const wrap = require('word-wrap');
 const copyright = require("./copyright");
 const family = require("./family");
 const hmm = require("./hmm");
@@ -27,7 +26,7 @@ logger.info("Worker Starting Up: " + threadId);
 
 const hmm_command = async function ({accessions, include_copyright = 0}) {
   logger.info("Worker: " + threadId + " , command = hmm_command");
-  let ret_val = ""
+  let ret_val = "";
   if (include_copyright) {
     ret_val = await copyright("#   ");
   }
@@ -58,7 +57,7 @@ const hmm_command = async function ({accessions, include_copyright = 0}) {
 
 const embl_command = async function ({accessions, include_copyright = 0}) {
   logger.info("Worker: " + threadId + " , command = embl_command");
-  let ret_val = ""
+  let ret_val = "";
   if (include_copyright) {
     ret_val = await copyright("CC   ");
   }
@@ -91,7 +90,7 @@ const fasta_command = async function ({accessions}) {
     ret_val += await fasta.exportFasta(fam);
   } 
   return ret_val;
-}
+};
  
 const stockholm_command = async function ({accessions}) {
   logger.info("Worker: " + threadId + " , command = stockholm_command");

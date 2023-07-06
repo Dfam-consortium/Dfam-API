@@ -17,8 +17,6 @@
  */
 const test = require('ava');
 const supertest = require('supertest');
-const dfam = require("../databases").getModels_Dfam();
-const dfam_user = require("../databases").getModels_User();
 
 const winston = require('winston');
 const format = winston.format;

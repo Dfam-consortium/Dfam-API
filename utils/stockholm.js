@@ -11,7 +11,7 @@ const { tmpFileAsync, execFileAsync } = require('./async');
 const config = require('../config');
 
 
-decompressCoMSA = async function(compressed) {
+async function decompressCoMSA(compressed) {
   const [compressedFile, decompressedFile] = await Promise.all([
     tmpFileAsync({ detatchDescriptor: true }),
     tmpFileAsync({ detatchDescriptor: true }),
@@ -37,7 +37,7 @@ decompressCoMSA = async function(compressed) {
 // }
 //
 // Generates and returns the stockholm-formatted output.
-seedAlignToStockholm = async function(family) {
+async function seedAlignToStockholm(family) {
   if (family == null || family.seed_align_data == null || family.seed_align_data.comsa_data.length < 1) {
     return null;
   }

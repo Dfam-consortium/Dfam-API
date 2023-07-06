@@ -2,8 +2,6 @@
  * Dfam Family Functions/Data Structures
  *
  */
-const Sequelize = require("sequelize");
-
 const dfam = require("../databases").getModels_Dfam();
 const dfam_user = require("../databases").getModels_User();
 const mapFields = require("../utils/mapFields");
@@ -50,7 +48,7 @@ function getFamilyForAnnotation(accession) {
 
     return family;
   });
-};
+}
 
 function getFamilyWithConsensus(accession) {
   return dfam.familyModel.findOne({
@@ -63,7 +61,7 @@ function getFamilyWithConsensus(accession) {
 
     return family;
   });
-};
+}
 
 function familySubqueries(rows, format) {
   return Promise.all(rows.map(function(row) {

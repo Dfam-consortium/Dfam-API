@@ -1,16 +1,12 @@
-/* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const path = require('path');
 const child_process = require('child_process');
 const Sequelize = require("sequelize");
 const zlib = require("zlib");
-const wrap = require('word-wrap');
 const { promisify } = require("util");
 
 const config = require('../config');
-const dfam_conn = require("../databases").getConn_Dfam();
 const dfam = require("../databases").getModels_Dfam();
-const dfam_user = require("../databases").getModels_User();
 const workerPool = require('../workerPool');
 const mapFields = require("../utils/mapFields");
 const escape = require("../utils/escape");
@@ -44,63 +40,38 @@ const logger = require('../logger');
 * */
 const readFamilies = ({ format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download }) => new Promise(
   async (resolve, reject) => {
-    try {
-
-  if (!format) {
-    format = "summary";
-  }
-
-  async function familyRowsToObjects(total_count, rows, format, copyright, download) {
-    // Download isn't applicable here yet?
-    // Copyright isn't applicable on these formats
-    const objs = rows.map(row => family.familyQueryRowToObject(row, format));
-    const data = { total_count, results: objs };
-    return {
-      payload: data
-    };
-  }
-
-  // DEPRECATED
-  async function familyAccessionsToWorker(total_count, rows, format_rules) {
-    let accessions = "";
-    rows.forEach(row => accessions += row.accession + "\n");
-
-    const data = await runWorkerAsync([format, "--copyright"], accessions);
-    if (!data) {
-      // An error occurred.
-      // TODO: This returns 404. Throw an exception instead?
-      return null;
+    async function familyRowsToObjects(total_count, rows, format, copyright, download) {
+      // Download isn't applicable here yet?
+      // Copyright isn't applicable on these formats
+      const objs = rows.map(row => family.familyQueryRowToObject(row, format));
+      const data = { total_count, results: objs };
+      return {
+        payload: data
+      };
     }
-
-    return {
-      data,
-      content_type: format_rules.content_type,
-      encoding: 'identity',
-    };
-  }
-  async function workerFormatAccessions(total_count, rows, format, copyright, download) {
+    async function workerFormatAccessions(total_count, rows, format, copyright, download) {
       const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
 
       if ( ! (format in extensions) ) {
         resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
       }
 
-      obj = {};
+      var obj = {};
       if (download) {
-        obj.attachment = id + extensions[format];
+        obj.attachment = "families" + extensions[format];
       }
       obj.content_type = "text/plain";
       obj.encoding = "identity";
 
-      accs = [];
+      var accs = [];
       for (const row of rows) {
         accs.push(row.accession);
       }
- 
+
       // TODO: Consider compressing the results
       // TODO: Consider pagination for large queries
       // TODO: Consider copyright for bulk and download only
-      
+     
       if (format == "embl") {
         obj.payload = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'embl_command' });
       }else if (format == "fasta") {
@@ -109,199 +80,202 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
         obj.payload = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'hmm_command' });
       } 
       return obj;
-  }
-
-
-
-  // TODO: Consider making these configurable in Dfam.conf
-  // TODO: add "count" format that doesn't fill in the summary data and doesn't necessaryily join the classification tables for faster default counts
-  const HARD_LIMIT = 5000, HMM_LIMIT = 2000;
-  const export_formats = {
-    "summary": { metadata: 1, mapper: familyRowsToObjects,      limit: HARD_LIMIT },
-    "full":    { metadata: 2, mapper: familyRowsToObjects,      limit: HARD_LIMIT },
-    "fasta":   { metadata: 0, mapper: workerFormatAccessions, limit: HARD_LIMIT, content_type: 'text/plain' },
-    "embl":    { metadata: 0, mapper: workerFormatAccessions, limit: HARD_LIMIT, content_type: 'text/plain' },
-    "hmm":     { metadata: 0, mapper: workerFormatAccessions, limit: HMM_LIMIT, content_type: 'text/plain' },
-  };
-
-  const format_rules = export_formats[format];
-
-  if (!format_rules) {
-    return Promise.resolve(new APIResponse({ message: "Unrecognized format: " + format}, 400));
-  }
-
-  const clade_info = await family.collectClades(clade, clade_relatives);
-
-  const query = { };
-  query.attributes = ["id", "accession"];
-  query.where = [];
-  query.include = [
-    { model: dfam.classificationModel, as: 'classification', include: [
-      { model: dfam.rmTypeModel, as: 'rm_type' },
-      { model: dfam.rmSubTypeModel, as: 'rm_subtype' },
-    ] },
-  ];
-  query.order = [];
-
-  // See sequelize/sequelize#11617
-  query.subQuery = false;
-
-  if (format_rules.metadata >= 1) {
-    query.attributes = query.attributes.concat(["name", "version", "title", "length", "description"]);
-  }
-
-  if (format_rules.metadata >= 2) {
-    query.attributes = query.attributes.concat([
-      "consensus", "author", "deposited_by_id", "date_created", "date_modified",
-      "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_threshold",
-      "source_method_desc",
-    ]);
-    query.include.push({ model: dfam.curationStateModel, as: 'curation_state' });
-    query.include.push({ model: dfam.sourceMethodModel, as: 'source_method' });
-    query.include.push({ model: dfam.assemblyModel, as: 'source_assembly' });
-  }
-
-  if (name) {
-    query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name, '\\') + "%" } });
-  } else if (name_prefix) {
-    query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name_prefix, '\\') + "%" } });
-  } else if (name_accession) {
-    const where_name_acc = "%" + escape.escape_sql_like(name_accession, '\\') + "%";
-    query.where.push({ [Sequelize.Op.or]: [
-      { name: { [Sequelize.Op.like]: where_name_acc } },
-      { accession: { [Sequelize.Op.like]: where_name_acc } },
-    ] });
-  }
-
-  if (classification) {
-    query.where.push({ [Sequelize.Op.or]: [
-      { "$classification.lineage$": classification },
-      { "$classification.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(classification, '\\') + ";%" } },
-    ] });
-  }
-
-  if (clade_info) {
-    const cladeInclude = {
-      model: dfam.dfamTaxdbModel,
-      as: 'clades',
-      include: [],
-    };
-    query.include.push(cladeInclude);
-
-    const clade_where_query = [];
-    clade_where_query.push({
-      "tax_id": { [Sequelize.Op.in]: clade_info.ids },
-    });
-
-    if (clade_relatives === "descendants" || clade_relatives === "both") {
-      clade_where_query.push({
-        "lineage": { [Sequelize.Op.like]: escape.escape_sql_like(clade_info.lineage, '\\') + ";%" }
-      });
     }
+    try {
 
-    cladeInclude.where = { [Sequelize.Op.or]: clade_where_query };
-  }
-
-  if (desc) {
-    query.where.push({
-      description: { [Sequelize.Op.like]: escape.escape_sql_like(desc, '#') + "%" }
-    });
-  }
-
-  if (type) {
-    query.where.push({ '$classification.rm_type.name$': type });
-  }
-
-  if (subtype) {
-    query.where.push({ '$classification.rm_subtype.name$': subtype });
-  }
-
-  // TODO: new Date(...) is full of surprises.
-
-  if (updated_after) {
-    query.where.push({ [Sequelize.Op.or]: [
-      { date_modified: { [Sequelize.Op.gt]: new Date(updated_after) } },
-      { date_created: { [Sequelize.Op.gt]: new Date(updated_after) } },
-    ] });
-  }
-
-  if (updated_before) {
-    query.where.push({ [Sequelize.Op.or]: [
-      { date_modified: { [Sequelize.Op.lt]: new Date(updated_before) } },
-      { date_created: { [Sequelize.Op.lt]: new Date(updated_before) } },
-    ] });
-  }
-
-  if (keywords) {
-    keywords.split(" ").forEach(function(word) {
-      const word_esc = "%" + escape.escape_sql_like(word, '\\') + "%";
-      query.where.push({ [Sequelize.Op.or]: [
-        { name:        { [Sequelize.Op.like]: word_esc } },
-        { title:       { [Sequelize.Op.like]: word_esc } },
-        { description: { [Sequelize.Op.like]: word_esc } },
-        { accession:   { [Sequelize.Op.like]: word_esc } },
-        { author:      { [Sequelize.Op.like]: word_esc } },
-      ] });
-    });
-  }
-
-  if (!include_raw) {
-    query.where.push({ accession: { [Sequelize.Op.like]: "DF%" } });
-  }
-
-  const simpleSortKeys = [ "accession", "name", "length", "date_created", "date_modified" ];
-
-  if (sort) {
-    sort.split(",").forEach(function(term) {
-      const match = /(\S+):(asc|desc)/.exec(term);
-      if (match) {
-        if (simpleSortKeys.includes(match[1])) {
-          query.order.push([match[1], match[2]]);
-        } else if (match[1] == "type") {
-          query.order.push(["classification", "rm_type", "name", match[2]]);
-        } else if (match[1] == "subtype") {
-          query.order.push(["classification", "rm_subtype", "name", match[2]]);
-        }
+      if (!format) {
+        format = "summary";
       }
-    });
-  }
 
-  if (!query.order.length) {
-    query.order.push(["accession", "ASC"]);
-  }
+      // TODO: Consider making these configurable in Dfam.conf
+      // TODO: add "count" format that doesn't fill in the summary data and doesn't necessaryily join the classification tables for faster default counts
+      const HARD_LIMIT = 5000, HMM_LIMIT = 2000;
+      const export_formats = {
+        "summary": { metadata: 1, mapper: familyRowsToObjects,      limit: HARD_LIMIT },
+        "full":    { metadata: 2, mapper: familyRowsToObjects,      limit: HARD_LIMIT },
+        "fasta":   { metadata: 0, mapper: workerFormatAccessions, limit: HARD_LIMIT, content_type: 'text/plain' },
+        "embl":    { metadata: 0, mapper: workerFormatAccessions, limit: HARD_LIMIT, content_type: 'text/plain' },
+        "hmm":     { metadata: 0, mapper: workerFormatAccessions, limit: HMM_LIMIT, content_type: 'text/plain' },
+      };
 
-  if (limit !== undefined) {
-    query.limit = limit;
-  }
+      const format_rules = export_formats[format];
 
-  if (start !== undefined) {
-    query.offset = start;
-  }
+      if (!format_rules) {
+        reject(Service.rejectResponse("Unrecognized format: " + format, 400));
+      }
 
-  // To log the queries for debugging
-  //query.logging = console.log;
+      const clade_info = await family.collectClades(clade, clade_relatives);
 
-  // The query can produce N rows for a given family if the family has more than one
-  // taxonomic label *and* the user asks for all families descendant from a clade 
-  // higher than both labels.  Anthony round that a simple query.distinct here fixes
-  // the problem. 6/27/23
-  query.distinct = true;
+      const query = { };
+      query.attributes = ["id", "accession"];
+      query.where = [];
+      query.include = [
+        { model: dfam.classificationModel, as: 'classification', include: [
+          { model: dfam.rmTypeModel, as: 'rm_type' },
+          { model: dfam.rmSubTypeModel, as: 'rm_subtype' },
+        ] },
+      ];
+      query.order = [];
 
-  const count_result = await dfam.familyModel.findAndCountAll(query);
-  const total_count = count_result.count;
+      // See sequelize/sequelize#11617
+      query.subQuery = false;
 
-  if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
-    const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
-    resolve(Service.successResponse( { payload: {message} }, code = 400 ));
-  }
+      if (format_rules.metadata >= 1) {
+        query.attributes = query.attributes.concat(["name", "version", "title", "length", "description"]);
+      }
 
-  // Anthony found that the findAndCountAll query above is redundant with this one. 6/27/23
-  //let rows = await dfam.familyModel.findAll(query);
-  let rows = count_result.rows;
+      if (format_rules.metadata >= 2) {
+        query.attributes = query.attributes.concat([
+          "consensus", "author", "deposited_by_id", "date_created", "date_modified",
+          "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_threshold",
+          "source_method_desc",
+        ]);
+        query.include.push({ model: dfam.curationStateModel, as: 'curation_state' });
+        query.include.push({ model: dfam.sourceMethodModel, as: 'source_method' });
+        query.include.push({ model: dfam.assemblyModel, as: 'source_assembly' });
+      }
 
-  rows = await family.familySubqueries(rows, format);
+      if (name) {
+        query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name, '\\') + "%" } });
+      } else if (name_prefix) {
+        query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name_prefix, '\\') + "%" } });
+      } else if (name_accession) {
+        const where_name_acc = "%" + escape.escape_sql_like(name_accession, '\\') + "%";
+        query.where.push({ [Sequelize.Op.or]: [
+          { name: { [Sequelize.Op.like]: where_name_acc } },
+          { accession: { [Sequelize.Op.like]: where_name_acc } },
+        ] });
+      }
 
-  resolve(Service.successResponse( await format_rules.mapper(total_count, rows, format) ));
+      if (classification) {
+        query.where.push({ [Sequelize.Op.or]: [
+          { "$classification.lineage$": classification },
+          { "$classification.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(classification, '\\') + ";%" } },
+        ] });
+      }
+
+      if (clade_info) {
+        const cladeInclude = {
+          model: dfam.dfamTaxdbModel,
+          as: 'clades',
+          include: [],
+        };
+        query.include.push(cladeInclude);
+
+        const clade_where_query = [];
+        clade_where_query.push({
+          "tax_id": { [Sequelize.Op.in]: clade_info.ids },
+        });
+
+        if (clade_relatives === "descendants" || clade_relatives === "both") {
+          clade_where_query.push({
+            "lineage": { [Sequelize.Op.like]: escape.escape_sql_like(clade_info.lineage, '\\') + ";%" }
+          });
+        }
+
+        cladeInclude.where = { [Sequelize.Op.or]: clade_where_query };
+      }
+
+      if (desc) {
+        query.where.push({
+          description: { [Sequelize.Op.like]: escape.escape_sql_like(desc, '#') + "%" }
+        });
+      }
+
+      if (type) {
+        query.where.push({ '$classification.rm_type.name$': type });
+      }
+
+      if (subtype) {
+        query.where.push({ '$classification.rm_subtype.name$': subtype });
+      }
+
+      // TODO: new Date(...) is full of surprises.
+
+      if (updated_after) {
+        query.where.push({ [Sequelize.Op.or]: [
+          { date_modified: { [Sequelize.Op.gt]: new Date(updated_after) } },
+          { date_created: { [Sequelize.Op.gt]: new Date(updated_after) } },
+        ] });
+      }
+
+      if (updated_before) {
+        query.where.push({ [Sequelize.Op.or]: [
+          { date_modified: { [Sequelize.Op.lt]: new Date(updated_before) } },
+          { date_created: { [Sequelize.Op.lt]: new Date(updated_before) } },
+        ] });
+      }
+
+      if (keywords) {
+        keywords.split(" ").forEach(function(word) {
+          const word_esc = "%" + escape.escape_sql_like(word, '\\') + "%";
+          query.where.push({ [Sequelize.Op.or]: [
+            { name:        { [Sequelize.Op.like]: word_esc } },
+            { title:       { [Sequelize.Op.like]: word_esc } },
+            { description: { [Sequelize.Op.like]: word_esc } },
+            { accession:   { [Sequelize.Op.like]: word_esc } },
+            { author:      { [Sequelize.Op.like]: word_esc } },
+          ] });
+        });
+      }
+
+      if (!include_raw) {
+        query.where.push({ accession: { [Sequelize.Op.like]: "DF%" } });
+      }
+
+      const simpleSortKeys = [ "accession", "name", "length", "date_created", "date_modified" ];
+
+      if (sort) {
+        sort.split(",").forEach(function(term) {
+          const match = /(\S+):(asc|desc)/.exec(term);
+          if (match) {
+            if (simpleSortKeys.includes(match[1])) {
+              query.order.push([match[1], match[2]]);
+            } else if (match[1] == "type") {
+              query.order.push(["classification", "rm_type", "name", match[2]]);
+            } else if (match[1] == "subtype") {
+              query.order.push(["classification", "rm_subtype", "name", match[2]]);
+            }
+          }
+        });
+      }
+
+      if (!query.order.length) {
+        query.order.push(["accession", "ASC"]);
+      }
+
+      if (limit !== undefined) {
+        query.limit = limit;
+      }
+
+      if (start !== undefined) {
+        query.offset = start;
+      }
+
+      // To log the queries for debugging
+      //query.logging = console.log;
+
+      // The query can produce N rows for a given family if the family has more than one
+      // taxonomic label *and* the user asks for all families descendant from a clade 
+      // higher than both labels.  Anthony round that a simple query.distinct here fixes
+      // the problem. 6/27/23
+      query.distinct = true;
+
+      const count_result = await dfam.familyModel.findAndCountAll(query);
+      const total_count = count_result.count;
+
+      if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
+        const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
+        resolve(Service.successResponse( { payload: {message} }, 400 ));
+      }
+
+      // Anthony found that the findAndCountAll query above is redundant with this one. 6/27/23
+      //let rows = await dfam.familyModel.findAll(query);
+      let rows = count_result.rows;
+
+      rows = await family.familySubqueries(rows, format);
+
+      resolve(Service.successResponse( await format_rules.mapper(total_count, rows, format) ));
 
     } catch (e) {
       reject(Service.rejectResponse(
@@ -336,7 +310,7 @@ const readFamilyById = ({ id }) => new Promise(
         const full_rows = await family.familySubqueries([row], "full");
         resolve(Service.successResponse({ payload: family.familyQueryRowToObject(full_rows[0], "full") }));
       } else {
-        resolve(Service.successResponse({ payload: {} }, code = 404));
+        resolve(Service.successResponse({ payload: {} }, 404));
       }
 
     } catch (e) {
@@ -364,7 +338,7 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
         resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
       }
 
-      obj = {};
+      var obj = {};
       if (download) {
         obj.attachment = id + extensions[format];
       }
@@ -400,8 +374,8 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
  
         const unzippedHmm = await new Promise(function(resolve, reject) {
           zlib.gunzip(model["hmm"], function(err, data) {
-          if (err) { reject(err); }
-          else { resolve(data); }
+            if (err) { reject(err); }
+            else { resolve(data); }
           });
         });
 
@@ -455,140 +429,140 @@ const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
   async (resolve, reject) => {
     try {
 
-  const clade_infos = [];
+      const clade_infos = [];
 
-  // Retrieve lineage + IDs for all clades associated to the family
-  if (include === "related") {
-    const family = await dfam.familyModel.findOne({
-      where: { accession: id },
-      include: [{
-        model: dfam.dfamTaxdbModel,
-        as: "clades",
-        attributes: ["tax_id"],
-      }],
-    });
+      // Retrieve lineage + IDs for all clades associated to the family
+      if (include === "related") {
+        const family = await dfam.familyModel.findOne({
+          where: { accession: id },
+          include: [{
+            model: dfam.dfamTaxdbModel,
+            as: "clades",
+            attributes: ["tax_id"],
+          }],
+        });
 
-    for (const cl of family.clades) {
-      clade_infos.push(await family.collectClades(cl.tax_id, "both"));
-    }
-  }
-
-  // Set up the query for the overlap table
-  const query = {
-    include: [
-      { 
-        model: dfam.familyModel, as: 'family1', attributes: ["name", "accession", "length"],
-        where: { 'accession': id },
-      },
-    ],
-    subQuery: false,
-  };
-
-  // Set up the inclusion / where clauses for family2
-  const include_f2 = {
-    model: dfam.familyModel,
-    as: 'family2',
-    attributes: ["name", "accession", "length"],
-    include: [],
-    where: [],
-  };
-  query.include.push(include_f2);
-
-  // If a clade was specified, add corresponding criteria
-  if (clade_infos.length) {
-    const cladeInclude = {
-      model: dfam.dfamTaxdbModel,
-      as: 'clades',
-      include: [],
-    };
-    include_f2.include.push(cladeInclude);
-
-    const clade_where_query = [];
-    clade_infos.forEach(ci => {
-      clade_where_query.push({ "tax_id": { [Sequelize.Op.in]: ci.ids } });
-      clade_where_query.push({
-        "lineage": { [Sequelize.Op.like]: escape.escape_sql_like(ci.lineage, '\\') + ";%" }
-      });
-    });
-    cladeInclude.where = { [Sequelize.Op.or]: clade_where_query };
-  }
-
-  // Add filter for family2 being DF*, if requested
-  if (!include_raw) {
-    include_f2.where.push({
-      accession: { [Sequelize.Op.like]: "DF%" },
-    });
-  }
-
-  // Finally, run the query
-  const overlap_segments = await dfam.overlapSegmentModel.findAll(query);
-
-  const all_overlaps = overlap_segments.map(function(overlap) {
-    const family_map = {
-      "name": "id",
-      "accession": "accession",
-      "length": "length",
-    };
-    const model_info = mapFields(overlap.family1, {}, family_map);
-    if (!overlap.family1.name) {
-      model_info.id = overlap.family1.accession;
-    }
-    const target_info = mapFields(overlap.family2, {}, family_map);
-    if (!overlap.family2.name) {
-      target_info.id = overlap.family2.accession;
-    }
-
-    const seg = mapFields(overlap, {}, {
-      "strand": "strand",
-      "evalue": "evalue",
-      "identity": "identity",
-      "coverage": "coverage",
-      "cigar": "cigar",
-
-      "family1_start": "model_start",
-      "family2_start": "target_start",
-      "family1_end": "model_end",
-      "family2_end": "target_end",
-    });
-
-    seg.auto_overlap = {
-      model: model_info,
-      target: target_info,
-    };
-    return seg;
-  });
-
-  // Large numbers of hits quickly become cumbersome in all aspects
-  // (serialization/deserialization, display, usability). Until we have more
-  // useful pre- and post-filters in place, we return only the most significant
-  // hits (by e-value).
-  //
-  // TODO: Allow for other sort options in the query and/or a "limit" parameter.
-  all_overlaps.sort((a, b) => a.evalue - b.evalue);
-  all_overlaps.splice(300);
-
-
-  // TODO: The stored coverage values are incorrect as of Dfam 3.5. This
-  // recalculation can be removed in a future release after data has been
-  // rebuilt.
-  all_overlaps.forEach(seg => {
-    let match_count = 0;
-    let count = 0;
-    for (let i = 0; i < seg.cigar.length; i++) {
-      if (seg.cigar[i] >= '0' && seg.cigar[i] <= '9') {
-        count *= 10;
-        count += seg.cigar[i] - '0';
-      } else {
-        if (seg.cigar[i] === "M") {
-          match_count += count;
+        for (const cl of family.clades) {
+          clade_infos.push(await family.collectClades(cl.tax_id, "both"));
         }
-        count = 0;
       }
-    }
-    seg.coverage = match_count / seg.auto_overlap.model.length;
-  });
 
-    resolve(Service.successResponse({ payload: all_overlaps }));
+      // Set up the query for the overlap table
+      const query = {
+        include: [
+          { 
+            model: dfam.familyModel, as: 'family1', attributes: ["name", "accession", "length"],
+            where: { 'accession': id },
+          },
+        ],
+        subQuery: false,
+      };
+
+      // Set up the inclusion / where clauses for family2
+      const include_f2 = {
+        model: dfam.familyModel,
+        as: 'family2',
+        attributes: ["name", "accession", "length"],
+        include: [],
+        where: [],
+      };
+      query.include.push(include_f2);
+
+      // If a clade was specified, add corresponding criteria
+      if (clade_infos.length) {
+        const cladeInclude = {
+          model: dfam.dfamTaxdbModel,
+          as: 'clades',
+          include: [],
+        };
+        include_f2.include.push(cladeInclude);
+
+        const clade_where_query = [];
+        clade_infos.forEach(ci => {
+          clade_where_query.push({ "tax_id": { [Sequelize.Op.in]: ci.ids } });
+          clade_where_query.push({
+            "lineage": { [Sequelize.Op.like]: escape.escape_sql_like(ci.lineage, '\\') + ";%" }
+          });
+        });
+        cladeInclude.where = { [Sequelize.Op.or]: clade_where_query };
+      }
+
+      // Add filter for family2 being DF*, if requested
+      if (!include_raw) {
+        include_f2.where.push({
+          accession: { [Sequelize.Op.like]: "DF%" },
+        });
+      }
+
+      // Finally, run the query
+      const overlap_segments = await dfam.overlapSegmentModel.findAll(query);
+
+      const all_overlaps = overlap_segments.map(function(overlap) {
+        const family_map = {
+          "name": "id",
+          "accession": "accession",
+          "length": "length",
+        };
+        const model_info = mapFields(overlap.family1, {}, family_map);
+        if (!overlap.family1.name) {
+          model_info.id = overlap.family1.accession;
+        }
+        const target_info = mapFields(overlap.family2, {}, family_map);
+        if (!overlap.family2.name) {
+          target_info.id = overlap.family2.accession;
+        }
+
+        const seg = mapFields(overlap, {}, {
+          "strand": "strand",
+          "evalue": "evalue",
+          "identity": "identity",
+          "coverage": "coverage",
+          "cigar": "cigar",
+
+          "family1_start": "model_start",
+          "family2_start": "target_start",
+          "family1_end": "model_end",
+          "family2_end": "target_end",
+        });
+
+        seg.auto_overlap = {
+          model: model_info,
+          target: target_info,
+        };
+        return seg;
+      });
+
+      // Large numbers of hits quickly become cumbersome in all aspects
+      // (serialization/deserialization, display, usability). Until we have more
+      // useful pre- and post-filters in place, we return only the most significant
+      // hits (by e-value).
+      //
+      // TODO: Allow for other sort options in the query and/or a "limit" parameter.
+      all_overlaps.sort((a, b) => a.evalue - b.evalue);
+      all_overlaps.splice(300);
+
+
+      // TODO: The stored coverage values are incorrect as of Dfam 3.5. This
+      // recalculation can be removed in a future release after data has been
+      // rebuilt.
+      all_overlaps.forEach(seg => {
+        let match_count = 0;
+        let count = 0;
+        for (let i = 0; i < seg.cigar.length; i++) {
+          if (seg.cigar[i] >= '0' && seg.cigar[i] <= '9') {
+            count *= 10;
+            count += seg.cigar[i] - '0';
+          } else {
+            if (seg.cigar[i] === "M") {
+              match_count += count;
+            }
+            count = 0;
+          }
+        }
+        seg.coverage = match_count / seg.auto_overlap.model.length;
+      });
+
+      resolve(Service.successResponse({ payload: all_overlaps }));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -614,7 +588,7 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
         resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
       }
 
-      obj = {};
+      var obj = {};
       if (download) {
         obj.attachment = id + extensions[format];
       }
@@ -678,7 +652,7 @@ const readFamilySequence = ({ id, format, download }) => new Promise(
         resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
       }
 
-      obj = {};
+      var obj = {};
       if (download) {
         obj.attachment = id + extensions[format];
       }
