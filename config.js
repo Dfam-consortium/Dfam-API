@@ -21,7 +21,7 @@ const config = {
 
 for(var key in conf)
 {
-    config[key] = conf[key];
+  config[key] = conf[key];
 }
 
 config.OPENAPI_YAML = path.join(config.ROOT_DIR, 'api', 'openapi.yaml');

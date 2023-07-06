@@ -52,7 +52,7 @@ class ExpressServer {
     //      "openapi.yaml.sans_example" file to use here.
     this.app.use(
       OpenApiValidator.middleware({
-	apiSpec: this.openApiPath + ".sans_example",
+        apiSpec: this.openApiPath + ".sans_example",
         operationHandlers: path.join(__dirname),
         validateResponses: false, // this causes "reference \"id1a\" resolves to more than one schema"
         validateApiSpec: true,

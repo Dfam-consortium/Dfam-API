@@ -27,7 +27,7 @@ function connect(dbinfo) {
       dialect: "mysql",
       dialectOptions: {
         charset: "latin1_swedish_ci",
-	timezone: "local"
+        timezone: "local"
       },
       define: {
         timestamps: false,
@@ -58,7 +58,7 @@ const getConn_Dfam = function () {
     _dfam_conn = connect(config.schema.Dfam);
   }
   return(_dfam_conn);
-}
+};
 
 var _dfam_models;
 const getModels_Dfam = function () {
@@ -66,7 +66,7 @@ const getModels_Dfam = function () {
     _dfam_models = require("./dbmodels").getDfamModels(getConn_Dfam());
   }
   return(_dfam_models);
-}
+};
 
 var _user_conn;
 const getConn_User = function () {
@@ -74,7 +74,7 @@ const getConn_User = function () {
     _user_conn = connect(config.schema.DfamUser);
   }
   return(_user_conn);
-}
+};
 
 var _user_models;
 const getModels_User = function () {
@@ -82,7 +82,7 @@ const getModels_User = function () {
     _user_models = require("./dbmodels").getDfamUserModels(getConn_User());
   }
   return(_user_models);
-}
+};
     
 var _assembly_models = {};
 const getModels_Assembly = function(schema_name) {
@@ -110,8 +110,7 @@ const getModels_Assembly = function(schema_name) {
   }
 
   return _assembly_models[schema_name];
-}
-
+};
 
 module.exports = {
   getConn_Dfam,

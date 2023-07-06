@@ -1,10 +1,9 @@
 const fs = require('fs');
-const path = require('path');
 const yaml = require('js-yaml');
 const config = require('./config');
 const logger = require('./logger');
 const ExpressServer = require('./expressServer');
-const WorkerPool = require('./workerPool');
+require('./workerPool');
 
 // Generate config.OPENAPI_YAML + ".sans_example" file for OpenAPIValidator 
 //   This is a workaround for a bug in OpenAPIValidator 5.0.4 which

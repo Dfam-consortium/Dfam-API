@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const camelCase = require('camelcase');
 const config = require('../config');
-const logger = require('../logger');
 
 class Controller {
 
@@ -38,10 +37,10 @@ class Controller {
       response.type(serviceResponse.content_type);
     }
     //if ( serviceResponse.payload !== undefined ) {
-   //   console.log("Outputing serviceResponse");
-   // }else {
+    //   console.log("Outputing serviceResponse");
+    //}else {
     //  console.log("Outputing serviceResponse.payload");
-   // }
+    // }
     if ( serviceResponse.encoding !== undefined ) {
       //console.log("encoding = " + serviceResponse.encoding );
       response.set('Content-Encoding', serviceResponse.encoding);
