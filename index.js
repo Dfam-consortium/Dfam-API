@@ -30,15 +30,22 @@ function removeExamplesKeys(obj) {
         }
 }
 
-module.exports = function() {
-  // Open API OAS 3.0 file and strip out example data.
-  let doc = yaml.load(fs.readFileSync(config.OPENAPI_YAML, 'utf-8'));
-  removeExamplesKeys(doc);
-  fs.writeFileSync(config.OPENAPI_YAML + ".sans_example", yaml.dump(doc));
 
-  const expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
-  expressServer.launch();
-  logger.info('Express server running');
+// Open API OAS 3.0 file and strip out example data.
+let doc = yaml.load(fs.readFileSync(config.OPENAPI_YAML, 'utf-8'));
+removeExamplesKeys(doc);
+fs.writeFileSync(config.OPENAPI_YAML + ".sans_example", yaml.dump(doc));
 
-  return expressServer;
+// Launch the Express server
+const launchServer = async () => {
+  try {
+    this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
+    this.expressServer.launch();
+    logger.info('Express server running');
+  } catch (error) {
+    logger.error('Express Server failure', error.message);
+    await this.close();
+  }
 };
+
+launchServer().catch(e => logger.error(e));

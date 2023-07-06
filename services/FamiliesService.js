@@ -997,9 +997,13 @@ const readFamilySequence = ({ id, format, download }) => new Promise(
 
   async (resolve, reject) => {
     try {
+      const extensions = { 'embl': '.embl', 'fasta': '.fa' };
+      if ( ! (format in extensions) ) {
+        resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
+      }
+
       obj = {};
       if (download) {
-        const extensions = { 'embl': '.embl', 'fasta': '.fa' };
         obj.attachment = id + extensions[format];
       }
       obj.content_type = "text/plain";
@@ -1007,9 +1011,10 @@ const readFamilySequence = ({ id, format, download }) => new Promise(
 
       if (format == "embl") {
         obj.payload = await WorkerPool.piscina.run({accessions: [id]}, { name: 'embl_command' });
-      }else if (format == "fasta") {
+      }else {
         obj.payload = await WorkerPool.piscina.run({accessions: [id]}, { name: 'fasta_command' });
       }
+
       resolve(Service.successResponse(obj));
     } catch (e) {
       reject(Service.rejectResponse(
