@@ -1,3 +1,20 @@
+/*
+ * AVA/Supertest Endpoint Unit Tests
+ *   
+ *   The current setup assumes that the project is configured to use the
+ *   Dfam 3.7 database ( See conf_file paramter in the project conf.js file
+ *   for the current Dfam.conf file used ).  This means that many of these
+ *   unit tests are testing data that could be changed in future releases.
+ *   This could be fixed by creating a test schema on the database server 
+ *   with dummy data.  So beware that a failure of these tests is not a 
+ *   definitive indication that that test failed.
+ *
+ *   There is a known issue with parallel use of the supertest library.
+ *      https://stackoverflow.com/questions/71682239/supertest-failing-with-econnreset 
+ *   The workaround, for us, is to run the tests serially using test.serial.
+ *
+ * Authors: Jeb Rosen, Robert Hubley, Anthony Gray
+ */
 const test = require('ava');
 const supertest = require('supertest');
 const dfam = require("../databases").getModels_Dfam();
@@ -17,36 +34,35 @@ winston.configure({
   ],
 });
 
+// Start up the API server and grab the "express" object
 const app = require('../index').expressServer.app;
-//const app = require('../index')().app;
+// Hand the express object to supertest to wrap
 const request = supertest(app);
 
-// There is a known issue with parallel use of the supertest library.
-//   https://stackoverflow.com/questions/71682239/supertest-failing-with-econnreset 
-// The workaround for us is to run the tests serially using test.serial.
 
+// Convenience functions for obtaining responses from the body
+// or the text fields.
 async function get_body(url) {
   const response = await request.get(url).expect(200);
   return response.body;
 }
-
 async function get_text(url) {
   const response = await request.get(url).expect(200);
   return response.text;
 }
-
 async function get_notfound(url) {
   await request.get(url).expect(404);
 }
 
+//
+// Endpoint Tests
+//
 
-// Version Service
 test.serial('get version', async t => {
   const body = await get_body('/version');
   t.deepEqual(body, { major: "0", minor: "4", bugfix: "0" });
 });
 
-// FamiliesService
 test.serial('search families', async t => {
   const body = await get_body('/families?clade=9263&limit=20');
   t.is(body.total_count, 6);
@@ -59,7 +75,6 @@ test.serial('search families', async t => {
   t.regex(response.body.message, /per-query limit/);
 });
 
-
 test.serial('search families with consensi', async t => {
   const body = await get_body('/families?clade=9606&format=full&name=ltr');
   t.is(body.total_count, 3);
@@ -67,14 +82,12 @@ test.serial('search families with consensi', async t => {
   t.regex(ltr26c.consensus_sequence, /^[ACGTN]*$/);
 });
 
-
 test.serial('search raw families', async t => {
   const without_raw = await get_body('/families?name_accession=DR0000000');
   t.is(without_raw.total_count, 0);
   const with_raw = await get_body('/families?name_accession=DR0006958&include_raw=true');
   t.is(with_raw.total_count, 1);
 });
-
 
 test.serial('search families sorted by subtype', async t => {
   const body = await get_body('/families?clade=9606&sort=subtype:asc');
@@ -84,7 +97,6 @@ test.serial('search families sorted by subtype', async t => {
   );
 });
 
-
 test.serial('download families', async t => {
   const text_fa = await get_text('/families?clade=185453&format=fasta');
   t.is(text_fa.match(/^>/gm).length, 67);
@@ -93,7 +105,6 @@ test.serial('download families', async t => {
   const body_hmm = await get_text('/families?clade=9263&format=hmm');
   t.is(body_hmm.match(/^HMMER3\/f/gm).length, 6);
 });
-
 
 test.serial('get family', async t => {
   const body = await get_body('/families/DF0001010');
@@ -114,7 +125,6 @@ test.serial('get family', async t => {
   await get_notfound('/families/DF000FAKE');
 });
 
-
 test.serial('get family HMM', async t => {
   const hmm = await get_body('/families/DF0000001/hmm?format=hmm');
   t.truthy(hmm);
@@ -131,11 +141,10 @@ test.serial('get family HMM', async t => {
   await bad.expect(400);
 });
 
-
-/*
 test.serial('get family relationships', async t => {
   const body = await get_body('/families/DF0000001/relationships');
   t.truthy(body.length);
+  // TODO: We should check a few more things here
 });
 
 test.serial('get family seed', async t => {
@@ -161,7 +170,8 @@ test.serial('get family sequence', async t => {
   const bad = request.get('/families/DF0000001/sequence?format=fake&download=true');
   await bad.expect(400);
 });
-*/
+
+///// TO BE IMPLEMENTED /////
 
 // AlignmentService
 //test.serial('get alignment', async t => {
@@ -266,9 +276,6 @@ test.serial('get family assembly conservation', async t => {
   t.truthy(body[0].num_seqs);
 });
 
-// Searches Service
-test.serial.todo('perform search');
-
 // Taxa Service
 test.serial('get taxa', async t => {
   const body = await get_body('/taxa?name=Drosophila');
@@ -279,4 +286,6 @@ test.serial('get one taxon', async t => {
   const body = await get_body('/taxa/9606');
   t.true(body.name == 'Homo sapiens');
 });
+
+// low-priority test TODO: Searches Service
 */

@@ -412,9 +412,14 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
     };
   }
   async function workerFormatAccessions(total_count, rows, format, copyright, download) {
+      const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
+
+      if ( ! (format in extensions) ) {
+        resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
+      }
+
       obj = {};
       if (download) {
-        const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
         obj.attachment = id + extensions[format];
       }
       obj.content_type = "text/plain";
@@ -687,9 +692,13 @@ const readFamilyById = ({ id }) => new Promise(
 const readFamilyHmm = ({ id, format, download }) => new Promise(
   async (resolve, reject) => {
     try {
+      const extensions = { 'hmm': '.hmm', 'logo': '.logo', 'image': '.png' };
+      if ( ! (format in extensions) ) {
+        resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
+      }
+
       obj = {};
       if (download) {
-        const extensions = { 'hmm': '.hmm', 'logo': '.logo', 'image': '.png' };
         obj.attachment = id + extensions[format];
       }
 
@@ -933,14 +942,14 @@ const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
 const readFamilySeed = ({ id, format, download }) => new Promise(
   async (resolve, reject) => {
     try {
+      const extensions = { 'stockholm': '.stk', 'alignment_summary': '.json' };
+      if ( ! (format in extensions) ) {
+        resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
+      }
+
       obj = {};
       if (download) {
-        const extensions = { 'stockholm': '.stk', 'alignment_summary': '.json' };
-        if ( format in extensions ) {
-          obj.attachment = id + extensions[format];
-        }else {
-          throw new Error("Unrecognized format: " + format);
-        }
+        obj.attachment = id + extensions[format];
       }
 
       if (format == "stockholm") {
@@ -965,7 +974,7 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
           logger.warn(`Family with accession ${id} has no seed alignment graph data.`);
         }
 
-        // TODO: Include values for graphData.publicSequences and
+        // low_priority TODO: Include values for graphData.publicSequences and
         // graphData.representedAssemblies, once we are confident we
         // can calculate them correctly
 

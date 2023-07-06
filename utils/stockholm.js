@@ -7,9 +7,6 @@ const wrap = require('word-wrap');
 const { tmpFileAsync, execFileAsync } = require('./async');
 const config = require('../config');
 
-//const family = require("./family");
-//const util = require("./util");
-
 
 decompressCoMSA = async function(compressed) {
   const [compressedFile, decompressedFile] = await Promise.all([

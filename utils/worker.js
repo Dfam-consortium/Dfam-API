@@ -1,4 +1,9 @@
 'use strict';
+/*
+ * A generic worker_threads worker to invoke one of several
+ * intensive-ish operations.
+ *
+ */
 const Sequelize = require("sequelize");
 const conn = require("../databases").getConn_Dfam();
 const dfam = require("../databases").getModels_Dfam();
@@ -11,17 +16,17 @@ const hmm = require("./hmm");
 const fasta = require("./fasta");
 const stockholm = require("./stockholm");
 const embl = require("./embl");
-const util = require("./util");
 
 const familyModel = require("../models/family")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data")(conn, Sequelize);
 familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
 const threadId = require('node:worker_threads').threadId;
-console.log("Worker Starting Up: " + threadId);
+logger.info("Worker Starting Up: " + threadId);
+
 
 const hmm_command = async function ({accessions, include_copyright = 0}) {
-  console.log("Worker: " + threadId + " , command = hmm_command");
+  logger.info("Worker: " + threadId + " , command = hmm_command");
   let ret_val = ""
   if (include_copyright) {
     ret_val = await copyright("#   ");
@@ -52,7 +57,7 @@ const hmm_command = async function ({accessions, include_copyright = 0}) {
 
 
 const embl_command = async function ({accessions, include_copyright = 0}) {
-  console.log("Worker: " + threadId + " , command = embl_command");
+  logger.info("Worker: " + threadId + " , command = embl_command");
   let ret_val = ""
   if (include_copyright) {
     ret_val = await copyright("CC   ");
@@ -73,7 +78,7 @@ const embl_command = async function ({accessions, include_copyright = 0}) {
 
 
 const fasta_command = async function ({accessions}) {
-  console.log("Worker: " + threadId + " , command = fasta_command");
+  logger.info("Worker: " + threadId + " , command = fasta_command");
 
   let ret_val = "";
   for (const acc of accessions) {
@@ -89,7 +94,7 @@ const fasta_command = async function ({accessions}) {
 }
  
 const stockholm_command = async function ({accessions}) {
-  console.log("Worker: " + threadId + " , command = stockholm_command");
+  logger.info("Worker: " + threadId + " , command = stockholm_command");
 
   let ret_val = "";
   for (const acc of accessions) {

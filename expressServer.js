@@ -84,14 +84,14 @@ class ExpressServer {
 
   launch() {
     http.createServer(this.app).listen(this.port);
-    console.log(`Listening on port ${this.port}`);
+    logger.info(`Listening on port ${this.port}`);
   }
 
 
   async close() {
     if (this.server !== undefined) {
       await this.server.close();
-      console.log(`Server on port ${this.port} shut down`);
+      logger.info(`Server on port ${this.port} shut down`);
     }
   }
 }

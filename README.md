@@ -28,6 +28,10 @@ The tests are stored in the test/artillery folder and can be run using:
 artillery run test.yml
 
 
+npm test - Runs Ava/Supertest endpoint unit tests
+
+
+
 ### Running the server
 #### This is a long read, but there's a lot to understand. Please take the time to go through this.
 1. Use the OpenAPI Generator to generate your application:
