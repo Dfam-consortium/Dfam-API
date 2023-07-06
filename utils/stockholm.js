@@ -1,9 +1,12 @@
+/*
+ * Export family SEED alignment in Stockholm format
+ *
+ */
 const fs = require('fs');
 const path = require('path');
-// TODO this is confusing as there is a util.js in this project.  Should not pollute the namespace!
 const { promisify } = require('util');
-
 const wrap = require('word-wrap');
+
 const { tmpFileAsync, execFileAsync } = require('./async');
 const config = require('../config');
 

@@ -1,3 +1,7 @@
+/*
+ * Format a family as an annotated HMM
+ *
+ */
 const wrap = require('word-wrap');
 
 function annotateHmm(family, hmm) {

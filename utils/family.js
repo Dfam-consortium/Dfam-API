@@ -1,3 +1,7 @@
+/*
+ * Dfam Family Functions/Data Structures
+ *
+ */
 const Sequelize = require("sequelize");
 const conn = require("../databases.js").getConn_Dfam();
 

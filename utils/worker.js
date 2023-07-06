@@ -21,9 +21,9 @@ const familyModel = require("../models/family")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data")(conn, Sequelize);
 familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 
+// Determine our threadId (note this will change over time as the pools shrinks/expands )
 const threadId = require('node:worker_threads').threadId;
 logger.info("Worker Starting Up: " + threadId);
-
 
 const hmm_command = async function ({accessions, include_copyright = 0}) {
   logger.info("Worker: " + threadId + " , command = hmm_command");

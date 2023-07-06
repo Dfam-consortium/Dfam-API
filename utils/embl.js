@@ -1,3 +1,7 @@
+/*
+ * Format a family into an EMBL record
+ *
+ */
 const wrap = require('word-wrap');
 
 function exportEmbl(family) {
