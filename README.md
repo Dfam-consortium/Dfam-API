@@ -1,5 +1,6 @@
 # Dfam API
 
+
 ## PLANS
 - In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
 option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
@@ -19,9 +20,53 @@ This server was scaffolded using the [OpenAPI Generator](https://openapi-generat
 - NodeJS >= 20.3.1
 - NPM >= 9.6.7
 
+The core functionality of the API depends on:
+
+* A mysql database server with Dfam databases
+* Dfam-warehouse directory containing reference genomes and other caches
+
+Some functionality requires these additional tools:
+
+* `twoBitToFa`, `faSize` from the UCSC Genome Browser tools suite
+* `nhmmer` from the HMMER suite
+* `HMM_Logos`, specifically webGenLogoImage.pl
+* A running instance of `dfamdequeuer`, and its own dependencies
+
+Connection URLs and paths are specified in the configuration.
+
+### Configuration
+
+Configuration is read from the path `../conf/Dfam.conf` relative to the
+working directory. If the `DFAM_CONF` environment variable is present, it will
+be used instead.
+
+### Running the server
+
+To run the server, run:
+
+```
+[DFAM_LOG=debug] [DFAM_API_PORT=<port>] npm start
+```
+
+Logging levels, highest to lowest: error, warn, info, verbose, debug, silly.
+
+* If unspecified, the default is 'verbose'.
+* SQL statements are logged at the 'debug' level.
+
+To view the Swagger UI interface:
+
+```
+open http://localhost:<port>/docs
+```
+
 ### Testing
 
-Endpoint unit tests are in test/api.js and utilize the Ava/Supertest frameworks.  To run (make sure ava is installed 'npm install ava' if not):
+A [Postman](https://getpostman.com) collection is maintained
+at `api/api.postman_collection.json` for developement and
+testing.
+
+Endpoint unit tests are in test/api.js and utilize the Ava/Supertest frameworks.  
+To run (make sure ava is installed 'npm install ava' if not):
 
 ```
   npm test
@@ -42,15 +87,40 @@ The tests are stored in the test/artillery folder and can be run using:
   artillery run test.yml
 ```
 
-### Running the server
+### npm-watch
+
+`npm-watch` can be used to restart the server when changes are made to any
+javascript files.
 
 ```
-  npm start
+[DFAM_API_PORT=<port>] npm run watch start
 ```
 
+### eslint
 
+This project uses `eslint` for code style and tidying. A custom npm script has
+been set up for convenience:
 
-#### Autogen documentation
+```
+npm run lint
+```
+
+### Building Documentation
+
+```
+npm run build-docs
+```
+
+And to deploy them:
+```
+cp -r autogen/apidocs/ /path/to/target
+
+e.g.
+  cp -r autogen/apidocs/ /usr/local/Dfam-warehouse/releases/Dfam_3.0
+         
+```
+
+#### Autogen Notes
 1. Use the OpenAPI Generator to generate your application:
 Assuming you have Java (1.8+), and [have the jar](https://github.com/openapitools/openapi-generator#13---download-jar) to generate the application, run:
 ```java -jar {path_to_jar_file} generate -g nodejs-express-server -i {openapi yaml/json file} -o {target_directory_where_the_app_will_be_installed} ```

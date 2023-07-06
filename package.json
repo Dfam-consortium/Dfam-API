@@ -6,7 +6,10 @@
   "scripts": {
     "prestart": "npm install",
     "start": "node index.js",
+    "lint": "eslint .; true",
+    "watch": "npm-watch",
     "test": "ava --no-worker-threads",
+    "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml",
     "artillery": "artillery run test/artillery/test-example.yml"
   },
   "keywords": [
@@ -39,6 +42,7 @@
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.17.2",
+    "spectacle-docs": "^1.1.0",
     "supertest": "^6.3.3"
   },
   "eslintConfig": {
