@@ -1,12 +1,14 @@
 # Dfam API
 
-## TODO
+## PLANS
 - In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
 option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
 - I would like to rename /families/{id}/sequence to /families/{id}/consensus
 
-## Changes
-- As a transition towards model masking, I made both the EMBL and FASTA formats uppercase by default.
+## Current Changes
+- As a transition towards model masking, I made the FASTA format uppercase by default. EMBL format doesn't explicitly
+  state it can handle uppercase and lowercase in the same sequence.  Perhaps this will have to be an option so that
+  the default EMBL output remains lowercase.
 
 ## Overview
 This server provides a RESTful API supporting public access to the Dfam database of Transposable Element (TE) families, hidden Markov Models (HMMs), consensus sequences, and genome annotations.  The API is based on the [OpenAPI 3.0 Specfication](https://swagger.io/specification/v3/).  
@@ -17,23 +19,38 @@ This server was scaffolded using the [OpenAPI Generator](https://openapi-generat
 - NodeJS >= 20.3.1
 - NPM >= 9.6.7
 
-### Load testing
+### Testing
+
+Endpoint unit tests are in test/api.js and utilize the Ava/Supertest frameworks.  To run (make sure ava is installed 'npm install ava' if not):
+
+```
+  npm test
+```
+
+Due to limitations in supertest we may consider switching from Ava to Mocha for unit testing in the future.
+
 A globally installed copy of Artillery is used to load test the API.  
 
-npm install -g artillery@latest
-npm install -g artillery-plugin-metrics-by-endpoint
+```
+  npm install -g artillery@latest
+  npm install -g artillery-plugin-metrics-by-endpoint
+```
 
 The tests are stored in the test/artillery folder and can be run using:
 
-artillery run test.yml
-
-
-npm test - Runs Ava/Supertest endpoint unit tests
-
-
+```
+  artillery run test.yml
+```
 
 ### Running the server
-#### This is a long read, but there's a lot to understand. Please take the time to go through this.
+
+```
+  npm start
+```
+
+
+
+#### Autogen documentation
 1. Use the OpenAPI Generator to generate your application:
 Assuming you have Java (1.8+), and [have the jar](https://github.com/openapitools/openapi-generator#13---download-jar) to generate the application, run:
 ```java -jar {path_to_jar_file} generate -g nodejs-express-server -i {openapi yaml/json file} -o {target_directory_where_the_app_will_be_installed} ```
@@ -45,26 +62,6 @@ II. Every process has a new element added to it - `x-eov-operation-handler: cont
 III. We have a Java application that translates the operationId to a method, and a nodeJS script that does the same process to call that method. Both are converting the method to `camelCase`, but might have discrepancy. Please pay attention to the operationID names, and see that they are represented in the `controllers` and `services` directories.
 4. Take the time to understand the structure of the application. There might be bugs, and there might be settings and business-logic that does not meet your expectation. Instead of dumping this solution and looking for something else - see if you can make the generated code work for you.
 To keep the explanation short (a more detailed explanation will follow): Application starts with a call to index.js (this is where you will plug in the db later). It calls expressServer.js which is where the express.js and openapi-validator kick in. This is an important file. Learn it. All calls to endpoints that were configured in the openapi.yaml document go to `controllers/{name_of_tag_which_the_operation_was_associated_with}.js`, which is a very small method. All the business-logic lies in `controllers/Controller.js`, and from there - to `services/{name_of_tag_which_the_operation_was_associated_with}.js`.
-
-5. Once you've understood what is *going* to happen, launch the app and ensure everything is working as expected:
-```
-npm start
-```
-### Tests
-Unfortunately, I have not written any unit-tests. Those will come in the future. However, the package does come with all that is needed to write and run tests - mocha and sinon and the related libraries are included in the package.js and will be installed upon npm install command
-
-### View and test the API
-(Assuming no changes were made to config.js)
-
-1. API documentation, and to check the available endpoints:
-http://localhost:3000/api-docs/. To
-2. Download the openapi.yaml document: http://localhost:3000/openapi.
-3.  Every call to an endpoint that was defined in the openapi document will return a 200 and a list of all the parameters and objects that were sent in the request.
-4. Endpoints that require security need to have security handlers configured before they can return a successful response. At this point they will return [ a response code of 401](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401).
-5. ##### At this stage the server does not support document body sent in xml format.
-
-### Node version and guidelines
-The code was written using Node version 10.6, and complies to the [Airbnb .eslint guiding rules](https://github.com/airbnb/javascript).
 
 ### Project Files
 #### Root Directory:
@@ -99,14 +96,4 @@ This is where the API Gateway ends, and the unique business-logic of your applic
 
 - **.js** - auto-generated code, providing a stub Promise for each operationId defined in the `openapi.yaml`. Each method receives the variables that were defined in the `openapi.yaml` file, and wraps a Promise in a try/catch clause. The Promise resolves both success and failure in a call to the `Service.js` utility class for building the appropriate response that will be sent back to the Controller and then to the caller of this endpoint.
 
-#### tests/
-- **serverTests.js** - basic server validation tests, checking that the server is up, that a call to an endpoint within the scope of the `openapi.yaml` file returns 200, that a call to a path outside that scope returns 200 if it exists and a 404 if not.
-- **routingTests.js** - Runs through all the endpoints defined in the `openapi.yaml`, and constructs a dummy request to send to the server. Confirms that the response code is 200. At this point requests containing xml or formData fail - currently they are not supported in the router.
-- **additionalEndpointsTests.js** - A test file for all the endpoints that are defined outside the openapi.yaml scope. Confirms that these endpoints return a successful 200 response.
-
-
-Future tests should be written to ensure that the response of every request sent should conform to the structure defined in the `openapi.yaml`. This test will fail 100% initially, and the job of the development team will be to clear these tests.
-
-
 #### models/
-Currently a concept awaiting feedback. The idea is to have the objects defined in the openapi.yaml act as models which are passed between the different modules. This will conform the programmers to interact using defined objects, rather than loosely-defined JSON objects. Given the nature of JavaScript programmers, who want to work with their own bootstrapped parameters, this concept might not work. Keeping this here for future discussion and feedback.
