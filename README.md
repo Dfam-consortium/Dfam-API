@@ -11,6 +11,21 @@ option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fast
   state it can handle uppercase and lowercase in the same sequence.  Perhaps this will have to be an option so that
   the default EMBL output remains lowercase.
 
+- DONE:
+--TaxaService.js
+--FamiliesService.js
+--VersionService.js
+
+- TODO:
+--AlignmentService.js
+--AnnotationsService.js
+--AssembliesService.js
+--BlogService.js
+--ClassificationService.js
+--FamilyAssembliesService.js
+--SearchesService.js
+
+
 ## Overview
 This server provides a RESTful API supporting public access to the Dfam database of Transposable Element (TE) families, hidden Markov Models (HMMs), consensus sequences, and genome annotations.  The API is based on the [OpenAPI 3.0 Specfication](https://swagger.io/specification/v3/).  
 

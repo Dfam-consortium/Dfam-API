@@ -40,6 +40,7 @@ const logger = require('../logger');
 * */
 const readFamilies = ({ format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download }) => new Promise(
   async (resolve, reject) => {
+    // TODO Move these functions to utils/family.js
     async function familyRowsToObjects(total_count, rows, format, copyright, download) {
       // Download isn't applicable here yet?
       // Copyright isn't applicable on these formats
