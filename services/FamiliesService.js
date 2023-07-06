@@ -644,7 +644,6 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
 * returns String
 * */
 const readFamilySequence = ({ id, format, download }) => new Promise(
-
   async (resolve, reject) => {
     try {
       const extensions = { 'embl': '.embl', 'fasta': '.fa' };
