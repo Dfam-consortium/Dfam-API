@@ -138,6 +138,7 @@ paths:
         schema:
           type: string
         style: form
+        allowReserved: true
       - description: Search term for any part of the family name. Takes precedence
           over "name_prefix" if both are specified.
         explode: true

@@ -30,20 +30,20 @@ class Controller {
     response.status(serviceResponse.code || 200);
     // RMH:
     if ( serviceResponse.attachment !== undefined ) {
-      console.log("attachment = " + serviceResponse.attachment);
+      //console.log("attachment = " + serviceResponse.attachment);
       response.attachment(serviceResponse.attachment);
     }
     if ( serviceResponse.content_type !== undefined ) {
-      console.log("content type = " + serviceResponse.content_type);
+      //console.log("content type = " + serviceResponse.content_type);
       response.type(serviceResponse.content_type);
     }
-    if ( serviceResponse.payload !== undefined ) {
-      console.log("Outputing serviceResponse");
-    }else {
-      console.log("Outputing serviceResponse.payload");
-    }
+    //if ( serviceResponse.payload !== undefined ) {
+   //   console.log("Outputing serviceResponse");
+   // }else {
+    //  console.log("Outputing serviceResponse.payload");
+   // }
     if ( serviceResponse.encoding !== undefined ) {
-      console.log("encoding = " + serviceResponse.encoding );
+      //console.log("encoding = " + serviceResponse.encoding );
       response.set('Content-Encoding', serviceResponse.encoding);
     }
     const responsePayload = serviceResponse.payload !== undefined ? serviceResponse.payload : serviceResponse;
@@ -144,6 +144,7 @@ class Controller {
 
   static async handleRequest(request, response, serviceOperation) {
     try {
+      //console.log(JSON.stringify(request.query));
       const serviceResponse = await serviceOperation(this.collectRequestParams(request));
       Controller.sendResponse(response, serviceResponse);
     } catch (error) {

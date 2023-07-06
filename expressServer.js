@@ -1,4 +1,3 @@
-// const { Middleware } = require('swagger-express-middleware');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -11,6 +10,7 @@ const bodyParser = require('body-parser');
 const OpenApiValidator = require('express-openapi-validator');
 const logger = require('./logger');
 const config = require('./config');
+
 
 class ExpressServer {
   constructor(port, openApiYaml) {

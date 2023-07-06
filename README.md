@@ -13,9 +13,20 @@ This server provides a RESTful API supporting public access to the Dfam database
 
 This server was scaffolded using the [OpenAPI Generator](https://openapi-generator.tech) tool and relies heavily on the Sequelize, Piscina, and Swagger open source projects.
 
-### prerequisites
+### Prerequisites
 - NodeJS >= 20.3.1
 - NPM >= 9.6.7
+
+### Load testing
+A globally installed copy of Artillery is used to load test the API.  
+
+npm install -g artillery@latest
+npm install -g artillery-plugin-metrics-by-endpoint
+
+The tests are stored in the test/artillery folder and can be run using:
+
+artillery run test.yml
+
 
 ### Running the server
 #### This is a long read, but there's a lot to understand. Please take the time to go through this.

@@ -8,14 +8,13 @@ const wrap = require('word-wrap');
 const { promisify } = require("util");
 
 const config = require('../config');
+const dfam_conn = require("../databases").getConn_Dfam();
 const dfam = require("../databases").getModels_Dfam();
 const dfam_user = require("../databases").getModels_User();
 const WorkerPool = require('../worker-pool');
 const mapFields = require("../utils/mapFields.js");
 const escape = require("../utils/escape.js");
 //const logger = require('../logger');
-
-
 
 function familySubqueries(rows, format) {
   return Promise.all(rows.map(function(row) {
@@ -278,6 +277,7 @@ async function collectClades(clade, clade_relatives) {
 
   const result = { ids: [], lineage: null };
 
+
   // Try clade by ID first
   const id = parseInt(clade);
   let record;
@@ -286,8 +286,8 @@ async function collectClades(clade, clade_relatives) {
       where: { tax_id: id, name_class: 'scientific name' },
       attributes: [ 'tax_id', 'name_txt' ],
       include: [
-        { model: dfam.ncbiTaxdbNodesModel, attributes: [ "parent_id" ] },
-      ],
+        { model: dfam.ncbiTaxdbNodesModel, attributes: [ "parent_id" ] }
+      ]
     });
   }
 
@@ -422,7 +422,6 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
 
       accs = [];
       for (const row of rows) {
-console.log("Pushing accession " + row.accession);
         accs.push(row.accession);
       }
  
@@ -621,7 +620,7 @@ console.log("Pushing accession " + row.accession);
 
   if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
     const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
-    resolve(Service.successResponse( { payload: {message}, code: 400 } ));
+    resolve(Service.successResponse( { payload: {message} }, code = 400 ));
   }
 
   // Anthony found that the findAndCountAll query above is redundant with this one. 6/27/23
@@ -629,7 +628,8 @@ console.log("Pushing accession " + row.accession);
   let rows = count_result.rows;
 
   rows = await familySubqueries(rows, format);
-  resolve(Service.successResponse( format_rules.mapper(total_count, rows, format) ));
+
+  resolve(Service.successResponse( await format_rules.mapper(total_count, rows, format) ));
 
     } catch (e) {
       reject(Service.rejectResponse(
@@ -650,22 +650,23 @@ const readFamilyById = ({ id }) => new Promise(
   async (resolve, reject) => {
     try {
 
-  const row = await dfam.familyModel.findOne({
-    where: { accession: id },
-    include: [
-      { model: dfam.classificationModel, as: 'classification', include: [ 'rm_type', 'rm_subtype' ] },
-      { model: dfam.curationStateModel, as: 'curation_state' },
-      { model: dfam.sourceMethodModel, as: 'source_method' },
-      { model: dfam.assemblyModel, as: 'source_assembly' },
-    ],
-  });
+      const row = await dfam.familyModel.findOne({
+        where: { accession: id },
+        include: [
+          { model: dfam.classificationModel, as: 'classification', include: [ 'rm_type', 'rm_subtype' ] },
+          { model: dfam.curationStateModel, as: 'curation_state' },
+          { model: dfam.sourceMethodModel, as: 'source_method' },
+          { model: dfam.assemblyModel, as: 'source_assembly' },
+        ],
+      });
 
-  if (row) {
-    const full_rows = await familySubqueries([row], "full");
-resolve(Service.successResponse({ payload: familyQueryRowToObject(full_rows[0], "full") }));
-  } else {
-resolve(Service.successResponse({ payload: {} }));
-  }
+      if (row) {
+        const full_rows = await familySubqueries([row], "full");
+        resolve(Service.successResponse({ payload: familyQueryRowToObject(full_rows[0], "full") }));
+      } else {
+        resolve(Service.successResponse({ payload: {} }, code = 404));
+      }
+
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

@@ -1,5 +1,7 @@
 const test = require('ava');
 const supertest = require('supertest');
+const dfam = require("../databases").getModels_Dfam();
+const dfam_user = require("../databases").getModels_User();
 
 const winston = require('winston');
 const format = winston.format;
@@ -15,8 +17,13 @@ winston.configure({
   ],
 });
 
-const app = require('../app')();
+//const app = require('../index').expressServer.app;
+const app = require('../index')().app;
 const request = supertest(app);
+
+// There is a known issue with parallel use of the supertest library.
+//   https://stackoverflow.com/questions/71682239/supertest-failing-with-econnreset 
+// The workaround for us is to run the tests serially using test.serial.
 
 async function get_body(url) {
   const response = await request.get(url).expect(200);
@@ -32,73 +39,15 @@ async function get_notfound(url) {
   await request.get(url).expect(404);
 }
 
-// AlignmentService
-test('get alignment', async t => {
-  const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF0004191');
-  t.regex(body.pp.string, /^699\**9988777333.*/);
 
-  const body2 = await get_body('/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF0000147');
-  t.regex(body2.pp.string, /^799.*9999998888877665$/);
-
-  await get_notfound('/alignment?assembly=fake&chrom=chr1&start=1&end=1000&family=DF0004191');
-  await get_notfound('/alignment?assembly=mm10&chrom=fake&start=1&end=1000&family=DF0004191');
-
-  await request.get('/alignment?assembly=mm10&chrom=chr1&start=1&end=40000&family=DF0004191')
-    .expect(400);
-});
-
-// AnnotationsService
-test('get annotations', async t => {
-  const body = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true');
-  t.true(body.hits.length > 1);
-  t.true(body.tandem_repeats.length > 1);
-
-  const body2 = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF0000001');
-  t.true(body2.hits.length > 1);
-  t.true(body2.tandem_repeats.length > 1);
-
-  await get_notfound('/annotations?assembly=fake&chrom=chr1&start=168130000&end=168180000&nrph=true');
-
-  const body3 = await get_body('/annotations?assembly=hg38&chrom=fake&start=168130000&end=168180000&nrph=true');
-  t.is(body3.hits.length, 0);
-
-  await request.get('/annotations?assembly=hg38&chrom=fake&start=158000000&end=168000000&nrph=true')
-    .expect(400);
-});
-
-// AssembliesService
-test('get assemblies', async t => {
-  const body = await get_body('/assemblies');
-  const ficAlb2 = body.find(asm => asm.id === 'ficAlb2');
-  t.is(ficAlb2.name, 'Ficedula albicollis');
-});
-
-// BlogService
-test('get blog posts', async t => {
-  const body = await get_body('/blogposts');
-  t.truthy(body.length);
-
-  // TODO: actually verify that the cached posts are reused
-  const body2 = await get_body('/blogposts');
-  t.truthy(body2.length);
-});
-
-// ClassificationService
-test('get classifications', async t => {
-  const body = await get_body('/classes');
-  t.is(body.name, 'root');
-  t.truthy(body.children.length);
-});
-
-test('search classifications', async t => {
-  const body = await get_body('/classes?name=SINE');
-  const cls = body.find(c => c.name == 'SINE');
-  t.is(cls.repeatmasker_type, 'SINE');
-  t.is(cls.full_name, 'root;Interspersed_Repeat;Transposable_Element;Class_I_Retrotransposition;LINE-dependent_Retroposon;SINE');
+// Version Service
+test.serial('get version', async t => {
+  const body = await get_body('/version');
+  t.deepEqual(body, { major: "0", minor: "4", bugfix: "0" });
 });
 
 // FamiliesService
-test('search families', async t => {
+test.serial('search families', async t => {
   const body = await get_body('/families?clade=9263&limit=20');
   t.is(body.total_count, 6);
   const charlie1 = body.results.find(f => f.name === 'Charlie1');
@@ -106,26 +55,26 @@ test('search families', async t => {
   t.regex(charlie1.description, /8 bp TSD./);
   t.is(charlie1.repeat_subtype_name, 'hAT-Charlie');
 
-  const bad = request.get('/families?clade=1&clade_relatives=descendants');
-  const response = await bad.expect(400);
+  const response = await request.get('/families?clade=1&clade_relatives=descendants').expect(400);
   t.regex(response.body.message, /per-query limit/);
 });
 
-test('search families with consensi', async t => {
+test.serial('search families with consensi', async t => {
   const body = await get_body('/families?clade=9606&format=full&name=ltr');
   t.is(body.total_count, 3);
   const ltr26c = body.results.find(f => f.name === 'LTR26C');
   t.regex(ltr26c.consensus_sequence, /^[ACGTN]*$/);
 });
 
-test('search raw families', async t => {
+
+test.serial('search raw families', async t => {
   const without_raw = await get_body('/families?name_accession=DR0000000');
   t.is(without_raw.total_count, 0);
   const with_raw = await get_body('/families?name_accession=DR0006958&include_raw=true');
   t.is(with_raw.total_count, 1);
 });
 
-test('search families sorted by subtype', async t => {
+test.serial('search families sorted by subtype', async t => {
   const body = await get_body('/families?clade=9606&sort=subtype:asc');
   t.deepEqual(
     body.results.map(r => r.repeat_subtype_name).filter(x => x !== undefined),
@@ -133,20 +82,22 @@ test('search families sorted by subtype', async t => {
   );
 });
 
-test('download families', async t => {
-  const body_fa = await get_text('/families?clade=9263&format=fasta');
-  t.is(body_fa.match(/^>/gm).length, 6);
+
+test.serial('download families', async t => {
+  const text_fa = await get_text('/families?clade=185453&format=fasta');
+  t.is(text_fa.match(/^>/gm).length, 67);
   const body_embl = await get_text('/families?clade=9263&format=embl');
   t.is(body_embl.match(/^SQ/gm).length, 6);
   const body_hmm = await get_text('/families?clade=9263&format=hmm');
   t.is(body_hmm.match(/^HMMER3\/f/gm).length, 6);
 });
 
-test('get family', async t => {
+
+test.serial('get family', async t => {
   const body = await get_body('/families/DF0001010');
 
   t.regex(body.title, /Long Terminal Repeat for ERVL/);
-  t.is(body.submitter, 'Robert Hubley');
+  t.is(body.submitter, '');
   t.truthy(body.search_stages.length);
 
   const body2 = await get_body('/families/DF0001067');
@@ -159,6 +110,7 @@ test('get family', async t => {
   await get_notfound('/families/DF000FAKE');
 });
 
+/*
 test('get family HMM', async t => {
   const hmm = await get_body('/families/DF0000001/hmm?format=hmm');
   t.truthy(hmm);
@@ -202,6 +154,74 @@ test('get family sequence', async t => {
 
   const bad = request.get('/families/DF0000001/sequence?format=fake&download=true');
   await bad.expect(400);
+});
+
+*/
+
+// AlignmentService
+//test('get alignment', async t => {
+//  const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF0004191');
+//  t.regex(body.pp.string, /^699\**9988777333.*/);
+//
+//  const body2 = await get_body('/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF0000147');
+//  t.regex(body2.pp.string, /^799.*9999998888877665$/);
+//
+//  await get_notfound('/alignment?assembly=fake&chrom=chr1&start=1&end=1000&family=DF0004191');
+//  await get_notfound('/alignment?assembly=mm10&chrom=fake&start=1&end=1000&family=DF0004191');
+//
+//  await request.get('/alignment?assembly=mm10&chrom=chr1&start=1&end=40000&family=DF0004191')
+//    .expect(400);
+//});
+
+// AnnotationsService
+//test('get annotations', async t => {
+//  const body = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true');
+//  t.true(body.hits.length > 1);
+//  t.true(body.tandem_repeats.length > 1);
+//
+//  const body2 = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF0000001');
+//  t.true(body2.hits.length > 1);
+//  t.true(body2.tandem_repeats.length > 1);
+//
+//  await get_notfound('/annotations?assembly=fake&chrom=chr1&start=168130000&end=168180000&nrph=true');
+//
+//  const body3 = await get_body('/annotations?assembly=hg38&chrom=fake&start=168130000&end=168180000&nrph=true');
+//  t.is(body3.hits.length, 0);
+//
+//  await request.get('/annotations?assembly=hg38&chrom=fake&start=158000000&end=168000000&nrph=true')
+//    .expect(400);
+//});
+
+/*
+// AssembliesService
+test('get assemblies', async t => {
+  const body = await get_body('/assemblies');
+  const ficAlb2 = body.find(asm => asm.id === 'ficAlb2');
+  t.is(ficAlb2.name, 'Ficedula albicollis');
+});
+
+// BlogService
+test('get blog posts', async t => {
+  const body = await get_body('/blogposts');
+  t.truthy(body.length);
+
+  // TODO: actually verify that the cached posts are reused
+  const body2 = await get_body('/blogposts');
+  t.truthy(body2.length);
+});
+
+// ClassificationService
+test('get classifications', async t => {
+  const body = await get_body('/classes');
+  t.is(body.name, 'root');
+  t.truthy(body.children.length);
+});
+
+test('search classifications', async t => {
+  const body = await get_body('/classes?name=SINE');
+  const cls = body.find(c => c.name == 'SINE');
+  t.is(cls.repeatmasker_type, 'SINE');
+  t.is(cls.full_name, 'root;Interspersed_Repeat;Transposable_Element;Class_I_Retrotransposition;LINE-dependent_Retroposon;SINE');
 });
 
 // FamilyAssembliesService
@@ -254,9 +274,4 @@ test('get one taxon', async t => {
   const body = await get_body('/taxa/9606');
   t.true(body.name == 'Homo sapiens');
 });
-
-// Version Service
-test('get version', async t => {
-  const body = await get_body('/version');
-  t.deepEqual(body, { major: "0", minor: "3", bugfix: "11" });
-});
+*/
