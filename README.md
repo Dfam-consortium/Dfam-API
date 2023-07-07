@@ -5,6 +5,7 @@
 - In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
 option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
 - I would like to rename /families/{id}/sequence to /families/{id}/consensus
+- We should consider using a paging interface for any endpoint returning more than a specific number of records.  This would allow us to support full downloads of species libraries.
 
 ## Current Changes
 - As a transition towards model masking, I made the FASTA format uppercase by default. EMBL format doesn't explicitly
