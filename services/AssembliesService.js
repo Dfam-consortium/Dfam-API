@@ -1,5 +1,7 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
+const dfam = require("../databases").getModels_Dfam();
+const { Op } = require("sequelize");
 
 /**
 * Retrieve a list of all genome assemblies in Dfam that have annotations.
@@ -10,8 +12,12 @@ const Service = require('./Service');
 const readAssemblies = () => new Promise(
   async (resolve, reject) => {
     try {
-      resolve(Service.successResponse({
-      }));
+      const assemblies = await dfam.assemblyModel.findAll({
+        where: {
+          schema_name: {[Op.not]: null}
+        }
+      })
+      resolve(Service.successResponse(assemblies));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

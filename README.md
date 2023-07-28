@@ -16,11 +16,11 @@ option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fast
   - TaxaService.js
   - FamiliesService.js
   - VersionService.js
-  
-- TODO:
-  - AlignmentService.js
-  - AnnotationsService.js
   - AssembliesService.js
+
+- TODO:
+  - AlignmentService.js*
+  - AnnotationsService.js*
   - BlogService.js
   - ClassificationService.js
   - FamilyAssembliesService.js
