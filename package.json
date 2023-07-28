@@ -6,6 +6,7 @@
   "scripts": {
     "prestart": "npm install",
     "start": "node index.js",
+    "build": "npm build",
     "lint": "eslint .; true",
     "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
@@ -28,6 +29,7 @@
     "express-openapi-validator": "^5.0.4",
     "js-yaml": "^3.3.0",
     "mysql2": "^3.4.2",
+    "npm-watch": "^0.11.0",
     "ono": "^5.0.1",
     "openapi-sampler": "^1.0.0-beta.15",
     "piscina": "^4.0.0",
@@ -50,5 +52,14 @@
   },
   "ava": {
     "workerThreads": false
+  },
+  "watch": {
+    "start": [
+      "./services/*.js", 
+      "./utils/*.js", 
+      "./models/*.js", 
+      "./controllers/*.js", 
+      "./api/*.js"
+    ]
   }
 }
