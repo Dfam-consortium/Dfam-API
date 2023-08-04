@@ -113,10 +113,16 @@ class Controller {
       if (content['application/json'] !== undefined) {
         const requestBodyName = camelCase(this.getRequestBodyName(request));
         requestParams[requestBodyName] = request.body;
-      } else if (content['multipart/form-data'] !== undefined) {
-        Object.keys(content['multipart/form-data'].schema.properties).forEach(
+      } else if (content['multipart/form-data'] !== undefined || content['application/x-www-form-urlencoded'] !== undefined) {
+        let prop = ''
+        if (content['multipart/form-data'] !== undefined) {
+          prop = 'multipart/form-data'
+        } else if (content['application/x-www-form-urlencoded'] !== undefined) {
+          prop = 'application/x-www-form-urlencoded'
+        }
+        Object.keys(content[prop].schema.properties).forEach(
           (property) => {
-            const propertyObject = content['multipart/form-data'].schema.properties[property];
+            const propertyObject = content[prop].schema.properties[property];
             if (propertyObject.format !== undefined && propertyObject.format === 'binary') {
               requestParams[property] = this.collectFile(request, property);
             } else {
@@ -124,7 +130,7 @@ class Controller {
             }
           },
         );
-      }
+      } 
     }
 
     if (request.openapi.schema.parameters !== undefined) {
@@ -138,6 +144,7 @@ class Controller {
         }
       });
     }
+
     return requestParams;
   }
 
