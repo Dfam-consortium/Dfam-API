@@ -194,7 +194,7 @@ const readAlignment = ({ assembly, chrom, start, end, family }) => new Promise(
       const twoBitFile = path.join(config.dfam_warehouse_dir,
         "ref-genomes", assembly, "dfamseq.mask.2bit"
       );
-    
+
       const re_align = reAlignAnnotationHMM(twoBitFile, sequence.accession, chrom, start, end, hmm_data)
 
       resolve(Service.successResponse(re_align, 200));

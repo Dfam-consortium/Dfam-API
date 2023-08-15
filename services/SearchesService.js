@@ -58,14 +58,13 @@ const readSearchResultAlignment = ({ id, sequence, start, end, family }) => new 
       }
 
       const model = await dfam.hmmModelDataModel.findOne({
-        where: { family_id: '289' } //TODO FIX
-        // attributes: [ "hmm" ],
-        // include: [ { model: dfam.familyModel, where: { accession: family }, attributes: [] } ], 
+        attributes: [ "hmm" ],
+        include: { model: dfam.familyModel, where: { accession: family }, attributes: [] }, 
       })
-
+     
       let dataDir = getDateDir(jobRec.started, id);
 
-      // const hmm_data = await zlib.gunzip(model.hmm, (err, buffer)=> {return buffer.toString()})
+      const hmm_data = await zlib.gunzip(model.hmm, (err, buffer)=> {return buffer.toString()})
       resolve(Service.successResponse(
         promisify(zlib.gunzip)(model.hmm).then(function(hmm_data) {
           return reAlignSearchHMM(dataDir, sequence, start, end, hmm_data);
@@ -306,7 +305,7 @@ const submitSearch = ({ sequence, cutoff, organism, evalue }) => new Promise(
         stdin: sanSeq
       })
       await jobRec.update({status: "PEND"})
-      resolve(Service.resolveResponse({ id: uuid }, 200));
+      resolve(Service.successResponse({ id: uuid }, 200));
 
     } catch (e) {
       reject(Service.rejectResponse(

@@ -13,18 +13,19 @@ option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fast
   the default EMBL output remains lowercase.
 
 - DONE:
-  - TaxaService.js
-  - FamiliesService.js
-  - VersionService.js
+  - AlignmentService.js
+  - AnnotationsService.js
   - AssembliesService.js
-
-- TODO:
-  - AlignmentService.js*
-  - AnnotationsService.js*
   - BlogService.js
   - ClassificationService.js
+  - FamiliesService.js
+  - SearchesService.js*
+  - TaxaService.js
+  - VersionService.js
+
+- TODO:
   - FamilyAssembliesService.js
-  - SearchesService.js
+
 
 
 ## Overview

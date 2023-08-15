@@ -157,6 +157,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
         attributes: ["schema_name"],
         where: { 'name': assembly_id }
       })
+
       if (!assembly) {
         reject(Service.rejectResponse({}, 404));
       }
@@ -170,7 +171,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
         column = "hit_list";
       }
 
-      const files = await models.modelFileModel.findOne({ // TODO borken
+      const files = await models.modelFileModel.findOne({
         attributes: [ column ],
         where: { "family_accession": id }
       })
@@ -179,11 +180,14 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
         reject(Service.rejectResponse({}, 404));
       }
 
-      resolve(Service.successResponse({ 
-        data: files[column], 
-        content_type: "text/plain", 
+      console.log(files.dataValues[column])
+      
+      resolve(Service.successResponse({ // TODO fix
+        data: files.dataValues[column], 
+        content_type: "application/json", 
         encoding: "gzip" 
-      }));
+      }, 200
+      ));
 
     } catch (e) {
       reject(Service.rejectResponse(
@@ -216,13 +220,14 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
 
       const models = getModels_Assembly(assembly.schema_name);
 
-      const data = await models.coverageDataModel.findOne({ //TODO borken
+      const data = await models.coverageDataModel.findOne({
         attributes: [ "karyotype" ],
         where: { "family_accession": id }
       })
 
       if (data && data.karyotype) {
-        resolve(Service.successResponse(data.karyotype.toString()))
+        ret_str = data.karyotype.toString()
+        resolve(Service.successResponse({ret_str}, 200))
       } else {
         reject(Service.rejectResponse({}, 404));
       }
@@ -260,7 +265,7 @@ const readFamilyAssemblyModelConservation = ({ id, assembly_id, model }) => new 
     
       const models = getModels_Assembly(assembly.schema_name);
     
-      const conservations = await models.percentageIdModel.findAll({ //TODO borken
+      const conservations = await models.percentageIdModel.findAll({
         where: { "family_accession": id }
       })
       const objs = conservations.map((cons) => {
@@ -307,7 +312,7 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
     
       const models = getModels_Assembly(assembly.schema_name);
     
-      const coverage = await models.coverageDataModel.findOne({ //TODO borken
+      const coverage = await models.coverageDataModel.findOne({
         attributes: [ "reversed", "forward", "nrph", "num_rev", "num_full", "num_full_nrph" ],
         where: { "family_accession": id }
       })
