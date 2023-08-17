@@ -180,13 +180,8 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
         reject(Service.rejectResponse({}, 404));
       }
 
-      console.log(files.dataValues[column])
-      
-      resolve(Service.successResponse({ // TODO fix
-        data: files.dataValues[column], 
-        content_type: "application/json", 
-        encoding: "gzip" 
-      }, 200
+      resolve(Service.successResponse(
+        files.dataValues[column], 200
       ));
 
     } catch (e) {

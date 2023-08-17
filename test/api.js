@@ -81,10 +81,10 @@ test.serial('search families with consensi', async t => {
 });
 
 test.serial('search raw families', async t => {
-  const without_raw = await get_body('/families?name_accession=DR0000000');
-  t.is(without_raw.total_count, 0);
-  const with_raw = await get_body('/families?name_accession=DR0006958&include_raw=true');
-  t.is(with_raw.total_count, 1);
+  const without_raw = await get_body('/families?name_accession=000000');
+  t.is(without_raw.total_count, 981);
+  const with_raw = await get_body('/families?name_accession=000000&include_raw=true');
+  t.is(with_raw.total_count, 984);
 });
 
 test.serial('search families sorted by subtype', async t => {
@@ -105,7 +105,7 @@ test.serial('download families', async t => {
 });
 
 test.serial('get family', async t => {
-  const body = await get_body('/families/DF0001010');
+  const body = await get_body('/families/DF000001010');
 
   t.regex(body.title, /Long Terminal Repeat for ERVL/);
   t.regex(body.name, /MLT1F2/);
@@ -113,59 +113,59 @@ test.serial('get family', async t => {
   t.is(body.repeat_type_name, "LTR");
   t.truthy(body.search_stages.length);
 
-  const body2 = await get_body('/families/DF0001067');
+  const body2 = await get_body('/families/DF000001067');
   t.truthy(body2.buffer_stages.length);
 
-  const body3 = await get_body('/families/DF0000194');
+  const body3 = await get_body('/families/DF000000194');
   t.truthy(body3.coding_seqs.length);
   t.truthy(body3.target_site_cons);
 
-  await get_notfound('/families/DF000FAKE');
+  await get_notfound('/families/DF00000FAKE');
 });
 
 test.serial('get family HMM', async t => {
-  const hmm = await get_body('/families/DF0000001/hmm?format=hmm');
+  const hmm = await get_body('/families/DF000000001/hmm?format=hmm');
   t.truthy(hmm);
 
-  const logo_json = await get_body('/families/DF0000001/hmm?format=logo');
+  const logo_json = await get_body('/families/DF000000001/hmm?format=logo');
   t.truthy(logo_json.height_arr.length);
 
   await request
-    .get('/families/DF0000001/hmm?format=image')
+    .get('/families/DF000000001/hmm?format=image')
     .expect('Content-Type', 'image/png');
   t.pass();
 
-  const bad = request.get('/families/DF0000001/sequence?format=fake&download=true');
+  const bad = request.get('/families/DF000000001/sequence?format=fake&download=true');
   await bad.expect(400);
 });
 
 test.serial('get family relationships', async t => {
-  const body = await get_body('/families/DF0000001/relationships');
+  const body = await get_body('/families/DF000000001/relationships');
   t.truthy(body.length);
   // TODO: We should check a few more things here
 });
 
 test.serial('get family seed', async t => {
-  const text = await get_text('/families/DF0000001/seed?format=stockholm');
+  const text = await get_text('/families/DF000000001/seed?format=stockholm');
   t.regex(text, /GC RF/);
 
-  const body = await get_body('/families/DF0000001/seed?format=alignment_summary');
+  const body = await get_body('/families/DF000000001/seed?format=alignment_summary');
 
   t.truthy(body.alignments.length);
   t.is(body.qualityBlockLen, 10);
 
-  const bad = request.get('/families/DF0000001/seed?format=fake&download=true');
+  const bad = request.get('/families/DF000000001/seed?format=fake&download=true');
   await bad.expect(400);
 });
 
 test.serial('get family sequence', async t => {
-  const embl = await get_text('/families/DF0000001/sequence?format=embl');
+  const embl = await get_text('/families/DF000000001/sequence?format=embl');
   t.regex(embl, /SQ\s*Sequence \d* BP;/);
 
-  const fasta = await get_text('/families/DF0000001/sequence?format=fasta');
-  t.regex(fasta, /^>DF0000001.\d .*\n[acgtACGT\n]*$/);
+  const fasta = await get_text('/families/DF000000001/sequence?format=fasta');
+  t.regex(fasta, /^>DF000000001.\d .*\n[acgtACGT\n]*$/);
 
-  const bad = request.get('/families/DF0000001/sequence?format=fake&download=true');
+  const bad = request.get('/families/DF000000001/sequence?format=fake&download=true');
   await bad.expect(400);
 });
 
@@ -193,7 +193,7 @@ test.serial('get annotations', async t => {
   t.true(body.hits.length > 1);
   t.true(body.tandem_repeats.length > 1);
 
-  const body2 = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF0000001');
+  const body2 = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF000000001');
   t.true(body2.hits.length > 1);
   t.true(body2.tandem_repeats.length > 1);
 
@@ -239,37 +239,37 @@ test.serial('search classifications', async t => {
 
 // FamilyAssembliesService
 test.serial('get family assemblies', async t => {
-  const body = await get_body('/families/DF0000001/assemblies');
+  const body = await get_body('/families/DF000000001/assemblies');
   const hg38 = body.find(a => a.id == 'hg38');
   t.is(hg38.name, 'Homo sapiens');
 });
 
 test.serial('get family assembly stats', async t => {
-  const body = await get_body('/families/DF0000001/assemblies/hg38/annotation_stats');
+  const body = await get_body('/families/DF000000001/assemblies/hg38/annotation_stats');
   t.truthy(body.hmm.trusted_all);
 });
 
 test.serial('get family assembly annotations', async t => {
-  const text_rph = await get_text('/families/DF0000001/assemblies/hg38/annotations?nrph=false');
-  const text_nrph = await get_text('/families/DF0000001/assemblies/hg38/annotations?nrph=true');
+  const text_rph = await get_text('/families/DF000000001/assemblies/hg38/annotations?nrph=false');
+  const text_nrph = await get_text('/families/DF000000001/assemblies/hg38/annotations?nrph=true');
 
   t.true(text_nrph.length < text_rph.length);
 });
 
 test.serial('get family assembly karyotype', async t => {
-  const body = await get_body('/families/DF0000001/assemblies/hg38/karyotype');
+  const body = await get_body('/families/DF000000001/assemblies/hg38/karyotype');
   t.truthy(body.singleton_contigs.length);
 });
 
 test.serial('get family assembly coverage', async t => {
-  const body = await get_body('/families/DF0000001/assemblies/hg38/model_coverage?model=hmm');
+  const body = await get_body('/families/DF000000001/assemblies/hg38/model_coverage?model=hmm');
   t.truthy(body.nrph);
   t.truthy(body.false);
   t.true(body.nrph_hits < body.all_hits);
 });
 
 test.serial('get family assembly conservation', async t => {
-  const body = await get_body('/families/DF0000001/assemblies/hg38/model_conservation?model=hmm');
+  const body = await get_body('/families/DF000000001/assemblies/hg38/model_conservation?model=hmm');
   t.truthy(body.length);
   t.truthy(body[0].num_seqs);
 });
