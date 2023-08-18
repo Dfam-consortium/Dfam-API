@@ -257,6 +257,12 @@ test.serial('get family assemblies', async t => {
   t.is(hg38.name, 'Homo sapiens');
 });
 
+test.serial('get family annotation stats', async t => {
+  const body = await get_body('/families/DF000000001/annotation_stats');
+  const hg38 = body.find(a => a.id == 'hg38');
+  t.is(hg38.name, 'Homo sapiens');
+});
+
 test.serial('get family assembly stats', async t => {
   const body = await get_body('/families/DF000000012/assemblies/danRer10/annotation_stats');
   t.truthy(body.hmm.trusted_all);
@@ -300,7 +306,7 @@ test.serial('get one taxon', async t => {
 
 test.serial('get taxa coverage', async t => {
   const body = await get_body('/taxa/coverage');
-  t.truthy(body.count);
+  t.truthy(body.species);
 });
 
 // Searches Service

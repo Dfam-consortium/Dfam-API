@@ -11,10 +11,11 @@ const escape_sql_like = require("../utils/escape").escape_sql_like;
 * returns taxaCoverageResponse
 * */
 const readCoverage = async function () {
-  const query = "SELECT COUNT(DISTINCT dfam_taxdb_tax_id) AS count FROM family_clade JOIN ncbi_taxdb_nodes ON ncbi_taxdb_nodes.tax_id = dfam_taxdb_tax_id WHERE ncbi_taxdb_nodes.rank IN ('species', 'subspecies')";
+  const query = "SELECT species FROM db_version";
+  // const query = "SELECT COUNT(DISTINCT dfam_taxdb_tax_id) AS count FROM family_clade JOIN ncbi_taxdb_nodes ON ncbi_taxdb_nodes.tax_id = dfam_taxdb_tax_id WHERE ncbi_taxdb_nodes.rank IN ('species', 'subspecies')";
   return conn.query( query, { type: "SELECT" })
     .then((rows) => {
-      return Service.successResponse({ "count": rows[0].count });
+      return Service.successResponse(rows[0]);
     })
     .catch((e) => {
       return  Service.rejectResponse(

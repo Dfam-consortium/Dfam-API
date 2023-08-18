@@ -1,5 +1,6 @@
 const Service = require('./Service');
 const config = require('../config');
+const conn = require("../databases.js").getConn_Dfam();
 
 /**
 * Return the version of the API.
@@ -13,7 +14,23 @@ const getVersion = () => new Promise(
       // The current validator (OpenAPIValidator) when validating the API responses will
       // only complain if a require field is missing.  If extra field exist in the payload
       // it will ignore them.
-      resolve(Service.successResponse({payload: { "major": config.VERSION_MAJOR, "minor": config.VERSION_MINOR, "bugfix": config.VERSION_BUGFIX }}));
+      const query = "SELECT dfam_version, total_families, curated_families, species FROM db_version";
+
+      let data = await conn.query( query, { type: "SELECT" })
+      data = data[0]
+      resolve(Service.successResponse(
+        {
+          payload: { 
+            "major": data.dfam_version, 
+            "minor": config.VERSION_MINOR, 
+            "bugfix": config.VERSION_BUGFIX,
+            "total_families": data.total_families,
+            "curated_families": data.curated_families,
+            "species": data.species
+          }
+        }
+      ));
+   
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
