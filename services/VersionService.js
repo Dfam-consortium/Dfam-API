@@ -21,9 +21,10 @@ const getVersion = () => new Promise(
       resolve(Service.successResponse(
         {
           payload: { 
-            "major": data.dfam_version, 
+            "major": config.VERSION_MAJOR,
             "minor": config.VERSION_MINOR, 
             "bugfix": config.VERSION_BUGFIX,
+            "dfam_version": data.dfam_version,
             "total_families": data.total_families,
             "curated_families": data.curated_families,
             "species": data.species

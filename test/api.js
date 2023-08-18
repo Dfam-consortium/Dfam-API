@@ -74,6 +74,10 @@ async function post_body(url) {
 test.serial('get version', async t => {
   const body = await get_body('/version');
   t.deepEqual(body, { major: "0", minor: "4", bugfix: "0" });
+  t.truthy(body.dfam_version);
+  t.truthy(body.total_families);
+  t.truthy(body.curated_families);
+  t.truthy(body.species_families);
 });
 
 test.serial('search families', async t => {
@@ -304,6 +308,7 @@ test.serial('get one taxon', async t => {
   t.true(body.name == 'Homo sapiens');
 });
 
+// TODO might not be needed?
 test.serial('get taxa coverage', async t => {
   const body = await get_body('/taxa/coverage');
   t.truthy(body.species);
