@@ -169,9 +169,7 @@ test.serial('get family sequence', async t => {
   await bad.expect(400);
 });
 
-///// TO BE IMPLEMENTED /////
-
-// AlignmentService
+// AlignmentService // TODO
 //test.serial('get alignment', async t => {
 //  const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF0004191');
 //  t.regex(body.pp.string, /^699\**9988777333.*/);
@@ -186,7 +184,6 @@ test.serial('get family sequence', async t => {
 //    .expect(400);
 //});
 
-/*
 // AnnotationsService
 test.serial('get annotations', async t => {
   const body = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true');
@@ -220,7 +217,7 @@ test.serial('get blog posts', async t => {
 
   // TODO: actually verify that the cached posts are reused
   const body2 = await get_body('/blogposts');
-  t.truthy(body2.length);
+  t.deepEqual(body2, body);
 });
 
 // ClassificationService
@@ -238,46 +235,46 @@ test.serial('search classifications', async t => {
 });
 
 // FamilyAssembliesService
-test.serial('get family assemblies', async t => {
-  const body = await get_body('/families/DF000000001/assemblies');
-  const hg38 = body.find(a => a.id == 'hg38');
-  t.is(hg38.name, 'Homo sapiens');
-});
+// test.serial('get family assemblies', async t => {
+//   const body = await get_body('/families/DF000000001/assemblies');
+//   const hg38 = body.find(a => a.id == 'hg38');
+//   t.is(hg38.name, 'Homo sapiens');
+// });
 
-test.serial('get family assembly stats', async t => {
-  const body = await get_body('/families/DF000000001/assemblies/hg38/annotation_stats');
-  t.truthy(body.hmm.trusted_all);
-});
+// test.serial('get family assembly stats', async t => {
+//   const body = await get_body('/families/DF000000001/assemblies/hg38/annotation_stats');
+//   t.truthy(body.hmm.trusted_all);
+// });
 
-test.serial('get family assembly annotations', async t => {
-  const text_rph = await get_text('/families/DF000000001/assemblies/hg38/annotations?nrph=false');
-  const text_nrph = await get_text('/families/DF000000001/assemblies/hg38/annotations?nrph=true');
+// test.serial('get family assembly annotations', async t => {
+//   const text_rph = await get_text('/families/DF000000001/assemblies/hg38/annotations?nrph=false');
+//   const text_nrph = await get_text('/families/DF000000001/assemblies/hg38/annotations?nrph=true');
 
-  t.true(text_nrph.length < text_rph.length);
-});
+//   t.true(text_nrph.length < text_rph.length);
+// });
 
-test.serial('get family assembly karyotype', async t => {
-  const body = await get_body('/families/DF000000001/assemblies/hg38/karyotype');
-  t.truthy(body.singleton_contigs.length);
-});
+// test.serial('get family assembly karyotype', async t => {
+//   const body = await get_body('/families/DF000000001/assemblies/hg38/karyotype');
+//   t.truthy(body.singleton_contigs.length);
+// });
 
-test.serial('get family assembly coverage', async t => {
-  const body = await get_body('/families/DF000000001/assemblies/hg38/model_coverage?model=hmm');
-  t.truthy(body.nrph);
-  t.truthy(body.false);
-  t.true(body.nrph_hits < body.all_hits);
-});
+// test.serial('get family assembly coverage', async t => {
+//   const body = await get_body('/families/DF000000001/assemblies/hg38/model_coverage?model=hmm');
+//   t.truthy(body.nrph);
+//   t.truthy(body.false);
+//   t.true(body.nrph_hits < body.all_hits);
+// });
 
-test.serial('get family assembly conservation', async t => {
-  const body = await get_body('/families/DF000000001/assemblies/hg38/model_conservation?model=hmm');
-  t.truthy(body.length);
-  t.truthy(body[0].num_seqs);
-});
+// test.serial('get family assembly conservation', async t => {
+//   const body = await get_body('/families/DF000000001/assemblies/hg38/model_conservation?model=hmm');
+//   t.truthy(body.length);
+//   t.truthy(body[0].num_seqs);
+// });
 
 // Taxa Service
 test.serial('get taxa', async t => {
   const body = await get_body('/taxa?name=Drosophila');
-  t.true(body.taxa[0].name == 'Drosophila <basidiomycetes>');
+  t.true(body.taxa[0].name == 'Drosophila <basidiomycete fungi>');
 });
 
 test.serial('get one taxon', async t => {
@@ -285,5 +282,8 @@ test.serial('get one taxon', async t => {
   t.true(body.name == 'Homo sapiens');
 });
 
+test.serial('get taxa coverage', async t => {
+  const body = await get_body('/taxa/coverage');
+  t.true(body.count == 2380);
+});
 // low-priority test TODO: Searches Service
-*/

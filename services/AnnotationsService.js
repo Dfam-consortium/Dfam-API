@@ -152,19 +152,14 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
 
         return hit;
       });
-
-      const results = nhmmerResults.map( (nhmmer, i) => {
-        let trf = trfResults[i]
-        return {
-          offset: start,
-          length: Math.abs(end - start),
-          query: `${chrom}:${start}-${end}`,
-          hits: nhmmer,
-          tandem_repeats: trf,
-        };
-      } )
        
-      resolve(Service.successResponse( results , 200 ));
+      resolve(Service.successResponse({
+        offset: start,
+        length: Math.abs(end - start),
+        query: `${chrom}:${start}-${end}`,
+        hits: nhmmerResults,
+        tandem_repeats: trfResults,
+      }, 200 ));
       
     } catch (e) {
       reject(Service.rejectResponse(

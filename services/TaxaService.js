@@ -90,21 +90,22 @@ const readTaxa = async function({ name, annotated, limit }) {
 * returns taxonResponse
 * */
 const readTaxaById = async function({ id }) {
-  return dfam.ncbiTaxdbNamesModel.findOne({
-    attributes: ["tax_id", "name_txt"],
-    where: { tax_id: id, name_class: "scientific name" },
-  }).then(function(taxon) {
+  try {
+    let taxon =  await dfam.ncbiTaxdbNamesModel.findOne({
+      attributes: ["tax_id", "name_txt"],
+      where: { tax_id: id, name_class: "scientific name" },
+    })
     if (!taxon) {
-      return Service.successResponse(null);
+      return Service.successResponse({}, 404);
     }
     return Service.successResponse({ "id": taxon.tax_id, "name": taxon.name_txt });
-  })
-    .catch((e) => {
+    
+  } catch (e) {
       return  Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405 );
-    });
-};
+  };
+}
 
       
 module.exports = {
