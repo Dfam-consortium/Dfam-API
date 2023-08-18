@@ -221,8 +221,7 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
       })
 
       if (data && data.karyotype) {
-        ret_str = data.karyotype.toString()
-        resolve(Service.successResponse({ret_str}, 200))
+        resolve(Service.successResponse(JSON.parse(data.karyotype.toString()), 200))
       } else {
         reject(Service.rejectResponse({}, 404));
       }

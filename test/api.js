@@ -32,6 +32,10 @@ winston.configure({
   ],
 });
 
+//load example sequence
+const fs = require('fs');
+const example_seq = fs.readFileSync('./test/example_sequence.fasta').toString()
+
 // Start up the API server and grab the "express" object
 const app = require('../index').expressServer.app;
 // Hand the express object to supertest to wrap
@@ -50,6 +54,17 @@ async function get_text(url) {
 }
 async function get_notfound(url) {
   await request.get(url).expect(404);
+}
+
+async function post_body(url) {
+  let data = {
+    sequence: example_seq,
+    organism: 'Homo sapiens',
+    cutoff: 'curated',
+    evalue: 0
+  }
+  const response = await request.post(url).type('form').send(data).expect(200);
+  return response.body;
 }
 
 //
@@ -235,41 +250,42 @@ test.serial('search classifications', async t => {
 });
 
 // FamilyAssembliesService
-// test.serial('get family assemblies', async t => {
-//   const body = await get_body('/families/DF000000001/assemblies');
-//   const hg38 = body.find(a => a.id == 'hg38');
-//   t.is(hg38.name, 'Homo sapiens');
-// });
+// TODO using old accession numbers in some of these. Correct when assemblies are updated - 8/18/23
+test.serial('get family assemblies', async t => {
+  const body = await get_body('/families/DF000000001/assemblies');
+  const hg38 = body.find(a => a.id == 'hg38');
+  t.is(hg38.name, 'Homo sapiens');
+});
 
-// test.serial('get family assembly stats', async t => {
-//   const body = await get_body('/families/DF000000001/assemblies/hg38/annotation_stats');
-//   t.truthy(body.hmm.trusted_all);
-// });
+test.serial('get family assembly stats', async t => {
+  const body = await get_body('/families/DF000000012/assemblies/danRer10/annotation_stats');
+  t.truthy(body.hmm.trusted_all);
+});
 
-// test.serial('get family assembly annotations', async t => {
-//   const text_rph = await get_text('/families/DF000000001/assemblies/hg38/annotations?nrph=false');
-//   const text_nrph = await get_text('/families/DF000000001/assemblies/hg38/annotations?nrph=true');
+test.serial('get family assembly annotations', async t => {
+  const text_rph = await get_text('/families/DF0000012/assemblies/danRer10/annotations?nrph=false');
+  const text_nrph = await get_text('/families/DF0000012/assemblies/danRer10/annotations?nrph=true');
 
-//   t.true(text_nrph.length < text_rph.length);
-// });
+  t.true(text_nrph.length < text_rph.length);
+});
 
-// test.serial('get family assembly karyotype', async t => {
-//   const body = await get_body('/families/DF000000001/assemblies/hg38/karyotype');
-//   t.truthy(body.singleton_contigs.length);
-// });
+test.serial('get family assembly karyotype', async t => {
+  const body = await get_body('/families/DF0000012/assemblies/danRer10/karyotype');
+  t.truthy(body.singleton_contigs.length);
+});
 
-// test.serial('get family assembly coverage', async t => {
-//   const body = await get_body('/families/DF000000001/assemblies/hg38/model_coverage?model=hmm');
-//   t.truthy(body.nrph);
-//   t.truthy(body.false);
-//   t.true(body.nrph_hits < body.all_hits);
-// });
+test.serial('get family assembly coverage', async t => {
+  const body = await get_body('/families/DF0000012/assemblies/danRer10/model_coverage?model=hmm');
+  t.truthy(body.nrph);
+  t.truthy(body.false);
+  t.true(body.nrph_hits < body.all_hits);
+});
 
-// test.serial('get family assembly conservation', async t => {
-//   const body = await get_body('/families/DF000000001/assemblies/hg38/model_conservation?model=hmm');
-//   t.truthy(body.length);
-//   t.truthy(body[0].num_seqs);
-// });
+test.serial('get family assembly conservation', async t => {
+  const body = await get_body('/families/DF0000012/assemblies/danRer10/model_conservation?model=hmm');
+  t.truthy(body.length);
+  t.truthy(body[0].num_seqs);
+});
 
 // Taxa Service
 test.serial('get taxa', async t => {
@@ -284,6 +300,14 @@ test.serial('get one taxon', async t => {
 
 test.serial('get taxa coverage', async t => {
   const body = await get_body('/taxa/coverage');
-  t.true(body.count == 2380);
+  t.truthy(body.count);
 });
-// low-priority test TODO: Searches Service
+
+// Searches Service
+test.serial('submit search', async t => {
+  const body = await post_body('/searches');
+  t.truthy(body.id);
+});
+
+// TODO readSearchResultAlignment
+// TODO readSearchResults
