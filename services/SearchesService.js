@@ -15,6 +15,7 @@ const zlib = require('zlib');
 const promisify = require('util').promisify;
 const fs = require('fs');
 const child_process = require('child_process');
+const { Op } = require("sequelize");
 
 const getDateDir = (date, id) => {
   const options = {
@@ -151,29 +152,30 @@ const readSearchResults = ({ id }) => new Promise(
       const FAILURE_MESSAGE = "Failed to retrieve search results. Please try submitting the search again and contact help if the problem continues.";
       
       var dataDir = getDateDir(searchRec.started, id);
-      console.log(dataDir) // TODO fix
+      let nhmmer_out = dataDir + "/nhmmer.out"
+      let trf_out = dataDir + "/trf.out"
+      let getQuerySizes = {};
       try {
-        await fs.access(dataDir + "/nhmmer.out", fs.constants.F_OK);
-        await fs.access(dataDir + "/trf.out", fs.constants.F_OK);
+        await fs.access(nhmmer_out, fs.constants.R_OK, (err) => err);
+        await fs.access(trf_out, fs.constants.R_OK, (err) => err);
       } catch (err) {
         winston.error("Missing nhmmer.out or trf.out for id " + id + ": " + err);
         reject(Service.rejectResponse({ status: "ERROR", message: FAILURE_MESSAGE }));
       }
-    
-      const nhmmerResults = await parseNhmmscan(dataDir + "/nhmmer.out");
-      const trfResults = parseTRF(dataDir + "/trf.out");
+
+      const nhmmerResults = await parseNhmmscan(nhmmer_out);
+      const trfResults = await parseTRF(trf_out);
     
       const faSize = path.join(config.ucsc_utils_bin, "faSize");
       // Use faSize to get Query sizes
       // e.g.
       //      Seq1  13283
       try {
-        const sizeData = await execFileAsync(faSize, [
+          const sizeData = await execFileAsync(faSize, [
           '-detailed',
           dataDir + '/dfamscan.in'
         ])
         let lines = sizeData.stdout.split(/\r\n|\n/);
-        let getQuerySizes = {};
         lines.forEach(function(line) {
           let flds = line.split(/\s+/);
           if (flds[0].match(/\S+/)) {
@@ -212,7 +214,7 @@ const readSearchResults = ({ id }) => new Promise(
       //  }, ..
       //]
       const [nhmmer, trf, sizes] = await Promise.all([nhmmerResults, trfResults, getQuerySizes]);
-      response.results = Object.keys(sizes).map(function(k) {
+      response.results = Object.keys(sizes).map( (k) => {
         return {
           "query": k,
           "length": sizes[k],
@@ -371,11 +373,13 @@ const sanitizeFASTAInput = (sequence) => {
 // search.
 const parseNhmmscan = async ( filePath ) => {
   try {
-    let data = await fs.readFile(filePath, {encoding: 'utf-8'})
+
+    let data = await fs.readFileSync(filePath, {encoding: 'utf-8'})
     //  L1ME3G_3end           DF0000302.4          Query                  46.4   4.8e-12  16.6     466     612    +       456     597     435     617     924   3' end
     //   of L1 retrotransposon, L1ME3G_3end subfamily
     const nhmmscanData = /^\S+\s+DF\d+\.?\d*\s+\S+\s+[\d.]+\s+/;
     let lines = data.split(/\r\n|\n/);
+    let records = {};
     let family_acc_mappings = {};
 
     for (var i = 0; i < lines.length; i++) {
@@ -419,7 +423,7 @@ const parseNhmmscan = async ( filePath ) => {
         family_acc_mappings[rec.accession].push(rec);
       }
     }
-
+    
     // TODO: maybe deduplicate with similar code in AnnotationsService
     const families = await dfam.familyModel.findAll({
       where: { accession: { [Op.in]: Object.keys(family_acc_mappings) } },
@@ -429,7 +433,7 @@ const parseNhmmscan = async ( filePath ) => {
       ] } ],
     })
 
-    let records = families.forEach(function(family) {
+    families.forEach(function(family) {
       family_acc_mappings[family.accession].forEach(function(hit) {
         hit.type = null;
         if (family.classification) {
@@ -438,9 +442,10 @@ const parseNhmmscan = async ( filePath ) => {
           }
         }
       });
-    })
+    });
 
     return records;
+
   } catch (err) {
     throw new Error("Error reading " + filePath + ": " + err);
   }
@@ -448,9 +453,10 @@ const parseNhmmscan = async ( filePath ) => {
 
 // Parse dfamscan.pl generated output from a user-supplied sequence
 // search.
-const  parseTRF = (filePath) => {
+const  parseTRF = async (filePath) => {
   try {
-    let data = fs.readFil(filePath, {encoding: 'utf-8'})
+    let data = await fs.readFileSync(filePath, {encoding: 'utf-8'})
+
     //6181 6275 4 23.0 4 72 10 66 51 0 48 0 1.00 AAGG AAGGAAGGAAAGAAAAAAGGAAGGGAGGAGGGAAGGAGGGAAAAAGGGAAGGAGGGAAGGAAAGGAAGGAAGGGAAAGAAGGAAAGGAAGGAAGG
     const trfData = /^\d+\s+\d+\s+\d+\s+[\d.]+\s+/;
     const seqLine = /^Sequence:\s(\S+)\s*$/;

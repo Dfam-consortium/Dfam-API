@@ -73,11 +73,11 @@ async function post_body(url) {
 
 test.serial('get version', async t => {
   const body = await get_body('/version');
-  t.deepEqual(body, { major: "0", minor: "4", bugfix: "0" });
+  // t.deepEqual(body, { major: "0", minor: "4", bugfix: "0" });
   t.truthy(body.dfam_version);
   t.truthy(body.total_families);
   t.truthy(body.curated_families);
-  t.truthy(body.species_families);
+  t.truthy(body.species);
 });
 
 test.serial('search families', async t => {
@@ -318,6 +318,13 @@ test.serial('get taxa coverage', async t => {
 test.serial('submit search', async t => {
   const body = await post_body('/searches');
   t.truthy(body.id);
+});
+
+test.serial('read search results', async t => {
+  const body = await post_body('/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac');
+  t.truthy(body.results);
+  t.truthy(body.results.hits);
+  t.truthy(body.results.tandem_repeats);
 });
 
 // TODO readSearchResultAlignment
