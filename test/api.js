@@ -327,5 +327,10 @@ test.serial('read search results', async t => {
   t.truthy(body.results.tandem_repeats);
 });
 
-// TODO readSearchResultAlignment
-// TODO readSearchResults
+test.serial('read search result alignments', async t => {
+  const body = await post_body('/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302');
+  t.truthy(body.hmm);
+  t.truthy(body.match);
+  t.truthy(body.seq);
+  t.truthy(body.pp);
+});

@@ -8,7 +8,6 @@ const path = require('path');
 const { tmpFileAsync, execFileAsync } = require('../utils/async');
 const md5 = require('md5');
 const config = require('../config');
-// const { start } = require('repl');
 const resultStore = config.dfamdequeuer.result_store;
 const winston = require('winston');
 const zlib = require('zlib');
@@ -16,6 +15,7 @@ const promisify = require('util').promisify;
 const fs = require('fs');
 const child_process = require('child_process');
 const { Op } = require("sequelize");
+const formatAlignment = require("./AlignmentService").formatAlignment
 
 const getDateDir = (date, id) => {
   const options = {
@@ -47,30 +47,24 @@ const getDateDir = (date, id) => {
 const readSearchResultAlignment = ({ id, sequence, start, end, family }) => new Promise(
   async (resolve, reject) => {
     try {
-      const jobRec = await dfam_user.jobModel.findOne({ where: { uuid: id } })
-      if (jobRec.status === "PEND") {
-        response.status = "Pending";
-        resolve(Service.successResponse(response, 202));
 
-      } else if (jobRec.status === "ERROR") {
-        response.status = "Error";
-        response.message = "Search failed.";
-        reject(Service.rejectResponse(response, 500));
-      }
+      resolve(Service.successResponse( dfam_user.jobModel.findOne({ where: { uuid: id } }).then(function(jobRec) {
+        if (jobRec.status === "PEND") {
+          return { status: "Pending" };
+        } else if (jobRec.status === "ERROR") {
+          return { status: "Error" };
+        }
+        var dataDir = getDateDir(jobRec.started, id);
 
-      const model = await dfam.hmmModelDataModel.findOne({
-        attributes: [ "hmm" ],
-        include: { model: dfam.familyModel, where: { accession: family }, attributes: [] }, 
-      })
-     
-      let dataDir = getDateDir(jobRec.started, id);
-
-      const hmm_data = await zlib.gunzip(model.hmm, (err, buffer)=> {return buffer.toString()})
-      resolve(Service.successResponse(
-        promisify(zlib.gunzip)(model.hmm).then(function(hmm_data) {
-          return reAlignSearchHMM(dataDir, sequence, start, end, hmm_data);
-        })
-      ));
+        return dfam.hmmModelDataModel.findOne({
+          attributes: [ "hmm" ],
+          include: [ { model: dfam.familyModel, where: { accession: family }, attributes: [] } ],
+        }).then(function(model) {
+          return promisify(zlib.gunzip)(model.hmm).then(function(hmm_data) {
+            return reAlignSearchHMM(dataDir, sequence, start, end, hmm_data);
+          });
+        });
+      }, 200)))
 
     } catch (e) {
       reject(Service.rejectResponse(
@@ -80,6 +74,7 @@ const readSearchResultAlignment = ({ id, sequence, start, end, family }) => new 
     }
   },
 );
+
 /**
 * Retrieve the results of a sequence search.
 *
@@ -89,7 +84,6 @@ const readSearchResultAlignment = ({ id, sequence, start, end, family }) => new 
 const readSearchResults = ({ id }) => new Promise(
   async (resolve, reject) => {
     try {
-
       // Query the database to get the start time so we can
       // build the data directory path.
       const searchRec = await dfam_user.searchModel.findOne({
@@ -156,8 +150,8 @@ const readSearchResults = ({ id }) => new Promise(
       let trf_out = dataDir + "/trf.out"
       let getQuerySizes = {};
       try {
-        await fs.access(nhmmer_out, fs.constants.R_OK, (err) => err);
-        await fs.access(trf_out, fs.constants.R_OK, (err) => err);
+        fs.access(nhmmer_out, fs.constants.R_OK, (err) => err);
+        fs.access(trf_out, fs.constants.R_OK, (err) => err);
       } catch (err) {
         winston.error("Missing nhmmer.out or trf.out for id " + id + ": " + err);
         reject(Service.rejectResponse({ status: "ERROR", message: FAILURE_MESSAGE }));
@@ -233,6 +227,7 @@ const readSearchResults = ({ id }) => new Promise(
     }
   },
 );
+
 /**
 * Submit a sequence search request.
 *
@@ -490,14 +485,15 @@ const  parseTRF = async (filePath) => {
   }
 }
 
-const reAlignSearchHMM = async ( dataDir, seqID, startPos, endPos, hmmData ) => {
+// TODO: deduplicate a lot of this code with AlignmentService.
+async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
   const [seqFile, hmmFile] = await Promise.all([
     tmpFileAsync({ detachDescriptor: true }),
     tmpFileAsync({ detachDescriptor: true }),
   ]);
 
   // Save HMM data to file
-  const writeHmmFile = promisify(fs.writeFile)(hmmFile.fd, hmmData, (err) =>  err).then(function() {
+  const writeHmmFile = promisify(fs.writeFile)(hmmFile.fd, hmmData, null).then(function() {
     return promisify(fs.close)(hmmFile.fd);
   }).catch(function(err) {
     throw new Error('Error saving hmm data to a temporary file.' + err);
@@ -540,22 +536,14 @@ const reAlignSearchHMM = async ( dataDir, seqID, startPos, endPos, hmmData ) => 
       }
     });
   });
-
   // Grab sequence data from FASTA format
   const writeFastaFile = faFragOutput.then(function(fasta) {
-    return promisify(fs.writeFile)(seqFile.fd, fasta, (err) =>  err);
+    return promisify(fs.writeFile)(seqFile.fd, fasta, null);
   }).then(function() {
     return promisify(fs.close)(seqFile.fd);
   }).catch(function(err) {
     throw new Error('Error saving sequence data to a temporary file.' + err);
   });
-
-  try {
-    const writeHmmFile = await fs.writeFile(hmmFile.fd, hmmData, (err) =>  err)
-    await fs.close(hmmFile.fd);
-    } catch (err) {
-      throw new Error('Error saving hmm data to a temporary file.' + err);
-    };
 
   try {
     await Promise.all([writeHmmFile, writeFastaFile]);
@@ -567,7 +555,7 @@ const reAlignSearchHMM = async ( dataDir, seqID, startPos, endPos, hmmData ) => 
     //       region will be used here, which might not be the right one.
     const nhmmer_out = await execFileAsync(nhmmer, ['--max', '-T', '0', '--notextw', hmmFile.path, seqFile.path]);
 
-    return formatAlignment(seqName, ordStart, ordEnd, nhmmer_out.stdout, startPos);
+    return formatAlignment(seqID, ordStart, ordEnd, nhmmer_out.stdout, startPos);
   } finally {
     hmmFile.cleanup();
     seqFile.cleanup();
