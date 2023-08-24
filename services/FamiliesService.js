@@ -13,7 +13,6 @@ const escape = require("../utils/escape");
 const family = require("../utils/family");
 const logger = require('../logger');
 
-
 /**
 * Retrieve a list of families in Dfam, optionally filtered and sorted.
 * Retrieve a list of families in Dfam, optionally filtered and sorted.
@@ -75,9 +74,9 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
      
       if (format == "embl") {
         obj.payload = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'embl_command' });
-      }else if (format == "fasta") {
+      } else if (format == "fasta") {
         obj.payload = await workerPool.piscina.run({accessions: accs}, { name: 'fasta_command' });
-      }else if (format == "hmm") {
+      } else if (format == "hmm") {
         obj.payload = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'hmm_command' });
       } 
       return obj;
@@ -286,6 +285,7 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
     }
   },
 );
+
 /**
 * Retrieve full details of an individual Dfam family.
 * Retrieve full details of an individual Dfam family.
@@ -322,6 +322,7 @@ const readFamilyById = ({ id }) => new Promise(
     }
   },
 );
+
 /**
 * Retrieve an individual Dfam family's annotated HMM.
 * Retrieve an individual Dfam family's annotated HMM.
@@ -358,11 +359,11 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
         });
 
         if (!model || !model["hmm_logo"]) {
-          return null;
+          resolve(Service.rejectResponse( "Logo not found", 400 ));
         }
         obj.payload = model["hmm_logo"];
         obj.encoding = "gzip";
-      }else if (format == "image") {
+      } else if (format == "image") {
 
         const model = await dfam.hmmModelDataModel.findOne({
           attributes: [ "hmm" ],
@@ -370,7 +371,7 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
         });
 
         if (!model || !model["hmm"]) {
-          return null;
+          resolve(Service.rejectResponse( "Model not found", 400 ));
         }
  
         const unzippedHmm = await new Promise(function(resolve, reject) {
@@ -404,7 +405,7 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
         obj.content_type = "image/png";
         obj.encoding = "identity";
 
-      }else if (format == "hmm") {
+      } else if (format == "hmm") {
         obj.payload = await workerPool.piscina.run({accessions: [id], include_copyright: 0}, { name: 'hmm_command' });
       }
 
@@ -417,6 +418,7 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
     }
   },
 );
+
 /**
 * Retrieve an individual Dfam family's relationship information.
 * Retrieve an individual Dfam family's relationship information.
@@ -572,6 +574,7 @@ const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
     }
   },
 );
+
 /**
 * Retrieve an individual Dfam family's seed alignment data.
 * Retrieve an individual Dfam family's seed alignment data.

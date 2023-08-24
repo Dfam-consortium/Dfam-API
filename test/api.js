@@ -80,128 +80,23 @@ test.serial('get version', async t => {
   t.truthy(body.species);
 });
 
-test.serial('search families', async t => {
-  const body = await get_body('/families?clade=9263&limit=20');
-  t.is(body.total_count, 6);
-  const charlie1 = body.results.find(f => f.name === 'Charlie1');
-  t.regex(charlie1.title, /Charlie DNA transposon/);
-  t.regex(charlie1.description, /8 bp TSD./);
-  t.is(charlie1.repeat_subtype_name, 'hAT-Charlie');
-
-  const response = await request.get('/families?clade=1&clade_relatives=descendants').expect(400);
-  t.regex(response.body.message, /per-query limit/);
+// AlignmentService
+test.serial('get alignment success', async t => {
+  const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF000004191');
+  t.regex(body.pp.string, /^699\**9988777333.*/);
+ 
+  const body2 = await get_body('/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF000000147');
+  t.regex(body2.pp.string, /^799.*9999998888877665$/);
 });
 
-test.serial('search families with consensi', async t => {
-  const body = await get_body('/families?clade=9606&format=full&name=ltr');
-  t.is(body.total_count, 3);
-  const ltr26c = body.results.find(f => f.name === 'LTR26C');
-  t.regex(ltr26c.consensus_sequence, /^[ACGTN]*$/);
-});
-
-test.serial('search raw families', async t => {
-  const without_raw = await get_body('/families?name_accession=000000');
-  t.is(without_raw.total_count, 981);
-  const with_raw = await get_body('/families?name_accession=000000&include_raw=true');
-  t.is(with_raw.total_count, 984);
-});
-
-test.serial('search families sorted by subtype', async t => {
-  const body = await get_body('/families?clade=9606&sort=subtype:asc');
-  t.deepEqual(
-    body.results.map(r => r.repeat_subtype_name).filter(x => x !== undefined),
-    ["Alu", "Alu", "Alu", "ERV1", "ERV1", "ERVK", "SVA", "SVA"],
-  );
-});
-
-test.serial('download families', async t => {
-  const text_fa = await get_text('/families?clade=185453&format=fasta');
-  t.is(text_fa.match(/^>/gm).length, 67);
-  const body_embl = await get_text('/families?clade=9263&format=embl');
-  t.is(body_embl.match(/^SQ/gm).length, 6);
-  const body_hmm = await get_text('/families?clade=9263&format=hmm');
-  t.is(body_hmm.match(/^HMMER3\/f/gm).length, 6);
-});
-
-test.serial('get family', async t => {
-  const body = await get_body('/families/DF000001010');
-
-  t.regex(body.title, /Long Terminal Repeat for ERVL/);
-  t.regex(body.name, /MLT1F2/);
-  t.is(body.length, 560);
-  t.is(body.repeat_type_name, "LTR");
-  t.truthy(body.search_stages.length);
-
-  const body2 = await get_body('/families/DF000001067');
-  t.truthy(body2.buffer_stages.length);
-
-  const body3 = await get_body('/families/DF000000194');
-  t.truthy(body3.coding_seqs.length);
-  t.truthy(body3.target_site_cons);
-
-  await get_notfound('/families/DF00000FAKE');
-});
-
-test.serial('get family HMM', async t => {
-  const hmm = await get_body('/families/DF000000001/hmm?format=hmm');
-  t.truthy(hmm);
-
-  const logo_json = await get_body('/families/DF000000001/hmm?format=logo');
-  t.truthy(logo_json.height_arr.length);
-
-  await request
-    .get('/families/DF000000001/hmm?format=image')
-    .expect('Content-Type', 'image/png');
+test.serial('get alignment failure', async t => {
+  await get_notfound('/alignment?assembly=fake&chrom=chr1&start=1&end=1000&family=DF000004191');
+  await get_notfound('/alignment?assembly=mm10&chrom=fake&start=1&end=1000&family=DF000004191');
+ 
+  await request.get('/alignment?assembly=mm10&chrom=chr1&start=1&end=40000&family=DF000004191')
+    .expect(400);
   t.pass();
-
-  const bad = request.get('/families/DF000000001/sequence?format=fake&download=true');
-  await bad.expect(400);
-});
-
-test.serial('get family relationships', async t => {
-  const body = await get_body('/families/DF000000001/relationships');
-  t.truthy(body.length);
-  // TODO: We should check a few more things here
-});
-
-test.serial('get family seed', async t => {
-  const text = await get_text('/families/DF000000001/seed?format=stockholm');
-  t.regex(text, /GC RF/);
-
-  const body = await get_body('/families/DF000000001/seed?format=alignment_summary');
-
-  t.truthy(body.alignments.length);
-  t.is(body.qualityBlockLen, 10);
-
-  const bad = request.get('/families/DF000000001/seed?format=fake&download=true');
-  await bad.expect(400);
-});
-
-test.serial('get family sequence', async t => {
-  const embl = await get_text('/families/DF000000001/sequence?format=embl');
-  t.regex(embl, /SQ\s*Sequence \d* BP;/);
-
-  const fasta = await get_text('/families/DF000000001/sequence?format=fasta');
-  t.regex(fasta, /^>DF000000001.\d .*\n[acgtACGT\n]*$/);
-
-  const bad = request.get('/families/DF000000001/sequence?format=fake&download=true');
-  await bad.expect(400);
-});
-
-// AlignmentService // TODO
-//test.serial('get alignment', async t => {
-//  const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF0004191');
-//  t.regex(body.pp.string, /^699\**9988777333.*/);
-//
-//  const body2 = await get_body('/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF0000147');
-//  t.regex(body2.pp.string, /^799.*9999998888877665$/);
-//
-//  await get_notfound('/alignment?assembly=fake&chrom=chr1&start=1&end=1000&family=DF0004191');
-//  await get_notfound('/alignment?assembly=mm10&chrom=fake&start=1&end=1000&family=DF0004191');
-//
-//  await request.get('/alignment?assembly=mm10&chrom=chr1&start=1&end=40000&family=DF0004191')
-//    .expect(400);
-//});
+ });
 
 // AnnotationsService
 test.serial('get annotations', async t => {
@@ -251,6 +146,136 @@ test.serial('search classifications', async t => {
   const cls = body.find(c => c.name == 'SINE');
   t.is(cls.repeatmasker_type, 'SINE');
   t.is(cls.full_name, 'root;Interspersed_Repeat;Transposable_Element;Class_I_Retrotransposition;LINE-dependent_Retroposon;SINE');
+});
+
+// FamiliesService
+// TODO: options not tested: name_prefix, classification, type, updated_after, updated_before, desc, keywords, start
+test.serial('search families', async t => {
+  const body = await get_body('/families?clade=9263&limit=20');
+  t.is(body.total_count, 6);
+  const charlie1 = body.results.find(f => f.name === 'Charlie1');
+  t.regex(charlie1.title, /Charlie DNA transposon/);
+  t.regex(charlie1.description, /8 bp TSD./);
+  t.is(charlie1.repeat_subtype_name, 'hAT-Charlie');
+});
+
+test.serial('search families query limit', async t => {
+  const response = await request.get('/families?clade=1&clade_relatives=descendants').expect(400);
+  t.regex(response.body.message, /per-query limit/);
+});
+
+test.serial('search families with consensi', async t => {
+  const body = await get_body('/families?clade=9606&format=full&name=ltr');
+  t.is(body.total_count, 3);
+  const ltr26c = body.results.find(f => f.name === 'LTR26C');
+  t.regex(ltr26c.consensus_sequence, /^[ACGTN]*$/);
+});
+
+test.serial('search raw families', async t => {
+  const without_raw = await get_body('/families?name_accession=DR0000000');
+  t.is(without_raw.total_count, 0);
+  const with_raw = await get_body('/families?name_accession=DR0006958&include_raw=true');
+  t.is(with_raw.total_count, 100);
+});
+
+test.serial('search families sorted by subtype', async t => {
+  const body = await get_body('/families?clade=9606&sort=subtype:asc');
+  t.deepEqual(
+    body.results.map(r => r.repeat_subtype_name).filter(x => x !== undefined),
+    ["Alu", "Alu", "Alu", "ERV1", "ERV1", "ERVK", "SVA", "SVA"],
+  );
+});
+
+test.serial('download families', async t => {
+  const text_fa = await get_text('/families?clade=185453&format=fasta');
+  t.is(text_fa.match(/^>/gm).length, 67);
+  const body_embl = await get_text('/families?clade=9263&format=embl');
+  t.is(body_embl.match(/^SQ/gm).length, 6);
+  const body_hmm = await get_text('/families?clade=9263&format=hmm');
+  t.is(body_hmm.match(/^HMMER3\/f/gm).length, 6);
+});
+
+// /families/{id}
+test.serial('get family', async t => {
+  const body = await get_body('/families/DF000001010');
+
+  t.regex(body.title, /Long Terminal Repeat for ERVL/);
+  t.regex(body.name, /MLT1F2/);
+  t.is(body.length, 560);
+  t.is(body.repeat_type_name, "LTR");
+  t.truthy(body.search_stages.length);
+
+  const body2 = await get_body('/families/DF000001067');
+  t.truthy(body2.buffer_stages.length);
+
+  const body3 = await get_body('/families/DF000000194');
+  t.truthy(body3.coding_seqs.length);
+  t.truthy(body3.target_site_cons);
+
+  await get_notfound('/families/DF00000FAKE');
+});
+
+// /families/{id}/hmm
+test.serial('get family HMM', async t => {
+  const hmm = await get_body('/families/DF000000001/hmm?format=hmm');
+  t.truthy(hmm);
+
+  const logo_json = await get_body('/families/DF000000001/hmm?format=logo');
+  t.truthy(logo_json.height_arr.length);
+});
+
+test.serial('get family HMM image', async t => {
+  await request
+    .get('/families/DF000000001/hmm?format=image')
+    .expect('Content-Type', 'image/png');
+  t.pass();
+});
+
+// /families/{id}/sequence
+test.serial('get family HMM sequence', async t => {
+  await request
+    .get('/families/DF000000001/sequence?format=fake&download=true')
+    .expect(400);
+  t.pass();
+});
+
+test.serial('get family sequence', async t => {
+  const embl = await get_text('/families/DF000000001/sequence?format=embl');
+  t.regex(embl, /SQ\s*Sequence \d* BP;/);
+
+  const fasta = await get_text('/families/DF000000001/sequence?format=fasta');
+  t.regex(fasta, /^>DF000000001.\d .*\n[acgtACGT\n]*$/);
+
+  const bad = request.get('/families/DF000000001/sequence?format=fake&download=true');
+  await bad.expect(400);
+});
+
+// /families/{id}/seed
+test.serial('get family seed', async t => {
+  const text = await get_text('/families/DF000000001/seed?format=stockholm');
+  t.regex(text, /GC RF/);
+
+  const body = await get_body('/families/DF000000001/seed?format=alignment_summary');
+
+  t.truthy(body.alignments.length);
+  t.is(body.qualityBlockLen, 10);
+
+  const bad = request.get('/families/DF000000001/seed?format=fake&download=true');
+  await bad.expect(400);
+});
+
+// /families/{id}/relationships
+test.serial('get family relationships', async t => {
+  const body = await get_body('/families/DF000000001/relationships');
+  t.truthy(body.length);
+});
+
+test.serial('get family relationships include', async t => {
+  t.fail()
+});
+
+test.serial('get family relationships include_raw', async t => {
+  t.fail()
 });
 
 // FamilyAssembliesService
@@ -303,12 +328,19 @@ test.serial('get taxa', async t => {
   t.true(body.taxa[0].name == 'Drosophila <basidiomycete fungi>');
 });
 
+test.serial('get taxa annotated', async t => {
+  t.fail()
+});
+
+test.serial('get taxa limited', async t => {
+  t.fail()
+});
+
 test.serial('get one taxon', async t => {
   const body = await get_body('/taxa/9606');
   t.true(body.name == 'Homo sapiens');
 });
 
-// TODO might not be needed?
 test.serial('get taxa coverage', async t => {
   const body = await get_body('/taxa/coverage');
   t.truthy(body.species);
@@ -321,14 +353,14 @@ test.serial('submit search', async t => {
 });
 
 test.serial('read search results', async t => {
-  const body = await post_body('/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac');
+  const body = await get_body('/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac');
   t.truthy(body.results);
-  t.truthy(body.results.hits);
-  t.truthy(body.results.tandem_repeats);
+  t.truthy(body.results[0].hits);
+  t.truthy(body.results[0].tandem_repeats);
 });
 
 test.serial('read search result alignments', async t => {
-  const body = await post_body('/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302');
+  const body = await get_body('/searches/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302');
   t.truthy(body.hmm);
   t.truthy(body.match);
   t.truthy(body.seq);

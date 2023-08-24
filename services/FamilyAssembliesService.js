@@ -72,6 +72,7 @@ const readFamilyAnnotationStats = ({ id }) => new Promise(
     }
   },
 );
+
 /**
 * Retrieve a list of genome assemblies with annotations for a Dfam family.
 * Retrieve a list of genome assemblies with annotations for a Dfam family.
@@ -108,6 +109,7 @@ const readFamilyAssemblies = ({ id }) => new Promise(
     }
   },
 );
+
 /**
 * Retrieve a family's annotation statistics associated with a given assembly.
 * Retrieve a family's annotation statistics associated with a given assembly.
@@ -140,6 +142,7 @@ const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
     }
   },
 );
+
 /**
 * Retrieve a family's annotations associated with a given assembly.
 * Retrieve a family's annotations associated with a given assembly.
@@ -192,6 +195,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
     }
   },
 );
+
 /**
 * Retrieve a family's karyotype data associated with a given assembly.
 * Retrieve a family's karyotype data associated with a given assembly.

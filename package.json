@@ -10,7 +10,7 @@
     "lint": "eslint .; true",
     "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
-    "test": "ava --no-worker-threads",
+    "test": "ava --no-worker-threads >& ./test/test.log",
     "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml",
     "artillery": "artillery run test/artillery/test-example.yml"
   },
