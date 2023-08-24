@@ -1,0 +1,1444 @@
+{
+	"info": {
+		"_postman_id": "8ae4825c-ee67-4915-a4e6-affcde0df618",
+		"name": "Dfam API",
+		"description": "The Dfam API is an interface to the Dfam database.\nRepeats defined in the Dfam database are annotated for use with\nRepeatMasker using a combination of automated and manual steps.\n\n### Authentication\nThe API is secured using a token-based ( \"OAuth\" ) authentication\nsystem.  The token is obtained using the \"/login\" path.  In addition\nthe \"/version\", \"/register\" paths do not require a token to access.\n\n### Known Consumers\n\nTODO (none yet)\n\n#### Authors\nRobert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen\n\nCopyright 2016-2018 Institute for Systems Biology\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28200283"
+	},
+	"item": [
+		{
+			"name": "version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Version is 0.3.2\", function() {",
+							"  var version = pm.response.json();",
+							"  pm.expect(version).to.eql({\"major\":\"0\",\"minor\":\"3\",\"bugfix\":\"2\"});",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/version",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"version"
+					]
+				},
+				"description": "Get the API version."
+			},
+			"response": []
+		},
+		{
+			"name": "assemblies",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/assemblies",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"assemblies"
+					]
+				},
+				"description": "Retrieve a list of annotated assemblies in Dfam"
+			},
+			"response": []
+		},
+		{
+			"name": "families",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?format=summary&limit=10",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "summary"
+						},
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "A",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "SINE",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "10"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "families raw",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?include_raw=false&name_accession=000000",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "A",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "SINE",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "include_raw",
+							"value": "false"
+						},
+						{
+							"key": "name_accession",
+							"value": "000000"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "families keywords",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?format=summary&keywords=hAT auto&limit=20",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "summary"
+						},
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "keywords",
+							"value": "hAT auto"
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "family",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000000001",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000000001"
+					]
+				},
+				"description": "Retrieve an individual Dfam family."
+			},
+			"response": []
+		},
+		{
+			"name": "family hmm",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000000001/hmm?format=hmm",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000000001",
+						"hmm"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "hmm"
+						}
+					]
+				},
+				"description": "Retrieve a family's HMM in text or logo format."
+			},
+			"response": []
+		},
+		{
+			"name": "family seed",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000000001/seed?format=stockholm",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000000001",
+						"seed"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "stockholm"
+						}
+					]
+				},
+				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
+			},
+			"response": []
+		},
+		{
+			"name": "family relationships",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000000001/relationships",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000000001",
+						"relationships"
+					]
+				},
+				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
+			},
+			"response": []
+		},
+		{
+			"name": "family assemblies",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000000001/assemblies",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000000001",
+						"assemblies"
+					]
+				},
+				"description": "Retrieve a family's list of assemblies it has annotations on."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly annotations",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF0000012/assemblies/danRer10/annotations?nrph=false",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF0000012",
+						"assemblies",
+						"danRer10",
+						"annotations"
+					],
+					"query": [
+						{
+							"key": "nrph",
+							"value": "false"
+						}
+					]
+				},
+				"description": "Retrieve a family's annotation data for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly annotation_stats",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000000012/assemblies/danRer10/annotation_stats",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000000012",
+						"assemblies",
+						"danRer10",
+						"annotation_stats"
+					]
+				},
+				"description": "Retrieve a family's annotation statistics for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly annotations",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF0000012/assemblies/danRer10/annotations?nrph=true",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF0000012",
+						"assemblies",
+						"danRer10",
+						"annotations"
+					],
+					"query": [
+						{
+							"key": "nrph",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Retrieve a family's annotation statistics for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "readFamilyAnnotationStats",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000000001/annotation_stats",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000000001",
+						"annotation_stats"
+					]
+				},
+				"description": "Retrieve a family's annotation statistics for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly karyotype",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF0000012/assemblies/danRer10/karyotype",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF0000012",
+						"assemblies",
+						"danRer10",
+						"karyotype"
+					]
+				},
+				"description": "Retrieve a family's karyotype image data for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly model_coverage",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF0000012/assemblies/danRer10/model_coverage?model=hmm",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF0000012",
+						"assemblies",
+						"danRer10",
+						"model_coverage"
+					],
+					"query": [
+						{
+							"key": "model",
+							"value": "hmm"
+						}
+					]
+				},
+				"description": "Retrieve a family's coverage data for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "family assembly model_conservation",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF0000012/assemblies/danRer10/model_conservation?model=hmm",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF0000012",
+						"assemblies",
+						"danRer10",
+						"model_conservation"
+					],
+					"query": [
+						{
+							"key": "model",
+							"value": "hmm"
+						}
+					]
+				},
+				"description": "Retrieve a family's conservation data for a given assembly."
+			},
+			"response": []
+		},
+		{
+			"name": "classes",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/classes?name=SINE",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"classes"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "SINE"
+						}
+					]
+				},
+				"description": "Get generalized repeat classification heirarchy"
+			},
+			"response": []
+		},
+		{
+			"name": "classes all",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/classes",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"classes"
+					]
+				},
+				"description": "Get generalized repeat classification heirarchy"
+			},
+			"response": []
+		},
+		{
+			"name": "taxa",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/taxa?name=Drosophila",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"taxa"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Drosophila"
+						}
+					]
+				},
+				"description": "Query the local copy of the NCBI taxonomy database"
+			},
+			"response": []
+		},
+		{
+			"name": "taxa id",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/taxa/9606",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"taxa",
+						"9606"
+					]
+				},
+				"description": "Query the local copy of the NCBI taxonomy database"
+			},
+			"response": []
+		},
+		{
+			"name": "taxa coverage",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/taxa/coverage",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"taxa",
+						"coverage"
+					]
+				},
+				"description": "Query the local copy of the NCBI taxonomy database"
+			},
+			"response": []
+		},
+		{
+			"name": "annotated taxa",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/taxa?name&limit=20&annotated=true",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"taxa"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": null
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						},
+						{
+							"key": "annotated",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Query the local copy of the NCBI taxonomy database"
+			},
+			"response": []
+		},
+		{
+			"name": "annotations",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"annotations"
+					],
+					"query": [
+						{
+							"key": "assembly",
+							"value": "hg38"
+						},
+						{
+							"key": "chrom",
+							"value": "chr1"
+						},
+						{
+							"key": "start",
+							"value": "168130000"
+						},
+						{
+							"key": "end",
+							"value": "168180000"
+						},
+						{
+							"key": "nrph",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Retrieve annotations for a given assembly in a given range."
+			},
+			"response": []
+		},
+		{
+			"name": "annotations test",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"annotations"
+					],
+					"query": [
+						{
+							"key": "assembly",
+							"value": "hg38"
+						},
+						{
+							"key": "chrom",
+							"value": "chr1"
+						},
+						{
+							"key": "start",
+							"value": "168130000"
+						},
+						{
+							"key": "end",
+							"value": "168180000"
+						},
+						{
+							"key": "nrph",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Retrieve annotations for a given assembly in a given range."
+			},
+			"response": []
+		},
+		{
+			"name": "alignment ",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/alignment?assembly=hg38&chrom=chr5&start=86238458&end=86238717&family=DF000000017",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"alignment"
+					],
+					"query": [
+						{
+							"key": "assembly",
+							"value": "hg38"
+						},
+						{
+							"key": "chrom",
+							"value": "chr5"
+						},
+						{
+							"key": "start",
+							"value": "86238458"
+						},
+						{
+							"key": "end",
+							"value": "86238717"
+						},
+						{
+							"key": "family",
+							"value": "DF000000017"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "alignment2",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF000004191",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"alignment"
+					],
+					"query": [
+						{
+							"key": "assembly",
+							"value": "mm10"
+						},
+						{
+							"key": "chrom",
+							"value": "chr1"
+						},
+						{
+							"key": "start",
+							"value": "35640910"
+						},
+						{
+							"key": "end",
+							"value": "35641251"
+						},
+						{
+							"key": "family",
+							"value": "DF000004191"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "alignment3",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF000000147",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"alignment"
+					],
+					"query": [
+						{
+							"key": "assembly",
+							"value": "hg38"
+						},
+						{
+							"key": "chrom",
+							"value": "chr3"
+						},
+						{
+							"key": "start",
+							"value": "147735008"
+						},
+						{
+							"key": "end",
+							"value": "147734825"
+						},
+						{
+							"key": "family",
+							"value": "DF000000147"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "blogposts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/blogposts",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"blogposts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "submitSearch",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "sequence",
+							"value": ">Example Search\nTTTTATTTTATTTTTAGAGAAAGGGTCTTGCTCTATCACCTAGGCTGGACTGCAGTGGTG\nCAATCACAGTTAACTGCAGCCTCAACCTCCAGGGCTTGAGCAATATTCCCATCTAATTTT\nTATTTTGTTTAAGAAATGCAGTCTTGCTCTTAGCAAAGCTAAAGTGCAATGGTGTGATCA\nTAGCTTACTGCAGCCTCAACCTTCTAGACTCAAGTGATCCTCCAGTCTTAGCCTCCCCAG\nTAGCTCGGACTACAGGTGTGCACTGCAACGTGTAGCTCATTTTTTTTTTTTAATTTTTAG\nTAGAGACAAAGTGTCACTATGTTGACCAGGTTGGTGGTGATCTCCTACACTCAGGCAGTT\nCTCTCACCTCAGCCTTCCAAAATGCTGGGATTACAGGTGTGAGCTGCCACACCTGGCTGA\nGGGGGTTAATTTTTAATTATATAAAGAGCTCAAAGCAAATATTAGAAGGAGCCTAAATGC\nCTCCAGCAGTTGACTGGTACTGGTAAATTGTGATACATCCATATAATAAAATATTATGCA\nACCATGAAAAGGATTAAGATAGATCAATAGGTATTGGCACAAATGTCCACGAAATATGAA\nAATATGAAGTGATGTTCAATCACCATGTACGTATCTTGAAGGATATGGCCCATTTTCTCA\nACTGCAATTATTTCCTGAGATAAGATTATGGGTCTAAAGAGTGAAGGACATTTTTCACTT\nATTTAAAAGTATTTATCATTTTTATAATTTAATAAAAGATTAAACAGATCATTGAATTAG\nTAAAAGACAAAGTAACTCTATAAATAAATGGAAAAGACACAGATACCCCAGGCATGGTGG\nCTCATGCTTATAATACCAGTACTTTGGGAGGGGGTGGTGGGGGGATTGCTTGAGGCCAGG\nAGTTCCAGACCAGCCTAAGAAACAAAGCAAGACCTCCTCTCTAGTAAAAATAAAAAAATA\nAAAATAATTGGCCAGGCATAGTGGCATGTGCCTATAGTCCCAACTACTGAGGTGGAAGGA\nTCACCTGAGCCTAGGAGGTCAAGGCTGCAGTGAGTTGAGACTGTGCCACTACACTGAAGC\nCTAGGAGACAGAGCGAGACTTCATCTCAAAAAAAAAAAAAAGGACAATAAAGAAATAAAG\nCTAATAAGCTAACATAAGGAAAGATAAAATATGTGACAAATAGGCTGGGCACATGGCTCA\nCAGCTGTAATCAAGCACTTTGGGAGGCCAAGGCGGGTAGATCTTGAGATCAGGAGTTCGA\nGACCAGCCTGATCAACATGGTGAAACCACGTTTCTACTAAAAATACAAAAATTAACCAGG\nCATGGTGGCATATGCCTGTAATCCCAGCTAATAGGAGGTCTTTCATTTATCACACAGAAA\nATAACTTGTTAAATTATAATACCTGTGTGGGCGAAGGTGCAGTGAAATGGCCATTTTCTT\nGTAGTATTAGTGGTGTTTAAAATGTATATAAGCCTTCCAGCATAAAGCTTGGAAATTTTT\nTTTAAATCATACAGACAGTGACTCATTATACTGCCTCCTCCAACTCCTGGCCTCAAGCAA\nTCCTCCCACCTCAGCCTCCCAAAGTGCTGGAATTACAGGCTGACAGCCACCATGCCTGAA\nAGCTTTGCAATTTACATCGAGGGTAATAAGAATGCTCATGCCCTGTGACTCACAGTAATC\nTCACTTCTGGAAATTTCACCTTTGGATATAATTCAACCTAAACAAAAGGTCATATGCACA\nAACACAGTGAAAATCTGGGAGTAATTTTTTTCTCTTTTTTTAAAAAAATATGGAATGCTT\nCACAAATTTGCATGTCATTCTTTCACAGAGGCCGTGCCAATCTCTCTATTGTTCCAACTT\nAAGTATGTGTGCTACTGAGGCAAGCATGAGTAATTTAAGATAGGGTGGTTAAGTGAAATA\nAGGAAGAATTATGGAGAATTTAAAAATCTATGCTATTTATAGGCACCTAGTAACAGCTCA\nGTAAATATTAGCTGCTACTATTATTATTTTTATGGTAATTTCACTCAATTAAAAACTGTC\nGTTAAAAATTGCCATTGTCATGGAACATAATGTCTCCTACTGTATAATTGTAGAAACAGA\nTACAATTTGTCCCTTGGTATATGGGGGGATTAGTTCCAGCTCTCCCATTTCTGTGTATAC\nCAAAATCCACGCATACTCAAGTTTTCAAAGTCAGTCCTGTGGAATCCACATATAACACAA\nATGGGAAAATTAGTGAGGTGTGGTGACAAGCACCTGTAGTCCCAGCTACTTGTGAGGCTG\nAGGCAGGAGGATTGCTTGAGCCCAGGAGGTTGAGGCTGCAGTGAGCCATAATTGCACCAC\nTACACTCCAGTCTGGGCAACAGAGTGAGACAGAAGGTTGACTTTTTAATAGAATTTTTCT\nGTTCACTTGAAGATATGGTCAGGATTGTGGCATATGAAAATTCTTCATAAAATAACTATC\nTAATCCAATTAATGCTGGAATTGGGAACAGCAGAAGTGTCATCTCAGAGCTACTCGCAAT\nGAAAGGTGATGTCTGGGGCTCAGGTGTGTTGAGGTCCCCATGCCTGGACTATGGGTGCTG\nAGTGGGATTTACTTGTCCATCCATTTTCTATATTCCAGCACTGGGAAACTAGGGACAGTA\nCTTGTTCTCAAGGGAATCTTCAGCTTAGGTGGCTCTGTAAAAGAGAAATTACATCATTGA\nAAAATCGTCGCAGGTCAGGTGAGGTGGCTCATACCTATAATCCCAGCCCACTGGGAGACT\nAAGGCAGGAGGATTCCGTGAGGCCAGGAGTTCAAGACCAGCCTGAGCAACACAGTGAAAC\nCTCATCTCTACAAAAAATTAGAAAATGAACTGGGTGCGGTAAAACATTCGTATAGTCCCA\nGCTACTCTGGAGGCTGAAATAGGAGGATCGCTTGAGCCCAGGAAGTGGAAGCTGCAGTGA\nGCTCTGATCTCACCACTGCACTCTAGCCTTGGTGACAGAGTGAGACCCTGTCTCAAGNNN\nNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCCCCAATCTCACTCTGTCCAGCCTTGACT\nAATCAAAAGGGCCTTCTGGTTACAGAAGAGGTATGCTCTTTTGTAGGACAGGGAGAGACC\nAGCAAGCTTGTTCACAGACTTTTCCTCATCCTCTGCTTAGTTTTCCAAGAACCCTCACAG\nTGGAAATGGAGTCTCTGGGAAAATGACCTAAATCTTTGGGTTACCAGGGGAGAAATATGC\nCTCCTTTGTCAATTAATAAATGGAACATCTGCCTTAAAATCCAGGGAGTTCTGCTAGAAT\nGAATCACTCCCTAAGACCCTGACCAATGCATGGAACATGAAAAACTGAAGTTTAACTGGG\nCGCGGTGGATCACGCCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCGGATCACCTG\nAGGTCAAAAGTTCTAGATCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATA\nCAAAAATTAGTTGGGCATGGTGGTGGACACCTGTAATCCCAGCTACTTGGGAGGCTGAGG\nCAGGAAAATCGCTTGAACCCGGAAGGCGGAGGTTGCAGTTACTTCTAGAAGAATTTCCAT\nTAGCCCTTTGAAATCCTTCAACATTCATGAAGGCCAAAGAGTTTTCACCTAATTTAATCT\nGATGGGTATGTGACCAGAGTCTTTCTAGGGAATAGAGACTCCCAAACAGTTCGACTGGGA\nAGTGAGGAGAGAATTTATTACTCAAAACCAAAGGGAAATGAAAAGAGGCCAACATAGAAT\nGTCATTATTCTTTCTTGGCGGGGAATGGATTCCAGAGTCATTCTGTGACCTTTACATGAC\nCTCCTTATTAGCATCTAAAAGCTTCCAGTGTAGGATGCAGCCAGCTAGGTTCTCTTCTAA\nTGTAATAAAATTTGCTTCGGCAAATCTTATGCAGAGCCATCTCCAGGCTCCAGAAACAAT\nAGGCTATAAATTACTGGATCTCCCATTTGATACAATGAAGTATGAGCATGGTCCTGAATG\nACTCCTCTACATACTACTCTGGGTGGCTTGAAGTGAATTTGATACAAGAACTGGAGCGAG\nGGCAAAGCAGAGCTAGATCTAGGATTAATGTGCTTGGGCCCAGCTCCTCACTACTCACCT\nATGAGTCTAGTTCCAGAACCCAAGTAGAGGATGGGGAAACAAGGCTCCTGACTTTTTTTC\nCCTAATATCTGCATCTCTTTCACATTTCTTATCTCCTTGCAAAGAAACTAAACAGGCTCA\nACTGAAATAACTAAATGATTAAACCCTATACAGAGAATCTCCAAAGACTGACAAAATATC\nATTCAAGACTGTTACACAGACAACCTTGAGGATGACTTGATGTACCAGTGATCTACAATA\nTTTGGGATCATTCCAAATTCCCATCAAGGATCTGCCTATATCAACAAAGGAGCCAAGGAC\nCAACCATTCAAATGGGCCCTGCTGCCAAGCCTTTTTTTTTTTTTTTTAACAATGCCATCT\nCTTCATATTGTTCCATTTAACAAAACTGCAGCCCTTCATCTATCCTTAAGTCCCTTGGCC\nAGTGGTACAGAGCCAGAGTATGCTACTCCCTAGCAGGAAATCAACAGGATGACCTACTAA\nACACCATTCAGAAGATGCTAAGACCCATGAATTGCAACAGGAAAGAAAAGACAGAGAATT\nAGTCAGACAGGTACATGCTGTGCCAAAAGTGCACTACAGCCCCCACCCAATTCTGCCTAA\nTCCTAGCTGGGCTGACACCAACCTGATGAGACAGGCCTATAAGATCTCAAACTAAAACAG\nAAACTCCTGAACTGGGTTCTTTCGAGCCCAGGAAGCAGCAGTAAATCATTAAAGAACAGA\nTAAGTTCTTAAGGTGAGGGAGAGTTTCAGATAAATGGAATGCTGGTAGAACACAGGGCCC\nAAAGGAGCAAAAGTTAACCTAAGCCCAGGTAGAACCTTGTTTACTAGAGTATTAGGCATG\nGGTTTGGGCAACTATTCTAACCAGAGAAACTGGCTTCAGTGAGGGCAAGTTGGCAATCCA\nAGGTATAGCATGCATAGGGCTGGCAAAATTCAGGGTGACTGAAGCAAAAGCTTCATAACC\nAGAAAGACCACATCTGGGGGTAGAGCACAAAACTCTCAAGAGATGAATCTTTGTAAGAGT\nGAGGCAGAACTATATAGCAGTTTTAGGAGATCTGTTGGTGCCCAGCAAGAGCTCCAAACG\nGGCTATATGCAGGGATGCAGGCTGTAGTCTCAGGAGAGGAGGTTCACAAAAGTCATTCAG\nTCCAAGACCTCAAACTGTGTTCTCTACTAAAAGGAATCAAGGTTCCCTAGAGAAATGGCT\nGACTCCATGTATGGTGCAGTATATTGATCCTGGAACATCTGTTTTGCCAGAAAGCAAGGA\nAGCCATCAAAGTCCAACAGGATCACTTCAAAAAGACATGAAAGTCAACTTGAAGAGATAA\nTTATTAACCTAGATGAGACAATCTAAGCATCCAAAACAATAAAGACTGCAATGGCCTGAA\nATACATCAAATGCAAACAATAATCTATGAGTTCATAATGGTATTCAGAAAAAAAAACTAC\nTGGTCATTAGAGGGAAGGTTACTAGGTCACTAACTTACTACTCTGAAAAGTGACTTAAGA\nTGAGAGGTAGGGTGGAAAATTAGCTATTTATTCAGTCTTTCCTGTACAAACATAAATTTT\nTAGGGAGATTGAAGCAGATGAAACAAATCTGGAAAAATGGAGGTAACTGCTTAATCTGCG\nGGTTGGGTGCATGGAGGTTCAACATATTTCTTTTGTGTATATTTGAACCCCCTACAAAAA\nAAGCACAAGAGAGAATGTGAGCCAAGCAGCTTAGGGTTTAGGCAAGGCTTCTGCCTACAA\nGAGACACTAGGATATGAGGGGTAGTTTTAGCCCTAATGGGCTGAGCCAACTGGAGGTATA\nTAGGGAAGTGCTAAATTGCAGAGGTATCATGTTGCCCAGCACTTGATCAAATCCTAGATC\nCTAGGTCTGCTTGGTAGCATGCTTCCTAGGTAGTGGATCTGAGGCTACCTATAGAACTTC\nCTTTGCAGTCATAGTTCGCTCAGAAACTACAAAAGTGCTTGCTCTTGAAAATGGAGTCTT\nTGTCCATTTCATGCTTCTATAAAAGAATACCACAGACTGCATAATTTATAAAAAGGAAAA\nAAGGAAGGAAAGAAAAAAGGAAGGGAGGAGGGAAGGAGGGAAAAAGGGAAGGAGGGAAGG\nAAAGGAAGGAAGGGAAAGAAGGAAAGGAAGGAAGGGAAAGAGAGAAAGAGGGAAGGAGGA\nAGGGAGGGAAGGAGGGAGGGAGGGAGAGAGAGAGGGAGGGAGGGGAAGGGAAGAAAAGGG\nAAGAGAAGGGAAAGGAGGAAGAAAAGGAAAGGAAAGGAATAAATTTTATTTCTTAACAGT\nTCTGGATGTTAGGAAGTCCAAGGTTGAGGGGCCTGCATCTGGTAAAGGTCTTCTTGCTGC\nATCATCCCACTACAGAAGGCAGAAGGAAAAGAGAGTGCAAGAAAGCAAGAGGGCAAAAGG\nGGCTGAACTCTGTTTTATAATAAGCCCACTCTGTGATTACTAATCTATTACCACAATAAC\nAACATTAACTCATTCATGAAGGCTATTTTATTAGGCCCCACATCCCAACTGTTGCATTGA\nGGATTGAGTTTCCAGCACATAAACTTTGGGGGACACATTTAAACCATAGCAGAGCACTTA\nGGTTAATTCAACTAAGAGGAGCTGGGAAAATCAAAGGCATGAGAAAGACAGCAAAAGCTA\nGCAGAGAGAAATGCATAGGTTAAGGAAAAAAGTCACAGTGAATCCTGTAGTGCAGGCTAC\nTTTATGAAAAGCACCTAAAAAAGATCTCATTAACTCCCCCAGCTCACCTCCACGCACATC\nTAAAGAGCCACACACAGCACCACCAAAGGCAGCACAATGAGAACAGCATTCTCCTCAACA\nGACAAGCTGGGAGTATCTAGACACCCGACCTCAATAGCTCCAGAACAGCCCTAAAACATT\nTCCTCCCTAACCACCACTCAAGTCACCAGCTTGGAAAGTATTAAGAAAACCCAAATCCTG\nACACACCACTATGAAACAACTTAAAACAGCAAAGAACAACCCATTTAAACAGCAATGCCA\nGCTGTTGGGAAAAAAAGGAACAATGAGTAGAGGAGAAACAGACCTCTCGGGGTCCACCAA\nGACCCAGTCTCTCAGCTTCAGCACTTTTAAATGCAGAATCCATACCCCTCTGGGGCCTGT\nGGAGCTCCACAAGGCATGTCGTCCTCAAAGATAAATGAGCAGGCAAGCTGGCTAGAAAAC\nCACTAAGGGTATTTATTCTTTAAAGAATCTTTACAGGGTCAAAGAAGAATGGGTCTTAAC\nTGGCTATGTGAACTCCCCACAGATTCTGAGGATGATGTCAGTATCCCTTTCCAGATGTGT\nTTAACACTTTGCAGTCACTTGTATTCCTGCTACTGAGTGCCAGTGCTTTGCTAATTTGAA\nCTGATTCCAGCTCACGCTGACCCCAGCTCCCTGGATGTTACCATTAGCCAAGACTGTCAC\nCCATACTGTACCCTTTCAAAGAGTCCTAAAAACAGCTCTTCACCTACTCTTCCAAGACAA\nGTAAAAATGTCTGCCAAAGAAATGGGGAAAAAAGATTCAGAGAGTGAAAACAATTAATAT\nACTAACAAGAGAGCAAAAAGCAAAGGGGGAGGAGAAACTAGGAAAATCATATATGGGCTC\nTCACCTATTTCCAAAGCTGGGCTAATGTCCTTTTGCTTGTGTCTGAATAAGGCACCAATT\nTTAAGCTGATAATGAAAAAAAAAGAAAAAGAGAAAGAAGCAGGCCCAGGCTGGGCGCAGT\nGGCTCATGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGTGGATCACCCAAGGTCA\nGGAGTTCTAGACCAGCCTGGTCAACATGGTGAAACACCATCTCTACTAAAAATACAAAAA\nATTAGCCAGGCATGGTGGCGCATGCCTGTAAATCCAGCTACTAAGGAGGCTGAGGCAGGA\nGAATTGCTTGAACCTGGAAGGCAGAGAATGTGGTGACCTGAGATCACGTCATTGCCCTCA\nAGCCACGGCAATGAGAACAAAATTCGGTANNNNNNNNNNNNNNNNNNNNNNNNTCACCAT\nAAAATAACTCAGACTTAATTAAATACAACCCTAGTGGTGAATGACTAAAGATGGATTACT\nCATAACAGAGACAACAGTCCAATAAGAATCCAGGAATCTTACCTTTTAATAACAAAAAAA\nTCCTTTCCTTCTAAAGTAACATCCTCTCAAGGCCAGGAATTCCATTAGTAGAAAGCCTTC\nCTAAAAAACAAAATTCCTGGCCAGGCATGGGTTCACGTCTGTAATCTCAGCACTCTGGGA\nGGCCGAGGCGGGAAGATCACTTGATATCAGGAGTCGAGGCGGGAAGATCACTTGACGTCA\nGGAGTTCGAGACTGGCCCGGCCAACATGGTGAAACCGCATCTCCACTAAAAATACAAAAA\nTTAGCCTGGTATGGTGGTGGGCACCTGTAATCCCAGTGACTTGGGAGGCTAAGGCAGGAG\nAATTTCTTGAACCCAGGAGGCAGAGGTTGCAGTGACCAGCAAGGTTGCGCCATTGCACCC\nCAGCCTGGGCGATAAGAGTGAAAACTCCATCTCAAAAAAAAAAAAAAAAAAAAAATTCCT\nTTGGGAAGGCCTTCTACATAAAAATCTTCAACATGAGACTGGAAAAAAGGGTATGGGATC\nATCACCGGACCTTTGGCTTTTACAGCTCGAGCTATAAGAAAAAAAAGAAAAAGGGATATC\nATTTAAACACAGTATGTAGAAAAGAATAATTATTGAATCTGTACTGGTCTTTAACTTTTA\nCACTTTGATCTTTAATTCTGTTATTGTGATTGAGTCCAAAGAAAAACAGTATGAGTAAAA\nTAAAAAGAACACCAAAAATGCTAATATTCTGTTTACCGAAGTCTGTAGTGAAATATCCCA\nTTAAATCCAAGTGCAGTGACACACCCATAATCCCAAGCACTTTGGGAGGCTGAGGCGGGT\nGAATCTCCTGAAGTCAGGAGTTCAAGGCCAGCCTGGCCAACATGGTGAAACCCCAACTCT\nACTACAAATACAAAAATTAGGCAGGCGTGGTGGCAGAGGCCTGTAATCCCAGCTACTTAG\nGAGGCTGAGGCAGGGAGAATTGCTTGAACACAGGAGGTGAGCTTGCCATGAGCTGAGATC\nATACCACTGCACTCCAGCGTGCGTGACAGAACAAAACTTCAACCTCCAAAAAAAAAAAAA\nAAAAAAAAAACAGCTAGCAGGTGACATTTGCTATAGGGAGACTAGGGATATGATCTTGCT\nGCAATCTTTCCATTTTAGTAAATCTAAACAAGTGTGAATCCATTCTGTTTCGTCCCCACT\nCCACTCCAGAGCCAAAACAAGAAAAACAATTATATTTCTAGTTCTTTAAAAACATATCTA\nACTAAATCATCTAATTAAAAGATAATATGCATGGTTCCATACTCTAAAAGAAAACTTATG\nTCCTGCATATCATGGACATTTGATGAATGCTTATTCAGTTGACTGGTGTAGACTTCAATA\nATAACCTGTTCAATGCATTATGCCAGATGAATCTTGCATCTCAAAAGTAGAACAAATATT\nGTTCTTTCAGTTTTGTCTACCCATAAATGCAATATTTACTAATAAAAAGAAAATGAGTTT\nATTGTTCTAGAGAGTATGAGAATTTTGACAACATGAATTCTCCTGTCCTAGGACATAATT\nAATACTTAGAGGCATACTATTTCATGTGGAAGCTACCATTAAATCAATGTTAAGTGTTAA\nTTACCTCACATAATCTTCTAATCTGACTTGACTGAAGACGTACCTGACAAAGTTGATTTA\nTCAAGTTGTAAATCTTCACCTGTTGAATTCATAAGTTCATGTCTGAAAGGTGAGAATAAA\nTACTTAATATTCATTAGGCAATATTCAGCAAAGTAATATCCACTAGTACATATTTAATAT\nTTCATCATGAACTGCGGGTGTGAAGAGAAAGGACAGGCTGGGCACAGTGGCTCACACCTG\nTAATCCCAGCAGTTTGGGAGGCCGAGGCAGGCAGATCATGAGGTCAGGAGTTCGAGACCA\nGCCTGGCCAACATGGTAAAACCCCGTCTGTACTAAAAGTACAATAATTAGCTGGGCATGG\nTGGCAGGCACCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATTGCCTGAACCC\nAGGAGGTGGAGGTTGCAGAAACCATTATCACGCCACTGCATTCCAGCCTGGGCAAGAGAG\nCAAGATTCTGTCTCCATCAATCAATCAATAAAAATATAAGAAGGAAGCATTTACTGTGTA\nTTTATATGTCTGGTATTATGTGAAGCACTTTACTATCTTATCAAATCTTCGGGACAGATC\nTTCAGTTCTCATGACCACAAAAGAGGATACTAAAGCTCAGACAGGAGAAGAGACGTGGCC\nAGCCTGTGTCCCCAGGGCCTATGGTCTTACCACTAGGTTACAGTGTTTCCAGATATCACA\nTGTTGTGAGATTTTTGCTTTAAAATGAACCAAAAAAAAACCAAAGGTGAAAAAGGCATAA\nGCTATTAAAAAGTGGGAGAAACACTAAGAGAACCTTAAGCATGTAACTAAAAATATTATG\nGAAATGTTATTGAATACATTAGCAAATTTAGTGCTAGGTTTTCATTGAGGAGTAGGTTAT\nATTACTCATGATGAAGAAAAATGTTCATTTTAAGTATATTAACATAAATACCATCAATAT\nTGTTTATCATGTTTAAATGTTCACTTAAAGCAATTCAGTTAAAATTCTGCATATCATACA\nATTTTATAGTTTGCTAGTAGGTTACAAGTAAATAGTCACCCAAATAAAAACATCATGTTT\nTCCACTGGTTGTTGCTCTTTTTTAGGTGAGTATTTGATATATACCAACAGAGAGAGGATA\nATAACAAATCGCTAATTTCTTTCATCACTATATAAAGGTGGCTTCAGGATAGAATAGTAT\nCAGTGTAATGATGAATTTGAAATCTAACATCAATTCAGTGATGCATCAAGATAAAAGTAG\nAGACAACAGGGGCACCTTGGTGAGTACTGAACATTTTATTTATTTATTTATTTTGAGATG\nGAGTTTTGCTCTTTTTGCCCAGGCTACAGTGCAATGGTGCCAACCTCGCCTCACTGCAAC\nCTCTGCCTCCTGGGTTCAAGCGATTCTCCTGCCTTGGCCTCCCGAATAGCTGGGATTACA\nGACATGCGCCACCACACCCGTCTAATTTTGTATTTTTAGTAGAGACGGGGTTTCTCCATG\nTTGGTCAGGCTGGTCTCGAACTCCCGACCTAGATATCTGCCTGCCTTGGCCTCCCAAAGT\nGCTGGGATTACAGGTGTGAGCCACCACGCCCAGATGAATTCCAAATTTAACAAAGCAGAC\nTAAGAGAAACAATTCATTTAAAAAAATAATATTTGGCCAGGCATGGTGGCTCACACCTAT\nAATCCCAGCACTTTGGGAGGCTGAGGTGAGTGGATCAGGAGGTCAGCAGTTCAAGACCAG\nCCTAGCCAAGATCATGAAACCCCGTCTCTACTAAAAATACAAAAATCAGCCAGGCGTGGT\nGGCTGGTGCCTGTAATCCTAGCTGCTCGGGAGGCTGAGGCAGAGAACTGCTTGAACCCGG\nGAGGCGGAGGTTGCAGTGAGCCGAGATCGTGCCACTGCACTCCAGCCTGGGCGACAGAGT\nGAGGCTCCGTCTCAAAAAAAATAAATAAATAATTCAATGAAATTCCTAAGATCCAGGGCT\nTTGCAATAAATATGTAAATAAATTTCCAATCTCCATACTGAAAGTTTAAAAGAAATGCTA\nACTAATAACTAAAGAAATACAACTTTTCCTCAGCTTTGCAGCAATCTAGAAACAAAGTGT\nGTAGACACTACAAAGCACCTTACAAGGAGAAACATGTAAGGATGGCATGACTCGCCGGCA\nGCCCTGGGATTGTCCACGGTACCCCCATGATGAACAGTAACTCCACTGTGTAAACGCCCA\nTGAACCTAAGATTACAAGACTTTTCCAGTTTAGACATACCATATTTTCTTTCAGACAATT\nCTTCAGTTTGTTTACGTAGATCAGCGATACGATGATTCCATTTCTCTGAAAACCAAGCAA\nAAGTTGCTTCTCAATAACACGTCCCTATGTCAGAGCAGCACTAACATATAATGACTGATT\nTCATATATTTTACATTCTAACAGTCCATATCATTTTACTGCTTTCAAGAAAAAATTTCCC\nCTTCTTGGTGGTTCTTAGAATTGGTTTAATGGGAGACTATTAGAGAAGCTGAAAAGCAGG\nAGGGCAGAAAAGCTCAATCAAATTAAACACAATAACAGGGAGGTCACAATGAGGCGGTCT\nCCAGGGGTCTTTTAGCAAACTTCCTAAAACATGTCTCAGCTGTGTGAAATAAGACTTTAC\nAGCAGCCGGGTGCAGTGGTGCAGGCCTGTAATCCCAGCACTTTGGCAGCAGAGGCAGGCG\nGATCACTTTGAGCTCAGGGCAACATAGCCAAAACCCCCCTCCCTAGCCCCACCCCCACCC\nCGTCCCTACCAAAAATACAAAACAGCAGGGCATGGTGGCGGGCGCCTGTAGTCCCAGCTA\nCTCAGGAGGCTGAGGCAGGAGAATCACCTGAACCCAGGAGGCAGACATTGCAGTGAGCCA\nAGATCACGCCACTGCCAGCCTGGATGACAGAGCAAGACTCCACCTCAAAAAAAACAAAAA\nCAAAAACACAAGGTTAAGAGGGACCCCCGACCTTACAGATACAAGTTTAAGAGGGACCCC\nTAAGCAAAAAATGCCAACCCTTTTTCTCCCAATCATTGAAACACCAGGAGGGTGTAACAG\nTTTTGCAGCCTAGCTGTAGCAGGCTGATGCCCCCAAGATGCCCATATCCTAATCCCGGGA\nACTAGTGAACATGACCTTATATGGCAAAAGGAACTTTGCAGATATAATGAAGTTAAGGGT\nCTTTGGCTTTTGGGGTTGATGTACTCACTCGGATCCTTGTAAGAGCAGAGCAGGTGATGG\nAGAGGGTGGGAGGTGTAGTGACAGAAGCAGGAAACTCCAGTCATTCGAGACGGGCAGCAC\nAAGCTGCGGAGTGCAGGCCACCTCTACGGCCAGGAAACGGATTCTCCCGCAGAGCCTCGG\nAAGCTACCGACCCTGCTCCCACCTTGACTCAGTAGGACTTACTGTAGAATTCTGGCCTTC\nAGACCTGTAAGGGAATACATTTTGGTTGTTTTAAGTCACTAAGTGTGTGGTAATTTGTTG\nCAGCAGCCACAGGAAACTAGTATTGTAGTGAAGCCTCAAAACCCCCCTGAAGGGGCTGGG\nCTCAGTGGCTCATGCCTGTAATCCCAGCACTTTGGGAGGCCGAGATGGGTGGATCACTTG\nAGGTCAGGAGTTCGAGACCAGCCCAGCCAACATGGTGAAATGCCATCTATACAAAAAATA\nCAAAAACTAGCCGGGCATGGTGGCACATGCCTGTAATCTCAGCTACTCAGGAGGCTGAGA\nCAGGAGAATTGTTTGAACCCAGGGGGGCAGAGGTTGCAGTGAACTGAGATTCCACCACTG\nCACTCCAGCCTGGGTGACAGAGCGACGCTCCATCTCGAAAACAAAACAAAACAAAAAAAC\nCCCACCTGAAGGTTTCCAGTTCTGCCAGCACTCTCCCACCCAACCCCCAGAAACAGACAT\nTCCATTGCTGTGGGCCACGGACAGGCAGAAGGAAGCACCTCCTCATGGCAGAGGCCTACC\nCAGGAGAAACCCAAGGGAAGGCACTACTGGGCTGGCCCCTCTCTGCCAAGGCCATATTCT\nTTTTTTTTTTTTGAGGCCAGTTTCACTCTGTCTCCCAGACTGGAGTGCAGGGGCACAATC\nTCGGCTCACTTCGACCTCTGCCTCCCCAGTTCAAGTGATTCTCCTGCCTCAGTCTCCTGA",
+							"type": "text"
+						},
+						{
+							"key": "organism",
+							"value": "Homo sapiens",
+							"type": "text"
+						},
+						{
+							"key": "cutoff",
+							"value": "curated",
+							"type": "text"
+						},
+						{
+							"key": "evalue",
+							"value": "0",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/searches",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"searches"
+					],
+					"query": [
+						{
+							"key": "sequence",
+							"value": ">Example Search\nTTTTATTTTATTTTTAGAGAAAGGGTCTTGCTCTATCACCTAGGCTGGACTGCAGTGGTG\nCAATCACAGTTAACTGCAGCCTCAACCTCCAGGGCTTGAGCAATATTCCCATCTAATTTT\nTATTTTGTTTAAGAAATGCAGTCTTGCTCTTAGCAAAGCTAAAGTGCAATGGTGTGATCA\nTAGCTTACTGCAGCCTCAACCTTCTAGACTCAAGTGATCCTCCAGTCTTAGCCTCCCCAG\nTAGCTCGGACTACAGGTGTGCACTGCAACGTGTAGCTCATTTTTTTTTTTTAATTTTTAG\nTAGAGACAAAGTGTCACTATGTTGACCAGGTTGGTGGTGATCTCCTACACTCAGGCAGTT\nCTCTCACCTCAGCCTTCCAAAATGCTGGGATTACAGGTGTGAGCTGCCACACCTGGCTGA\nGGGGGTTAATTTTTAATTATATAAAGAGCTCAAAGCAAATATTAGAAGGAGCCTAAATGC\nCTCCAGCAGTTGACTGGTACTGGTAAATTGTGATACATCCATATAATAAAATATTATGCA\nACCATGAAAAGGATTAAGATAGATCAATAGGTATTGGCACAAATGTCCACGAAATATGAA\nAATATGAAGTGATGTTCAATCACCATGTACGTATCTTGAAGGATATGGCCCATTTTCTCA\nACTGCAATTATTTCCTGAGATAAGATTATGGGTCTAAAGAGTGAAGGACATTTTTCACTT\nATTTAAAAGTATTTATCATTTTTATAATTTAATAAAAGATTAAACAGATCATTGAATTAG\nTAAAAGACAAAGTAACTCTATAAATAAATGGAAAAGACACAGATACCCCAGGCATGGTGG\nCTCATGCTTATAATACCAGTACTTTGGGAGGGGGTGGTGGGGGGATTGCTTGAGGCCAGG\nAGTTCCAGACCAGCCTAAGAAACAAAGCAAGACCTCCTCTCTAGTAAAAATAAAAAAATA\nAAAATAATTGGCCAGGCATAGTGGCATGTGCCTATAGTCCCAACTACTGAGGTGGAAGGA\nTCACCTGAGCCTAGGAGGTCAAGGCTGCAGTGAGTTGAGACTGTGCCACTACACTGAAGC\nCTAGGAGACAGAGCGAGACTTCATCTCAAAAAAAAAAAAAAGGACAATAAAGAAATAAAG\nCTAATAAGCTAACATAAGGAAAGATAAAATATGTGACAAATAGGCTGGGCACATGGCTCA\nCAGCTGTAATCAAGCACTTTGGGAGGCCAAGGCGGGTAGATCTTGAGATCAGGAGTTCGA\nGACCAGCCTGATCAACATGGTGAAACCACGTTTCTACTAAAAATACAAAAATTAACCAGG\nCATGGTGGCATATGCCTGTAATCCCAGCTAATAGGAGGTCTTTCATTTATCACACAGAAA\nATAACTTGTTAAATTATAATACCTGTGTGGGCGAAGGTGCAGTGAAATGGCCATTTTCTT\nGTAGTATTAGTGGTGTTTAAAATGTATATAAGCCTTCCAGCATAAAGCTTGGAAATTTTT\nTTTAAATCATACAGACAGTGACTCATTATACTGCCTCCTCCAACTCCTGGCCTCAAGCAA\nTCCTCCCACCTCAGCCTCCCAAAGTGCTGGAATTACAGGCTGACAGCCACCATGCCTGAA\nAGCTTTGCAATTTACATCGAGGGTAATAAGAATGCTCATGCCCTGTGACTCACAGTAATC\nTCACTTCTGGAAATTTCACCTTTGGATATAATTCAACCTAAACAAAAGGTCATATGCACA\nAACACAGTGAAAATCTGGGAGTAATTTTTTTCTCTTTTTTTAAAAAAATATGGAATGCTT\nCACAAATTTGCATGTCATTCTTTCACAGAGGCCGTGCCAATCTCTCTATTGTTCCAACTT\nAAGTATGTGTGCTACTGAGGCAAGCATGAGTAATTTAAGATAGGGTGGTTAAGTGAAATA\nAGGAAGAATTATGGAGAATTTAAAAATCTATGCTATTTATAGGCACCTAGTAACAGCTCA\nGTAAATATTAGCTGCTACTATTATTATTTTTATGGTAATTTCACTCAATTAAAAACTGTC\nGTTAAAAATTGCCATTGTCATGGAACATAATGTCTCCTACTGTATAATTGTAGAAACAGA\nTACAATTTGTCCCTTGGTATATGGGGGGATTAGTTCCAGCTCTCCCATTTCTGTGTATAC\nCAAAATCCACGCATACTCAAGTTTTCAAAGTCAGTCCTGTGGAATCCACATATAACACAA\nATGGGAAAATTAGTGAGGTGTGGTGACAAGCACCTGTAGTCCCAGCTACTTGTGAGGCTG\nAGGCAGGAGGATTGCTTGAGCCCAGGAGGTTGAGGCTGCAGTGAGCCATAATTGCACCAC\nTACACTCCAGTCTGGGCAACAGAGTGAGACAGAAGGTTGACTTTTTAATAGAATTTTTCT\nGTTCACTTGAAGATATGGTCAGGATTGTGGCATATGAAAATTCTTCATAAAATAACTATC\nTAATCCAATTAATGCTGGAATTGGGAACAGCAGAAGTGTCATCTCAGAGCTACTCGCAAT\nGAAAGGTGATGTCTGGGGCTCAGGTGTGTTGAGGTCCCCATGCCTGGACTATGGGTGCTG\nAGTGGGATTTACTTGTCCATCCATTTTCTATATTCCAGCACTGGGAAACTAGGGACAGTA\nCTTGTTCTCAAGGGAATCTTCAGCTTAGGTGGCTCTGTAAAAGAGAAATTACATCATTGA\nAAAATCGTCGCAGGTCAGGTGAGGTGGCTCATACCTATAATCCCAGCCCACTGGGAGACT\nAAGGCAGGAGGATTCCGTGAGGCCAGGAGTTCAAGACCAGCCTGAGCAACACAGTGAAAC\nCTCATCTCTACAAAAAATTAGAAAATGAACTGGGTGCGGTAAAACATTCGTATAGTCCCA\nGCTACTCTGGAGGCTGAAATAGGAGGATCGCTTGAGCCCAGGAAGTGGAAGCTGCAGTGA\nGCTCTGATCTCACCACTGCACTCTAGCCTTGGTGACAGAGTGAGACCCTGTCTCAAGNNN\nNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCCCCAATCTCACTCTGTCCAGCCTTGACT\nAATCAAAAGGGCCTTCTGGTTACAGAAGAGGTATGCTCTTTTGTAGGACAGGGAGAGACC\nAGCAAGCTTGTTCACAGACTTTTCCTCATCCTCTGCTTAGTTTTCCAAGAACCCTCACAG\nTGGAAATGGAGTCTCTGGGAAAATGACCTAAATCTTTGGGTTACCAGGGGAGAAATATGC\nCTCCTTTGTCAATTAATAAATGGAACATCTGCCTTAAAATCCAGGGAGTTCTGCTAGAAT\nGAATCACTCCCTAAGACCCTGACCAATGCATGGAACATGAAAAACTGAAGTTTAACTGGG\nCGCGGTGGATCACGCCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCGGATCACCTG\nAGGTCAAAAGTTCTAGATCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAATA\nCAAAAATTAGTTGGGCATGGTGGTGGACACCTGTAATCCCAGCTACTTGGGAGGCTGAGG\nCAGGAAAATCGCTTGAACCCGGAAGGCGGAGGTTGCAGTTACTTCTAGAAGAATTTCCAT\nTAGCCCTTTGAAATCCTTCAACATTCATGAAGGCCAAAGAGTTTTCACCTAATTTAATCT\nGATGGGTATGTGACCAGAGTCTTTCTAGGGAATAGAGACTCCCAAACAGTTCGACTGGGA\nAGTGAGGAGAGAATTTATTACTCAAAACCAAAGGGAAATGAAAAGAGGCCAACATAGAAT\nGTCATTATTCTTTCTTGGCGGGGAATGGATTCCAGAGTCATTCTGTGACCTTTACATGAC\nCTCCTTATTAGCATCTAAAAGCTTCCAGTGTAGGATGCAGCCAGCTAGGTTCTCTTCTAA\nTGTAATAAAATTTGCTTCGGCAAATCTTATGCAGAGCCATCTCCAGGCTCCAGAAACAAT\nAGGCTATAAATTACTGGATCTCCCATTTGATACAATGAAGTATGAGCATGGTCCTGAATG\nACTCCTCTACATACTACTCTGGGTGGCTTGAAGTGAATTTGATACAAGAACTGGAGCGAG\nGGCAAAGCAGAGCTAGATCTAGGATTAATGTGCTTGGGCCCAGCTCCTCACTACTCACCT\nATGAGTCTAGTTCCAGAACCCAAGTAGAGGATGGGGAAACAAGGCTCCTGACTTTTTTTC\nCCTAATATCTGCATCTCTTTCACATTTCTTATCTCCTTGCAAAGAAACTAAACAGGCTCA\nACTGAAATAACTAAATGATTAAACCCTATACAGAGAATCTCCAAAGACTGACAAAATATC\nATTCAAGACTGTTACACAGACAACCTTGAGGATGACTTGATGTACCAGTGATCTACAATA\nTTTGGGATCATTCCAAATTCCCATCAAGGATCTGCCTATATCAACAAAGGAGCCAAGGAC\nCAACCATTCAAATGGGCCCTGCTGCCAAGCCTTTTTTTTTTTTTTTTAACAATGCCATCT\nCTTCATATTGTTCCATTTAACAAAACTGCAGCCCTTCATCTATCCTTAAGTCCCTTGGCC\nAGTGGTACAGAGCCAGAGTATGCTACTCCCTAGCAGGAAATCAACAGGATGACCTACTAA\nACACCATTCAGAAGATGCTAAGACCCATGAATTGCAACAGGAAAGAAAAGACAGAGAATT\nAGTCAGACAGGTACATGCTGTGCCAAAAGTGCACTACAGCCCCCACCCAATTCTGCCTAA\nTCCTAGCTGGGCTGACACCAACCTGATGAGACAGGCCTATAAGATCTCAAACTAAAACAG\nAAACTCCTGAACTGGGTTCTTTCGAGCCCAGGAAGCAGCAGTAAATCATTAAAGAACAGA\nTAAGTTCTTAAGGTGAGGGAGAGTTTCAGATAAATGGAATGCTGGTAGAACACAGGGCCC\nAAAGGAGCAAAAGTTAACCTAAGCCCAGGTAGAACCTTGTTTACTAGAGTATTAGGCATG\nGGTTTGGGCAACTATTCTAACCAGAGAAACTGGCTTCAGTGAGGGCAAGTTGGCAATCCA\nAGGTATAGCATGCATAGGGCTGGCAAAATTCAGGGTGACTGAAGCAAAAGCTTCATAACC\nAGAAAGACCACATCTGGGGGTAGAGCACAAAACTCTCAAGAGATGAATCTTTGTAAGAGT\nGAGGCAGAACTATATAGCAGTTTTAGGAGATCTGTTGGTGCCCAGCAAGAGCTCCAAACG\nGGCTATATGCAGGGATGCAGGCTGTAGTCTCAGGAGAGGAGGTTCACAAAAGTCATTCAG\nTCCAAGACCTCAAACTGTGTTCTCTACTAAAAGGAATCAAGGTTCCCTAGAGAAATGGCT\nGACTCCATGTATGGTGCAGTATATTGATCCTGGAACATCTGTTTTGCCAGAAAGCAAGGA\nAGCCATCAAAGTCCAACAGGATCACTTCAAAAAGACATGAAAGTCAACTTGAAGAGATAA\nTTATTAACCTAGATGAGACAATCTAAGCATCCAAAACAATAAAGACTGCAATGGCCTGAA\nATACATCAAATGCAAACAATAATCTATGAGTTCATAATGGTATTCAGAAAAAAAAACTAC\nTGGTCATTAGAGGGAAGGTTACTAGGTCACTAACTTACTACTCTGAAAAGTGACTTAAGA\nTGAGAGGTAGGGTGGAAAATTAGCTATTTATTCAGTCTTTCCTGTACAAACATAAATTTT\nTAGGGAGATTGAAGCAGATGAAACAAATCTGGAAAAATGGAGGTAACTGCTTAATCTGCG\nGGTTGGGTGCATGGAGGTTCAACATATTTCTTTTGTGTATATTTGAACCCCCTACAAAAA\nAAGCACAAGAGAGAATGTGAGCCAAGCAGCTTAGGGTTTAGGCAAGGCTTCTGCCTACAA\nGAGACACTAGGATATGAGGGGTAGTTTTAGCCCTAATGGGCTGAGCCAACTGGAGGTATA\nTAGGGAAGTGCTAAATTGCAGAGGTATCATGTTGCCCAGCACTTGATCAAATCCTAGATC\nCTAGGTCTGCTTGGTAGCATGCTTCCTAGGTAGTGGATCTGAGGCTACCTATAGAACTTC\nCTTTGCAGTCATAGTTCGCTCAGAAACTACAAAAGTGCTTGCTCTTGAAAATGGAGTCTT\nTGTCCATTTCATGCTTCTATAAAAGAATACCACAGACTGCATAATTTATAAAAAGGAAAA\nAAGGAAGGAAAGAAAAAAGGAAGGGAGGAGGGAAGGAGGGAAAAAGGGAAGGAGGGAAGG\nAAAGGAAGGAAGGGAAAGAAGGAAAGGAAGGAAGGGAAAGAGAGAAAGAGGGAAGGAGGA\nAGGGAGGGAAGGAGGGAGGGAGGGAGAGAGAGAGGGAGGGAGGGGAAGGGAAGAAAAGGG\nAAGAGAAGGGAAAGGAGGAAGAAAAGGAAAGGAAAGGAATAAATTTTATTTCTTAACAGT\nTCTGGATGTTAGGAAGTCCAAGGTTGAGGGGCCTGCATCTGGTAAAGGTCTTCTTGCTGC\nATCATCCCACTACAGAAGGCAGAAGGAAAAGAGAGTGCAAGAAAGCAAGAGGGCAAAAGG\nGGCTGAACTCTGTTTTATAATAAGCCCACTCTGTGATTACTAATCTATTACCACAATAAC\nAACATTAACTCATTCATGAAGGCTATTTTATTAGGCCCCACATCCCAACTGTTGCATTGA\nGGATTGAGTTTCCAGCACATAAACTTTGGGGGACACATTTAAACCATAGCAGAGCACTTA\nGGTTAATTCAACTAAGAGGAGCTGGGAAAATCAAAGGCATGAGAAAGACAGCAAAAGCTA\nGCAGAGAGAAATGCATAGGTTAAGGAAAAAAGTCACAGTGAATCCTGTAGTGCAGGCTAC\nTTTATGAAAAGCACCTAAAAAAGATCTCATTAACTCCCCCAGCTCACCTCCACGCACATC\nTAAAGAGCCACACACAGCACCACCAAAGGCAGCACAATGAGAACAGCATTCTCCTCAACA\nGACAAGCTGGGAGTATCTAGACACCCGACCTCAATAGCTCCAGAACAGCCCTAAAACATT\nTCCTCCCTAACCACCACTCAAGTCACCAGCTTGGAAAGTATTAAGAAAACCCAAATCCTG\nACACACCACTATGAAACAACTTAAAACAGCAAAGAACAACCCATTTAAACAGCAATGCCA\nGCTGTTGGGAAAAAAAGGAACAATGAGTAGAGGAGAAACAGACCTCTCGGGGTCCACCAA\nGACCCAGTCTCTCAGCTTCAGCACTTTTAAATGCAGAATCCATACCCCTCTGGGGCCTGT\nGGAGCTCCACAAGGCATGTCGTCCTCAAAGATAAATGAGCAGGCAAGCTGGCTAGAAAAC\nCACTAAGGGTATTTATTCTTTAAAGAATCTTTACAGGGTCAAAGAAGAATGGGTCTTAAC\nTGGCTATGTGAACTCCCCACAGATTCTGAGGATGATGTCAGTATCCCTTTCCAGATGTGT\nTTAACACTTTGCAGTCACTTGTATTCCTGCTACTGAGTGCCAGTGCTTTGCTAATTTGAA\nCTGATTCCAGCTCACGCTGACCCCAGCTCCCTGGATGTTACCATTAGCCAAGACTGTCAC\nCCATACTGTACCCTTTCAAAGAGTCCTAAAAACAGCTCTTCACCTACTCTTCCAAGACAA\nGTAAAAATGTCTGCCAAAGAAATGGGGAAAAAAGATTCAGAGAGTGAAAACAATTAATAT\nACTAACAAGAGAGCAAAAAGCAAAGGGGGAGGAGAAACTAGGAAAATCATATATGGGCTC\nTCACCTATTTCCAAAGCTGGGCTAATGTCCTTTTGCTTGTGTCTGAATAAGGCACCAATT\nTTAAGCTGATAATGAAAAAAAAAGAAAAAGAGAAAGAAGCAGGCCCAGGCTGGGCGCAGT\nGGCTCATGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGTGGATCACCCAAGGTCA\nGGAGTTCTAGACCAGCCTGGTCAACATGGTGAAACACCATCTCTACTAAAAATACAAAAA\nATTAGCCAGGCATGGTGGCGCATGCCTGTAAATCCAGCTACTAAGGAGGCTGAGGCAGGA\nGAATTGCTTGAACCTGGAAGGCAGAGAATGTGGTGACCTGAGATCACGTCATTGCCCTCA\nAGCCACGGCAATGAGAACAAAATTCGGTANNNNNNNNNNNNNNNNNNNNNNNNTCACCAT\nAAAATAACTCAGACTTAATTAAATACAACCCTAGTGGTGAATGACTAAAGATGGATTACT\nCATAACAGAGACAACAGTCCAATAAGAATCCAGGAATCTTACCTTTTAATAACAAAAAAA\nTCCTTTCCTTCTAAAGTAACATCCTCTCAAGGCCAGGAATTCCATTAGTAGAAAGCCTTC\nCTAAAAAACAAAATTCCTGGCCAGGCATGGGTTCACGTCTGTAATCTCAGCACTCTGGGA\nGGCCGAGGCGGGAAGATCACTTGATATCAGGAGTCGAGGCGGGAAGATCACTTGACGTCA\nGGAGTTCGAGACTGGCCCGGCCAACATGGTGAAACCGCATCTCCACTAAAAATACAAAAA\nTTAGCCTGGTATGGTGGTGGGCACCTGTAATCCCAGTGACTTGGGAGGCTAAGGCAGGAG\nAATTTCTTGAACCCAGGAGGCAGAGGTTGCAGTGACCAGCAAGGTTGCGCCATTGCACCC\nCAGCCTGGGCGATAAGAGTGAAAACTCCATCTCAAAAAAAAAAAAAAAAAAAAAATTCCT\nTTGGGAAGGCCTTCTACATAAAAATCTTCAACATGAGACTGGAAAAAAGGGTATGGGATC\nATCACCGGACCTTTGGCTTTTACAGCTCGAGCTATAAGAAAAAAAAGAAAAAGGGATATC\nATTTAAACACAGTATGTAGAAAAGAATAATTATTGAATCTGTACTGGTCTTTAACTTTTA\nCACTTTGATCTTTAATTCTGTTATTGTGATTGAGTCCAAAGAAAAACAGTATGAGTAAAA\nTAAAAAGAACACCAAAAATGCTAATATTCTGTTTACCGAAGTCTGTAGTGAAATATCCCA\nTTAAATCCAAGTGCAGTGACACACCCATAATCCCAAGCACTTTGGGAGGCTGAGGCGGGT\nGAATCTCCTGAAGTCAGGAGTTCAAGGCCAGCCTGGCCAACATGGTGAAACCCCAACTCT\nACTACAAATACAAAAATTAGGCAGGCGTGGTGGCAGAGGCCTGTAATCCCAGCTACTTAG\nGAGGCTGAGGCAGGGAGAATTGCTTGAACACAGGAGGTGAGCTTGCCATGAGCTGAGATC\nATACCACTGCACTCCAGCGTGCGTGACAGAACAAAACTTCAACCTCCAAAAAAAAAAAAA\nAAAAAAAAAACAGCTAGCAGGTGACATTTGCTATAGGGAGACTAGGGATATGATCTTGCT\nGCAATCTTTCCATTTTAGTAAATCTAAACAAGTGTGAATCCATTCTGTTTCGTCCCCACT\nCCACTCCAGAGCCAAAACAAGAAAAACAATTATATTTCTAGTTCTTTAAAAACATATCTA\nACTAAATCATCTAATTAAAAGATAATATGCATGGTTCCATACTCTAAAAGAAAACTTATG\nTCCTGCATATCATGGACATTTGATGAATGCTTATTCAGTTGACTGGTGTAGACTTCAATA\nATAACCTGTTCAATGCATTATGCCAGATGAATCTTGCATCTCAAAAGTAGAACAAATATT\nGTTCTTTCAGTTTTGTCTACCCATAAATGCAATATTTACTAATAAAAAGAAAATGAGTTT\nATTGTTCTAGAGAGTATGAGAATTTTGACAACATGAATTCTCCTGTCCTAGGACATAATT\nAATACTTAGAGGCATACTATTTCATGTGGAAGCTACCATTAAATCAATGTTAAGTGTTAA\nTTACCTCACATAATCTTCTAATCTGACTTGACTGAAGACGTACCTGACAAAGTTGATTTA\nTCAAGTTGTAAATCTTCACCTGTTGAATTCATAAGTTCATGTCTGAAAGGTGAGAATAAA\nTACTTAATATTCATTAGGCAATATTCAGCAAAGTAATATCCACTAGTACATATTTAATAT\nTTCATCATGAACTGCGGGTGTGAAGAGAAAGGACAGGCTGGGCACAGTGGCTCACACCTG\nTAATCCCAGCAGTTTGGGAGGCCGAGGCAGGCAGATCATGAGGTCAGGAGTTCGAGACCA\nGCCTGGCCAACATGGTAAAACCCCGTCTGTACTAAAAGTACAATAATTAGCTGGGCATGG\nTGGCAGGCACCTGTAATCCCAGCTACTCGGGAGGCTGAGGCAGGAGAATTGCCTGAACCC\nAGGAGGTGGAGGTTGCAGAAACCATTATCACGCCACTGCATTCCAGCCTGGGCAAGAGAG\nCAAGATTCTGTCTCCATCAATCAATCAATAAAAATATAAGAAGGAAGCATTTACTGTGTA\nTTTATATGTCTGGTATTATGTGAAGCACTTTACTATCTTATCAAATCTTCGGGACAGATC\nTTCAGTTCTCATGACCACAAAAGAGGATACTAAAGCTCAGACAGGAGAAGAGACGTGGCC\nAGCCTGTGTCCCCAGGGCCTATGGTCTTACCACTAGGTTACAGTGTTTCCAGATATCACA\nTGTTGTGAGATTTTTGCTTTAAAATGAACCAAAAAAAAACCAAAGGTGAAAAAGGCATAA\nGCTATTAAAAAGTGGGAGAAACACTAAGAGAACCTTAAGCATGTAACTAAAAATATTATG\nGAAATGTTATTGAATACATTAGCAAATTTAGTGCTAGGTTTTCATTGAGGAGTAGGTTAT\nATTACTCATGATGAAGAAAAATGTTCATTTTAAGTATATTAACATAAATACCATCAATAT\nTGTTTATCATGTTTAAATGTTCACTTAAAGCAATTCAGTTAAAATTCTGCATATCATACA\nATTTTATAGTTTGCTAGTAGGTTACAAGTAAATAGTCACCCAAATAAAAACATCATGTTT\nTCCACTGGTTGTTGCTCTTTTTTAGGTGAGTATTTGATATATACCAACAGAGAGAGGATA\nATAACAAATCGCTAATTTCTTTCATCACTATATAAAGGTGGCTTCAGGATAGAATAGTAT\nCAGTGTAATGATGAATTTGAAATCTAACATCAATTCAGTGATGCATCAAGATAAAAGTAG\nAGACAACAGGGGCACCTTGGTGAGTACTGAACATTTTATTTATTTATTTATTTTGAGATG\nGAGTTTTGCTCTTTTTGCCCAGGCTACAGTGCAATGGTGCCAACCTCGCCTCACTGCAAC\nCTCTGCCTCCTGGGTTCAAGCGATTCTCCTGCCTTGGCCTCCCGAATAGCTGGGATTACA\nGACATGCGCCACCACACCCGTCTAATTTTGTATTTTTAGTAGAGACGGGGTTTCTCCATG\nTTGGTCAGGCTGGTCTCGAACTCCCGACCTAGATATCTGCCTGCCTTGGCCTCCCAAAGT\nGCTGGGATTACAGGTGTGAGCCACCACGCCCAGATGAATTCCAAATTTAACAAAGCAGAC\nTAAGAGAAACAATTCATTTAAAAAAATAATATTTGGCCAGGCATGGTGGCTCACACCTAT\nAATCCCAGCACTTTGGGAGGCTGAGGTGAGTGGATCAGGAGGTCAGCAGTTCAAGACCAG\nCCTAGCCAAGATCATGAAACCCCGTCTCTACTAAAAATACAAAAATCAGCCAGGCGTGGT\nGGCTGGTGCCTGTAATCCTAGCTGCTCGGGAGGCTGAGGCAGAGAACTGCTTGAACCCGG\nGAGGCGGAGGTTGCAGTGAGCCGAGATCGTGCCACTGCACTCCAGCCTGGGCGACAGAGT\nGAGGCTCCGTCTCAAAAAAAATAAATAAATAATTCAATGAAATTCCTAAGATCCAGGGCT\nTTGCAATAAATATGTAAATAAATTTCCAATCTCCATACTGAAAGTTTAAAAGAAATGCTA\nACTAATAACTAAAGAAATACAACTTTTCCTCAGCTTTGCAGCAATCTAGAAACAAAGTGT\nGTAGACACTACAAAGCACCTTACAAGGAGAAACATGTAAGGATGGCATGACTCGCCGGCA\nGCCCTGGGATTGTCCACGGTACCCCCATGATGAACAGTAACTCCACTGTGTAAACGCCCA\nTGAACCTAAGATTACAAGACTTTTCCAGTTTAGACATACCATATTTTCTTTCAGACAATT\nCTTCAGTTTGTTTACGTAGATCAGCGATACGATGATTCCATTTCTCTGAAAACCAAGCAA\nAAGTTGCTTCTCAATAACACGTCCCTATGTCAGAGCAGCACTAACATATAATGACTGATT\nTCATATATTTTACATTCTAACAGTCCATATCATTTTACTGCTTTCAAGAAAAAATTTCCC\nCTTCTTGGTGGTTCTTAGAATTGGTTTAATGGGAGACTATTAGAGAAGCTGAAAAGCAGG\nAGGGCAGAAAAGCTCAATCAAATTAAACACAATAACAGGGAGGTCACAATGAGGCGGTCT\nCCAGGGGTCTTTTAGCAAACTTCCTAAAACATGTCTCAGCTGTGTGAAATAAGACTTTAC\nAGCAGCCGGGTGCAGTGGTGCAGGCCTGTAATCCCAGCACTTTGGCAGCAGAGGCAGGCG\nGATCACTTTGAGCTCAGGGCAACATAGCCAAAACCCCCCTCCCTAGCCCCACCCCCACCC\nCGTCCCTACCAAAAATACAAAACAGCAGGGCATGGTGGCGGGCGCCTGTAGTCCCAGCTA\nCTCAGGAGGCTGAGGCAGGAGAATCACCTGAACCCAGGAGGCAGACATTGCAGTGAGCCA\nAGATCACGCCACTGCCAGCCTGGATGACAGAGCAAGACTCCACCTCAAAAAAAACAAAAA\nCAAAAACACAAGGTTAAGAGGGACCCCCGACCTTACAGATACAAGTTTAAGAGGGACCCC\nTAAGCAAAAAATGCCAACCCTTTTTCTCCCAATCATTGAAACACCAGGAGGGTGTAACAG\nTTTTGCAGCCTAGCTGTAGCAGGCTGATGCCCCCAAGATGCCCATATCCTAATCCCGGGA\nACTAGTGAACATGACCTTATATGGCAAAAGGAACTTTGCAGATATAATGAAGTTAAGGGT\nCTTTGGCTTTTGGGGTTGATGTACTCACTCGGATCCTTGTAAGAGCAGAGCAGGTGATGG\nAGAGGGTGGGAGGTGTAGTGACAGAAGCAGGAAACTCCAGTCATTCGAGACGGGCAGCAC\nAAGCTGCGGAGTGCAGGCCACCTCTACGGCCAGGAAACGGATTCTCCCGCAGAGCCTCGG\nAAGCTACCGACCCTGCTCCCACCTTGACTCAGTAGGACTTACTGTAGAATTCTGGCCTTC\nAGACCTGTAAGGGAATACATTTTGGTTGTTTTAAGTCACTAAGTGTGTGGTAATTTGTTG\nCAGCAGCCACAGGAAACTAGTATTGTAGTGAAGCCTCAAAACCCCCCTGAAGGGGCTGGG\nCTCAGTGGCTCATGCCTGTAATCCCAGCACTTTGGGAGGCCGAGATGGGTGGATCACTTG\nAGGTCAGGAGTTCGAGACCAGCCCAGCCAACATGGTGAAATGCCATCTATACAAAAAATA\nCAAAAACTAGCCGGGCATGGTGGCACATGCCTGTAATCTCAGCTACTCAGGAGGCTGAGA\nCAGGAGAATTGTTTGAACCCAGGGGGGCAGAGGTTGCAGTGAACTGAGATTCCACCACTG\nCACTCCAGCCTGGGTGACAGAGCGACGCTCCATCTCGAAAACAAAACAAAACAAAAAAAC\nCCCACCTGAAGGTTTCCAGTTCTGCCAGCACTCTCCCACCCAACCCCCAGAAACAGACAT\nTCCATTGCTGTGGGCCACGGACAGGCAGAAGGAAGCACCTCCTCATGGCAGAGGCCTACC\nCAGGAGAAACCCAAGGGAAGGCACTACTGGGCTGGCCCCTCTCTGCCAAGGCCATATTCT\nTTTTTTTTTTTTGAGGCCAGTTTCACTCTGTCTCCCAGACTGGAGTGCAGGGGCACAATC\nTCGGCTCACTTCGACCTCTGCCTCCCCAGTTCAAGTGATTCTCCTGCCTCAGTCTCCTGA",
+							"disabled": true
+						},
+						{
+							"key": "organism",
+							"value": "Homo sapiens",
+							"disabled": true
+						},
+						{
+							"key": "cutoff",
+							"value": "curated",
+							"disabled": true
+						},
+						{
+							"key": "evaule",
+							"value": "0",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "readSearchResults",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"searches",
+						"1cea44d0-3258-11ee-a3b7-c77d081c00ac"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "readSearchResults 2",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/searches/40b77420-4075-11ee-a3b7-c77d081c00ac",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"searches",
+						"40b77420-4075-11ee-a3b7-c77d081c00ac"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "readSearchResultAlignment",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/searches/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"searches",
+						"e1f44e10-4144-11ee-a3b7-c77d081c00ac",
+						"alignment"
+					],
+					"query": [
+						{
+							"key": "sequence",
+							"value": "Example"
+						},
+						{
+							"key": "start",
+							"value": "435"
+						},
+						{
+							"key": "end",
+							"value": "617"
+						},
+						{
+							"key": "family",
+							"value": "DF000000302"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{dfam_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
