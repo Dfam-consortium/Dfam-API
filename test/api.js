@@ -306,7 +306,9 @@ test.serial('get family relationships', async t => {
 });
 
 test.serial('get family relationships include', async t => {
-  t.fail()
+  const body = await get_body('/families/DF000002176/relationships');
+  const body2 = await get_body('/families/DF000002176/relationships?include=related');
+  t.true(body.length > body2.length);
 });
 
 test.serial('get family relationships include_raw', async t => {
