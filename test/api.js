@@ -149,7 +149,6 @@ test.serial('search classifications', async t => {
 });
 
 // FamiliesService
-// TODO: options not tested: name_prefix, classification, type, updated_after, updated_before, desc, keywords, start
 test.serial('search families', async t => {
   const body = await get_body('/families?clade=9263&limit=20');
   t.is(body.total_count, 6);
@@ -184,6 +183,42 @@ test.serial('search families sorted by subtype', async t => {
     body.results.map(r => r.repeat_subtype_name).filter(x => x !== undefined),
     ["Alu", "Alu", "Alu", "ERV1", "ERV1", "ERVK", "SVA", "SVA"],
   );
+});
+
+test.serial('search families name_prefix', async t => {
+  const body = await get_body('/families?name_prefix=Alu');
+  t.true(body.total_count == 45)
+});
+
+test.serial('search families classification', async t => {
+  const body = await get_body('/families?classification=root%3BInterspersed_Repeat%3BTransposable_Element%3BClass_II_DNA_Transposition%3BTransposase%3BCACTA%3BCMC%3BMirage');
+  t.true(body.total_count == 2)
+});
+
+test.serial('search families type', async t => {
+  const body = await get_body('/families?type=SINE');
+  t.true(body.total_count == 1488)
+});
+
+test.serial('search families desc', async t => {
+  t.fail()
+});
+
+test.serial('search families keywords', async t => {
+  const body = await get_body('/families?format=summary&keywords=hAT auto&limit=20');
+  t.true(body.total_count == 334)
+});
+
+test.serial('search families start', async t => {
+  const body = await get_body('/families?start=1000&limit=1');
+  const body2 = await get_body('/families?start=1001&limit=1');
+  t.true(body.results[0].accession == "DF000001019")
+  t.true(body2.results[0].accession == "DF000001020")
+});
+
+test.serial('search families updated', async t => {
+  const body = await get_body('/families?updated_after=2022-01-01&updated_before=2023-01-01');
+  t.true(body.total_count == 4288)
 });
 
 test.serial('download families', async t => {
@@ -275,7 +310,9 @@ test.serial('get family relationships include', async t => {
 });
 
 test.serial('get family relationships include_raw', async t => {
-  t.fail()
+  const body = await get_body('/families/DF000002176/relationships?include_raw=false')
+  const body2 = await get_body('/families/DF000002176/relationships?include_raw=true')
+  t.true(body.length < body2.length);
 });
 
 // FamilyAssembliesService
@@ -329,11 +366,16 @@ test.serial('get taxa', async t => {
 });
 
 test.serial('get taxa annotated', async t => {
-  t.fail()
+  const body = await get_body('/taxa?name=Zebrafish&annotated=true');
+  const body2 = await get_body('/taxa?name=Zebrafish');
+  t.true(body.taxa.length < body2.taxa.length);
 });
 
 test.serial('get taxa limited', async t => {
-  t.fail()
+  const body = await get_body('/taxa?name=mouse');
+  t.true(body.taxa.length == 20)
+  const body2 = await get_body('/taxa?name=mouse&limit=50');
+  t.true(body2.taxa.length > 20)
 });
 
 test.serial('get one taxon', async t => {

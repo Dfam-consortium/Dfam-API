@@ -181,6 +181,521 @@
 			"response": []
 		},
 		{
+			"name": "families start",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?limit=1&start=1001",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "A",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "SINE",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "1"
+						},
+						{
+							"key": "start",
+							"value": "1001"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "families start udated",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?updated_after=2022-01-01&updated_before=2023-01-01",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "A",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "SINE",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2022-01-01"
+						},
+						{
+							"key": "updated_before",
+							"value": "2023-01-01"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "families type",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?type=SINE",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "A",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "SINE"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "families desc",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?desc=\"The median\"",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "A",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "\"The median\""
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "families classification",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?classification=root%3BInterspersed_Repeat%3BTransposable_Element%3BClass_II_DNA_Transposition%3BTransposase%3BCACTA%3BCMC%3BMirage",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "SINE",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "classification",
+							"value": "root%3BInterspersed_Repeat%3BTransposable_Element%3BClass_II_DNA_Transposition%3BTransposase%3BCACTA%3BCMC%3BMirage"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
+			"name": "families name_prefix",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families?name_prefix=Alu",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "repeat_type_name:asc",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "A",
+							"disabled": true
+						},
+						{
+							"key": "clade",
+							"value": "sapiens",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "SINE",
+							"disabled": true
+						},
+						{
+							"key": "subtype",
+							"value": "hAT-Charlie",
+							"disabled": true
+						},
+						{
+							"key": "updated_after",
+							"value": "2017-01-01",
+							"disabled": true
+						},
+						{
+							"key": "updated_before",
+							"value": "2013-01-01",
+							"disabled": true
+						},
+						{
+							"key": "desc",
+							"value": "Charlie",
+							"disabled": true
+						},
+						{
+							"key": "start",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "name_prefix",
+							"value": "Alu"
+						}
+					]
+				},
+				"description": "Returns a list of Dfam families optionally filtered and sorted."
+			},
+			"response": []
+		},
+		{
 			"name": "families raw",
 			"request": {
 				"method": "GET",
@@ -404,6 +919,48 @@
 			"response": []
 		},
 		{
+			"name": "family hmm image",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000000001/hmm?format=image",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000000001",
+						"hmm"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "image"
+						}
+					]
+				},
+				"description": "Retrieve a family's HMM in text or logo format."
+			},
+			"response": []
+		},
+		{
 			"name": "family seed",
 			"request": {
 				"auth": {
@@ -475,6 +1032,90 @@
 						"families",
 						"DF000000001",
 						"relationships"
+					]
+				},
+				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
+			},
+			"response": []
+		},
+		{
+			"name": "family relationships include",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000002176/relationships?include=true",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000002176",
+						"relationships"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
+			},
+			"response": []
+		},
+		{
+			"name": "family relationships include raw",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000002176/relationships?include_raw=false",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"families",
+						"DF000002176",
+						"relationships"
+					],
+					"query": [
+						{
+							"key": "include_raw",
+							"value": "false"
+						}
 					]
 				},
 				"description": "Retrieve a family's seed alignment in graph data or stockholm format."
@@ -903,6 +1544,47 @@
 						{
 							"key": "name",
 							"value": "Drosophila"
+						}
+					]
+				},
+				"description": "Query the local copy of the NCBI taxonomy database"
+			},
+			"response": []
+		},
+		{
+			"name": "taxa annotated",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://dfam.systemsbiology.net:10011/taxa?name=Zebrafish&annotated=false",
+					"protocol": "http",
+					"host": [
+						"dfam",
+						"systemsbiology",
+						"net"
+					],
+					"port": "10011",
+					"path": [
+						"taxa"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Zebrafish"
+						},
+						{
+							"key": "annotated",
+							"value": "false"
 						}
 					]
 				},
