@@ -459,7 +459,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://dfam.systemsbiology.net:10011/families?desc=\"The median\"",
+					"raw": "http://dfam.systemsbiology.net:10011/families?desc=MIR",
 					"protocol": "http",
 					"host": [
 						"dfam",
@@ -518,7 +518,7 @@
 						},
 						{
 							"key": "desc",
-							"value": "\"The median\""
+							"value": "MIR"
 						}
 					]
 				},
@@ -1056,7 +1056,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://dfam.systemsbiology.net:10011/families/DF000002176/relationships?include=true",
+					"raw": "http://dfam.systemsbiology.net:10011/families/DF000002176/relationships?include=related",
 					"protocol": "http",
 					"host": [
 						"dfam",
@@ -1072,7 +1072,7 @@
 					"query": [
 						{
 							"key": "include",
-							"value": "true"
+							"value": "related"
 						}
 					]
 				},
