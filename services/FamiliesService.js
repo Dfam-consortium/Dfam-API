@@ -178,7 +178,7 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
 
       if (desc) {
         query.where.push({
-          description: { [Sequelize.Op.like]: escape.escape_sql_like(desc, '#') + "%" }
+          description: { [Sequelize.Op.like]: "%" + escape.escape_sql_like(desc, '#') + "%" }
         });
       }
 

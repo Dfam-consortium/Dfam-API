@@ -202,7 +202,7 @@ test.serial('search families type', async t => {
 
 test.serial('search families desc', async t => {
   const body = await get_body('/families?desc=MIR');
-  t.true(body.total_count == 5)
+  t.true(body.total_count == 11)
 });
 
 test.serial('search families keywords', async t => {

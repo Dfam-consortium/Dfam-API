@@ -1,0 +1,81 @@
+
+info: Initialized Piscina thread pool {"service":"user-service","timestamp":"2023-08-28T21:36:14.730Z"}
+info: Listening on port 10011 {"service":"user-service","timestamp":"2023-08-28T21:36:14.814Z"}
+info: Express server running {"service":"user-service","timestamp":"2023-08-28T21:36:14.814Z"}
+info: Main thread connecting to dfam_dev {"service":"user-service","timestamp":"2023-08-28T21:36:15.403Z"}
+info: Main thread connecting to dfam_user {"service":"user-service","timestamp":"2023-08-28T21:36:15.617Z"}
+info: Worker thread 1 connecting to dfam_dev {"service":"user-service","timestamp":"2023-08-28T21:36:15.126Z"}
+info: Worker thread 1 connecting to dfam_user {"service":"user-service","timestamp":"2023-08-28T21:36:15.348Z"}
+info: Worker Starting Up: 1 {"service":"user-service","timestamp":"2023-08-28T21:36:15.375Z"}
+info: Worker thread 2 connecting to dfam_dev {"service":"user-service","timestamp":"2023-08-28T21:36:15.127Z"}
+info: Worker thread 2 connecting to dfam_user {"service":"user-service","timestamp":"2023-08-28T21:36:15.346Z"}
+info: Worker Starting Up: 2 {"service":"user-service","timestamp":"2023-08-28T21:36:15.373Z"}
+info: Worker thread 3 connecting to dfam_dev {"service":"user-service","timestamp":"2023-08-28T21:36:15.126Z"}
+info: Worker thread 3 connecting to dfam_user {"service":"user-service","timestamp":"2023-08-28T21:36:15.357Z"}
+info: Worker Starting Up: 3 {"service":"user-service","timestamp":"2023-08-28T21:36:15.385Z"}
+info: Worker thread 4 connecting to dfam_dev {"service":"user-service","timestamp":"2023-08-28T21:36:15.129Z"}
+info: Worker thread 4 connecting to dfam_user {"service":"user-service","timestamp":"2023-08-28T21:36:15.362Z"}
+info: Worker Starting Up: 4 {"service":"user-service","timestamp":"2023-08-28T21:36:15.389Z"}
+info: Worker thread 5 connecting to dfam_dev {"service":"user-service","timestamp":"2023-08-28T21:36:15.127Z"}
+info: Worker thread 5 connecting to dfam_user {"service":"user-service","timestamp":"2023-08-28T21:36:15.350Z"}
+info: Worker Starting Up: 5 {"service":"user-service","timestamp":"2023-08-28T21:36:15.376Z"}
+  ✔ get version (848ms)
+info: Main thread connecting to mm10_dfam37 {"service":"user-service","timestamp":"2023-08-28T21:36:15.689Z"}
+info: Main thread connecting to hg38_dfam37 {"service":"user-service","timestamp":"2023-08-28T21:36:15.796Z"}
+  ✔ get alignment success (197ms)
+  ✔ get alignment failure
+  ✔ get annotations (3.4s)
+  ✔ get assemblies
+  ✔ get blog posts (213ms)
+  ✔ get classifications (771ms)
+  ✔ search classifications
+  ✔ search families
+  ✔ search families query limit (3.7s)
+  ✔ search families with consensi (6.6s)
+  ✔ search raw families (3.3s)
+  ✔ search families sorted by subtype
+  ✔ search families name_prefix
+  ✔ search families classification (141ms)
+  ✔ search families type (738ms)
+  ✔ search families desc (141ms)
+  ✔ search families keywords (115ms)
+  ✔ search families start (260ms)
+  ✔ search families updated (1.7s)
+info: Worker: 1 , command = fasta_command {"service":"user-service","timestamp":"2023-08-28T21:36:37.401Z"}
+info: Worker: 1 , command = embl_command {"service":"user-service","timestamp":"2023-08-28T21:36:37.809Z"}
+info: Worker: 1 , command = hmm_command {"service":"user-service","timestamp":"2023-08-28T21:36:39.503Z"}
+  ✔ download families (3.8s)
+  ✔ get family
+info: Worker: 1 , command = hmm_command {"service":"user-service","timestamp":"2023-08-28T21:36:41.210Z"}
+  ✔ get family HMM (412ms)
+  ✔ get family HMM image (522ms)
+  ✔ get family HMM sequence
+info: Worker: 1 , command = fasta_command {"service":"user-service","timestamp":"2023-08-28T21:36:42.147Z"}
+info: Worker: 2 , command = embl_command {"service":"user-service","timestamp":"2023-08-28T21:36:42.156Z"}
+info: Worker: 1 , command = fasta_command {"service":"user-service","timestamp":"2023-08-28T21:36:42.752Z"}
+  ✔ get family sequence (1s)
+info: Worker: 1 , command = fasta_command {"service":"user-service","timestamp":"2023-08-28T21:36:43.184Z"}
+info: Worker: 2 , command = stockholm_command {"service":"user-service","timestamp":"2023-08-28T21:36:43.192Z"}
+  ✔ get family seed (720ms)
+  ✔ get family relationships
+  ✔ get family relationships include
+  ✔ get family relationships include_raw
+  ✔ get family assemblies
+  ✔ get family annotation stats
+  ✔ get family assembly stats
+info: Main thread connecting to danRer10_dfam35 {"service":"user-service","timestamp":"2023-08-28T21:36:44.095Z"}
+  ✔ get family assembly annotations
+  ✔ get family assembly karyotype
+  ✔ get family assembly coverage
+  ✔ get family assembly conservation
+  ✔ get taxa (1.3s)
+  ✔ get taxa annotated (1.3s)
+  ✔ get taxa limited (2.7s)
+  ✔ get one taxon
+  ✔ get taxa coverage
+  ✔ submit search
+  ✔ read search results (132ms)
+  ✔ read search result alignments (296ms)
+  ─
+
+  45 tests passed

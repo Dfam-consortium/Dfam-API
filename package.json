@@ -10,9 +10,9 @@
     "lint": "eslint .; true",
     "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
-    "test": "ava --no-worker-threads >& ./test/test.log",
+    "test": "ava --no-worker-threads >& ./test/test.ava.log",
     "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml",
-    "artillery": "artillery run test/artillery/test-example.yml"
+    "artillery": "artillery run ./test/artillery-test.yaml"
   },
   "keywords": [
     "openapi-generator",
