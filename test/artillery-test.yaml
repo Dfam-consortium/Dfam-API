@@ -10,30 +10,151 @@ config:
       arrivalRate: 1
       rampTo: 5
       name: Warm up phase
-    # - duration: 60
-    #   arrivalRate: 5
-    #   rampTo: 10
-    #   name: Ramp up load
-    # - duration: 30
-    #   arrivalRate: 10
-    #   rampTo: 30
-    #   name: Spike phase
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 10
+      name: Ramp up load
+    - duration: 30
+      arrivalRate: 10
+      rampTo: 30
+      name: Spike phase
 
   # Load & configure a couple of useful plugins
   # https://docs.art/reference/extensions
-  # plugins:
-  #   ensure: {}
-  #   apdex: {}
-  #   metrics-by-endpoint: {}
-  # apdex:
-  #   threshold: 100
-  # ensure:
-  #     thresholds:
-  #       - http.response_time.p99: 100
-  #       - http.response_time.p95: 75
+  plugins:
+    ensure: {}
+    apdex: {}
+    metrics-by-endpoint: {}
+  apdex:
+    threshold: 100
+  ensure:
+      thresholds:
+        - http.response_time.p99: 100
+        - http.response_time.p95: 75
 scenarios:
   - flow:
-      # - loop:
+      - loop:
         - get:
             url: "/version"
-        # count: 100
+
+        # AlignmentService
+        - get:
+            url: "/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF000004191"
+        - get:
+            url: "/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF000000147"
+        
+        # AnnotationsService
+        - get:
+            url: "/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true"
+        - get:
+            url: "/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF000000001"
+        - get:
+            url: "/annotations?assembly=hg38&chrom=fake&start=168130000&end=168180000&nrph=true"
+
+        # AssembliesService
+        - get:
+            url: "/assemblies"
+
+        # BlogService
+        - get:
+            url: "/blogposts"
+
+        # ClassificationService
+        - get:
+            url: "/classes"
+        - get:
+            url: "/classes?name=SINE"
+
+        # FamiliesService
+        - get:
+            url: "/families?clade=9263&limit=20"
+        - get:
+            url: "/families?clade=1&clade_relatives=descendants"
+        - get:
+            url: "/families?clade=9606&format=full&name=ltr"
+        - get:
+            url: "/families?name_accession=DR0000000"
+        - get:
+            url: "/families?name_accession=DR0006958&include_raw=true"
+        - get:
+            url: "/families?clade=9606&sort=subtype:asc"
+        - get:
+            url: "/families?name_prefix=Alu"
+        - get:
+            url: "/families?classification=root%3BInterspersed_Repeat%3BTransposable_Element%3BClass_II_DNA_Transposition%3BTransposase%3BCACTA%3BCMC%3BMirage"
+        - get:
+            url: "/families?type=SINE"
+        - get:
+            url: "/families?desc=MIR"
+        - get:
+            url: "/families?format=summary&keywords=hAT auto&limit=20"
+        - get:
+            url: "/families?start=1000&limit=1"
+        - get:
+            url: "/families?updated_after=2022-01-01&updated_before=2023-01-01"
+        - get:
+            url: "/families?clade=185453&format=fasta"
+        - get:
+            url: "/families?clade=9263&format=embl"
+        - get:
+            url: "/families?clade=9263&format=hmm"
+        - get:
+            url: "/families/DF000001010"
+        - get:
+            url: "/families/DF000000001/hmm?format=hmm"
+        - get:
+            url: "/families/DF000000001/hmm?format=logo"
+        - get:
+            url: "/families/DF000000001/hmm?format=image"
+        - get:
+            url: "/families/DF000000001/sequence?format=embl"
+        - get:
+            url: "/families/DF000000001/sequence?format=fasta"
+        - get:
+            url: "/families/DF000000001/seed?format=stockholm"
+        - get:
+            url: "/families/DF000000001/seed?format=alignment_summary"
+        - get:
+            url: "/families/DF000000001/relationships"
+        - get:
+            url: "/families/DF000002176/relationships?include=related"
+        - get:
+            url: "/families/DF000002176/relationships?include_raw=true"
+        
+        # FamilyAssembliesService
+        - get:
+            url: "/families/DF000000001/assemblies"
+        - get:
+            url: "/families/DF000000001/annotation_stats"
+        - get:
+            url: "/families/DF000000012/assemblies/danRer10/annotation_stats"
+        - get:
+            url: "/families/DF0000012/assemblies/danRer10/annotations?nrph=true"
+        - get:
+            url: "/families/DF0000012/assemblies/danRer10/karyotype"
+        - get:
+            url: "/families/DF0000012/assemblies/danRer10/model_coverage?model=hmm"
+        - get:
+            url: "/families/DF0000012/assemblies/danRer10/model_conservation?model=hmm"
+
+        # TaxaService
+        - get:
+            url: "/taxa?name=Drosophila"
+        - get:
+            url: "/taxa?name=Zebrafish&annotated=true"
+        - get:
+            url: "/taxa?name=mouse&limit=50"
+        - get:
+            url: "/taxa/9606"
+        - get:
+            url: "/taxa/coverage"
+        
+        # SearchesService
+        # - post: TODO
+        #     url: "/serches"
+        - get:
+            url: "/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac"
+        - get:
+            url: "/searches/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302"
+            
+        count: 100

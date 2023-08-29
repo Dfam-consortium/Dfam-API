@@ -12,7 +12,7 @@
     "watch": "npm-watch",
     "test": "ava --no-worker-threads >& ./test/test.ava.log",
     "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml",
-    "artillery": "artillery run ./test/artillery-test.yaml"
+    "artillery": "artillery run ./test/artillery-test.yaml >& ./test/test.artillery.log"
   },
   "keywords": [
     "openapi-generator",
