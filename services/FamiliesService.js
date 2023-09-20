@@ -148,9 +148,10 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
       }
 
       if (classification) {
+        let class_decode = decodeURIComponent(classification)
         query.where.push({ [Sequelize.Op.or]: [
-          { "$classification.lineage$": classification },
-          { "$classification.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(classification, '\\') + ";%" } },
+          { "$classification.lineage$": class_decode },
+          { "$classification.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(class_decode, '\\') + ";%" } },
         ] });
       }
 
