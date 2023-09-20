@@ -27,7 +27,8 @@ const getVersion = () => new Promise(
             "dfam_version": data.dfam_version,
             "total_families": data.total_families,
             "curated_families": data.curated_families,
-            "species": data.species
+            "species": data.species,
+            "release_date": "October 2023" // TODO: add to database to not hard code it here
           }
         }
       ));
