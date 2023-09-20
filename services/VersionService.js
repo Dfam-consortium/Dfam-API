@@ -14,7 +14,7 @@ const getVersion = () => new Promise(
       // The current validator (OpenAPIValidator) when validating the API responses will
       // only complain if a require field is missing.  If extra field exist in the payload
       // it will ignore them.
-      const query = "SELECT dfam_version, total_families, curated_families, species FROM db_version";
+      const query = "SELECT dfam_version, dfam_release_date, total_families, curated_families, species FROM db_version";
 
       let data = await conn.query( query, { type: "SELECT" })
       data = data[0]
@@ -28,7 +28,7 @@ const getVersion = () => new Promise(
             "total_families": data.total_families,
             "curated_families": data.curated_families,
             "species": data.species,
-            "release_date": "October 2023" // TODO: add to database to not hard code it here
+            "release_date": new Date(data.dfam_release_date).toLocaleString('default', {month: 'long', year: 'numeric'})
           }
         }
       ));
