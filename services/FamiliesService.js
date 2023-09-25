@@ -12,6 +12,7 @@ const mapFields = require("../utils/mapFields");
 const escape = require("../utils/escape");
 const family = require("../utils/family");
 const logger = require('../logger');
+const fs = require('fs');
 
 /**
 * Retrieve a list of families in Dfam, optionally filtered and sorted.
@@ -37,7 +38,7 @@ const logger = require('../logger');
 * download Boolean If true, adds headers to trigger a browser download. (optional)
 * returns familiesResponse
 * */
-const readFamilies = ({ format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download }) => new Promise(
+const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
     // TODO Move these functions to utils/family.js
     async function familyRowsToObjects(total_count, rows, format, copyright, download) {
@@ -265,19 +266,43 @@ const readFamilies = ({ format, sort, name, name_prefix, name_accession, classif
       const count_result = await dfam.familyModel.findAndCountAll(query);
       const total_count = count_result.count;
 
+      // Return message if query is too large to be sent
       if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
         const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
         resolve(Service.successResponse( { payload: {message} }, 400 ));
       }
 
-      // Anthony found that the findAndCountAll query above is redundant with this one. 6/27/23
-      //let rows = await dfam.familyModel.findAll(query);
-      let rows = count_result.rows;
+      const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
+      const cache_name = JSON.stringify(args).replaceAll(':', '-').replaceAll(',', '-').replaceAll('"', '').slice(1,-1) + ".cache"
+      const cache_file = cache_dir + cache_name
+      const working_file = cache_file + '.working'
 
-      rows = await family.familySubqueries(rows, format);
+      // If cache exists, return cache file
+      if (fs.existsSync(cache_file) && download ) {
+        const file = fs.readFileSync(cache_file, {encoding: 'utf8', flag: 'r'})
+        resolve(Service.successResponse({payload: file}, 200));
+      
+      // If cache is being built, return message
+      } else if (fs.existsSync(working_file) && download ) {
+        resolve(Service.successResponse({payload: "Working..."}, 202)); // TODO Test this
+      
+      } else {
+        let rows = count_result.rows;
 
-      resolve(Service.successResponse( await format_rules.mapper(total_count, rows, format) ));
+        rows = await family.familySubqueries(rows, format);
 
+        let formatted = await format_rules.mapper(total_count, rows, format)
+        // If large request
+        if (total_count > config.CACHE_CUTOFF && download && !fs.existsSync(cache_file)) {
+          // const proc = child_process.spawn(
+            fs.writeFileSync(working_file, formatted.payload)
+            fs.renameSync(working_file, cache_file)
+            // { stdio: ['pipe', 'pipe', 'inherit'] }
+          // );
+          // return working TODO
+        }
+        resolve(Service.successResponse({payload: formatted}, 200));
+    }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

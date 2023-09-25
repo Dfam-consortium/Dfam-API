@@ -16,7 +16,8 @@ const config = {
   PROJECT_DIR: __dirname,
   VERSION_MAJOR: '0',
   VERSION_MINOR: '4',
-  VERSION_BUGFIX: '0'
+  VERSION_BUGFIX: '0',
+  CACHE_CUTOFF: 10
 };
 
 for(var key in conf)
