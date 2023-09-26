@@ -280,29 +280,30 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       // If cache exists, return cache file
       if (fs.existsSync(cache_file) && download ) {
         const file = fs.readFileSync(cache_file, {encoding: 'utf8', flag: 'r'})
-        resolve(Service.successResponse({payload: file}, 200));
+        resolve(Service.successResponse(JSON.parse(file), 200));
       
       // If cache is being built, return message
       } else if (fs.existsSync(working_file) && download ) {
         resolve(Service.successResponse({payload: "Working..."}, 202)); // TODO Test this
       
-      } else {
+      } 
         let rows = count_result.rows;
 
         rows = await family.familySubqueries(rows, format);
 
         let formatted = await format_rules.mapper(total_count, rows, format)
+
         // If large request
         if (total_count > config.CACHE_CUTOFF && download && !fs.existsSync(cache_file)) {
           // const proc = child_process.spawn(
-            fs.writeFileSync(working_file, formatted.payload)
+            fs.writeFileSync(working_file, JSON.stringify(formatted))
             fs.renameSync(working_file, cache_file)
             // { stdio: ['pipe', 'pipe', 'inherit'] }
           // );
           // return working TODO
         }
-        resolve(Service.successResponse({payload: formatted}, 200));
-    }
+
+        resolve(Service.successResponse(formatted, 200));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
