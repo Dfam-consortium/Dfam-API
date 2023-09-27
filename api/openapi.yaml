@@ -2045,19 +2045,20 @@ components:
           description: "Sequence data to search, in FASTA format."
           type: string
         organism:
-          description: "Source organism of the sequence, used for determining search\
-            \ thresholds."
+          description: "Source organism of the sequence, used for determining search.\
+            \ thresholds. Uses the organism-specific E-value"
           type: string
         cutoff:
           description: "Type of cutoff to use, either 'curated' or 'evalue'."
           type: string
         evalue:
           description: E-value cutoff to use in the search. Only effective if `cutoff`
-            is set to `'evalue'`.
+            is set to `'evalue'`. Used when `orgamism` is not specified.
           type: string
       required:
       - cutoff
       - sequence
+      - organism
     assembliesResponse_inner:
       example:
         name: name
