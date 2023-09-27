@@ -74,11 +74,11 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       // TODO: Consider copyright for bulk and download only
      
       if (format == "embl") {
-        obj.payload = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'embl_command' });
+        obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'embl_command' });
       } else if (format == "fasta") {
-        obj.payload = await workerPool.piscina.run({accessions: accs}, { name: 'fasta_command' });
+        obj.body = await workerPool.piscina.run({accessions: accs}, { name: 'fasta_command' });
       } else if (format == "hmm") {
-        obj.payload = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'hmm_command' });
+        obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'hmm_command' });
       } 
       return obj;
     }
@@ -88,6 +88,24 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         format = "summary";
       }
 
+
+      const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
+      const cache_name = JSON.stringify(args).replaceAll(':', '-').replaceAll(',', '-').replaceAll('"', '').slice(1,-1) + ".cache" // TODO replace this with MD5 hash
+      const cache_file = cache_dir + cache_name
+      const working_file = cache_file + '.working'
+
+      // If cache exists, return cache file
+      if (fs.existsSync(cache_file) && download ) {
+        const file = fs.readFileSync(cache_file, {encoding: 'utf8', flag: 'r'})
+        resolve(Service.successResponse(JSON.parse(file), 200));
+        return
+
+      // If cache is being built, return message
+      } else if (fs.existsSync(working_file) && download ) {
+        resolve(Service.successResponse({body: "Working..."}, 202)); // TODO Test this
+        return
+
+      } 
       // TODO: Consider making these configurable in Dfam.conf
       // TODO: add "count" format that doesn't fill in the summary data and doesn't necessaryily join the classification tables for faster default counts
       const HARD_LIMIT = 5000, HMM_LIMIT = 2000;
@@ -272,38 +290,21 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         resolve(Service.successResponse( { payload: {message} }, 400 ));
       }
 
-      const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
-      const cache_name = JSON.stringify(args).replaceAll(':', '-').replaceAll(',', '-').replaceAll('"', '').slice(1,-1) + ".cache"
-      const cache_file = cache_dir + cache_name
-      const working_file = cache_file + '.working'
+      let rows = count_result.rows;
+      rows = await family.familySubqueries(rows, format);
+      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download)
 
-      // If cache exists, return cache file
-      if (fs.existsSync(cache_file) && download ) {
-        const file = fs.readFileSync(cache_file, {encoding: 'utf8', flag: 'r'})
-        resolve(Service.successResponse(JSON.parse(file), 200));
-      
-      // If cache is being built, return message
-      } else if (fs.existsSync(working_file) && download ) {
-        resolve(Service.successResponse({payload: "Working..."}, 202)); // TODO Test this
-      
-      } 
-        let rows = count_result.rows;
+      // If large request
+      if (total_count > config.CACHE_CUTOFF && download && !fs.existsSync(cache_file)) {
+        console.log('writing')
+        fs.writeFileSync(working_file, JSON.stringify(formatted))
+        fs.renameSync(working_file, cache_file)
+        resolve(Service.successResponse({body: "Working..."}, 202)); // TODO Test this
+        return
+      }
+    
+      resolve(Service.successResponse(formatted, 200));
 
-        rows = await family.familySubqueries(rows, format);
-
-        let formatted = await format_rules.mapper(total_count, rows, format)
-
-        // If large request
-        if (total_count > config.CACHE_CUTOFF && download && !fs.existsSync(cache_file)) {
-          // const proc = child_process.spawn(
-            fs.writeFileSync(working_file, JSON.stringify(formatted))
-            fs.renameSync(working_file, cache_file)
-            // { stdio: ['pipe', 'pipe', 'inherit'] }
-          // );
-          // return working TODO
-        }
-
-        resolve(Service.successResponse(formatted, 200));
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
