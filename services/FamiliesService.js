@@ -88,9 +88,9 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         format = "summary";
       }
 
-
       const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
-      const cache_name = JSON.stringify(args).replaceAll(':', '-').replaceAll(',', '-').replaceAll('"', '').slice(1,-1) + ".cache" // TODO replace this with MD5 hash
+      // TODO replace this with MD5 hash
+      const cache_name = JSON.stringify(args).replaceAll(':', '-').replaceAll(',', '-').replaceAll('"', '').slice(1,-1) + ".cache" 
       const cache_file = cache_dir + cache_name
       const working_file = cache_file + '.working'
 
@@ -102,10 +102,14 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       // If cache is being built, return message
       } else if (fs.existsSync(working_file) && download ) {
-        resolve(Service.successResponse({body: "Working..."}, 202)); // TODO Test this
+        resolve(Service.successResponse({body: "Working..."}, 202));
         return
+      
+      // Write blank working file so client knows it's in process before query is returned
+      } else if (download) {
+        fs.writeFileSync(working_file, "")
+      }
 
-      } 
       // TODO: Consider making these configurable in Dfam.conf
       // TODO: add "count" format that doesn't fill in the summary data and doesn't necessaryily join the classification tables for faster default counts
       const HARD_LIMIT = 5000, HMM_LIMIT = 2000;
@@ -290,17 +294,19 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         resolve(Service.successResponse( { payload: {message} }, 400 ));
       }
 
+      // process rows into file
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download)
 
-      // If large request
+      // If large request write data to working file and rename to finished file
       if (total_count > config.CACHE_CUTOFF && download && !fs.existsSync(cache_file)) {
-        console.log('writing')
         fs.writeFileSync(working_file, JSON.stringify(formatted))
         fs.renameSync(working_file, cache_file)
-        resolve(Service.successResponse({body: "Working..."}, 202)); // TODO Test this
-        return
+    
+      // otherwise, remove placeholder working file
+      } else if (download){
+        fs.unlink(working_file)
       }
     
       resolve(Service.successResponse(formatted, 200));
