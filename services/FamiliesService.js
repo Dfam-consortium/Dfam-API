@@ -298,15 +298,14 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download)
-
       // If large request write data to working file and rename to finished file
-      if (total_count > config.CACHE_CUTOFF && download && !fs.existsSync(cache_file)) {
+      if (total_count > config.CACHE_CUTOFF && download && fs.existsSync(working_file)) {
         fs.writeFileSync(working_file, JSON.stringify(formatted))
         fs.renameSync(working_file, cache_file)
     
       // otherwise, remove placeholder working file
-      } else if (download){
-        fs.unlink(working_file)
+      } else if (fs.existsSync(working_file) && download){
+        fs.unlinkSync(working_file)
       }
     
       resolve(Service.successResponse(formatted, 200));
