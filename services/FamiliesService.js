@@ -71,8 +71,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       // TODO: Consider compressing the results
       // TODO: Consider pagination for large queries
-      // TODO: Consider copyright for bulk and download only
-     
+      // TODO: Consider copyright for bulk and download only     
       if (format == "embl") {
         obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'embl_command' });
       } else if (format == "fasta") {
@@ -80,6 +79,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       } else if (format == "hmm") {
         obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'hmm_command' });
       } 
+
       return obj;
     }
     try {
@@ -95,13 +95,13 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       const working_file = cache_file + '.working'
 
       // If cache exists, return cache file
-      if (fs.existsSync(cache_file) && download ) {
+      if ( download && fs.existsSync(cache_file) ) {
         const file = fs.readFileSync(cache_file, {encoding: 'utf8', flag: 'r'})
         resolve(Service.successResponse(JSON.parse(file), 200));
         return
 
       // If cache is being built, return message
-      } else if (fs.existsSync(working_file) && download ) {
+      } else if ( download && fs.existsSync(working_file)) {
         resolve(Service.successResponse({body: "Working..."}, 202));
         return
       
@@ -298,13 +298,14 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download)
+
       // If large request write data to working file and rename to finished file
       if (total_count > config.CACHE_CUTOFF && download && fs.existsSync(working_file)) {
         fs.writeFileSync(working_file, JSON.stringify(formatted))
         fs.renameSync(working_file, cache_file)
     
       // otherwise, remove placeholder working file
-      } else if (fs.existsSync(working_file) && download){
+      } else if (download && fs.existsSync(working_file) ){
         fs.unlinkSync(working_file)
       }
     
