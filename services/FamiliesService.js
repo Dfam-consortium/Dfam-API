@@ -310,12 +310,9 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         let b64 = Buffer.from(compressed).toString('base64')
         formatted.body = b64
 
-        // set headers
-        // formatted.encoding = 'gzip'
-        // formatted.isBase64Encoded = true
-
         // write object to string
         let str = JSON.stringify(formatted)
+        
         //write and rename file
         fs.writeFileSync(working_file, str)
         fs.renameSync(working_file, cache_file)
