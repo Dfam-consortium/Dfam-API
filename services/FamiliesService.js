@@ -4,6 +4,7 @@ const child_process = require('child_process');
 const Sequelize = require("sequelize");
 const zlib = require("zlib");
 const { promisify } = require("util");
+const md5 = require("md5");
 
 const config = require('../config');
 const dfam = require("../databases").getModels_Dfam();
@@ -89,15 +90,17 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       }
 
       const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
-      // TODO replace this with MD5 hash
-      const cache_name = JSON.stringify(args).replaceAll(':', '-').replaceAll(',', '-').replaceAll('"', '').slice(1,-1) + ".cache" 
+      const cache_name = md5(JSON.stringify(args)) + ".cache" 
       const cache_file = cache_dir + cache_name
       const working_file = cache_file + '.working'
 
       // If cache exists, return cache file
       if ( download && fs.existsSync(cache_file) ) {
+        // read base64 file, convert back to ASCII, parse into object and return
         const file = fs.readFileSync(cache_file, {encoding: 'utf8', flag: 'r'})
-        resolve(Service.successResponse(JSON.parse(file), 200));
+        // const str = Buffer.from(file, "base64").toString()
+        const res = JSON.parse(file)
+        resolve(Service.successResponse(res, 200));
         return
 
       // If cache is being built, return message
@@ -301,9 +304,22 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       // If large request write data to working file and rename to finished file
       if (total_count > config.CACHE_CUTOFF && download && fs.existsSync(working_file)) {
-        fs.writeFileSync(working_file, JSON.stringify(formatted))
+        // compress response body
+        let compressed = zlib.gzipSync(formatted.body);
+        // base64 encode body
+        let b64 = Buffer.from(compressed).toString('base64')
+        formatted.body = b64
+
+        // set headers
+        // formatted.encoding = 'gzip'
+        // formatted.isBase64Encoded = true
+
+        // write object to string
+        let str = JSON.stringify(formatted)
+        //write and rename file
+        fs.writeFileSync(working_file, str)
         fs.renameSync(working_file, cache_file)
-    
+
       // otherwise, remove placeholder working file
       } else if (download && fs.existsSync(working_file) ){
         fs.unlinkSync(working_file)
