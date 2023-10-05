@@ -224,11 +224,17 @@ test.serial('search families updated', async t => {
 
 test.serial('download families', async t => {
   const text_fa = await get_text('/families?clade=185453&format=fasta');
-  t.is(text_fa.match(/^>/gm).length, 67);
+  t.is(JSON.parse(text_fa).body.match(/^>/gm).length, 67);
   const body_embl = await get_text('/families?clade=9263&format=embl');
-  t.is(body_embl.match(/^SQ/gm).length, 6);
+  t.is(JSON.parse(body_embl).body.match(/^SQ/gm).length, 6);
   const body_hmm = await get_text('/families?clade=9263&format=hmm');
-  t.is(body_hmm.match(/^HMMER3\/f/gm).length, 6);
+  t.is(JSON.parse(body_hmm).body.match(/^HMMER3\/f/gm).length, 6);
+});
+
+test.serial('test caching', async t => {
+  await get_body('/families?format=fasta&name_accession=DF000000&classification=root%253BInterspersed_Repeat%253BTransposable_Element%253BClass_I_Retrotransposition%253BLINE&clade_relatives=descendants&download=true')
+  let file = fs.readFileSync('/u2/webresults/browse-cache/c13cbab7f78a81b80f88386047019aea.cache')
+  t.truthy(file)
 });
 
 // /families/{id}
