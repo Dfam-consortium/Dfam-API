@@ -96,9 +96,11 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       // If cache exists, return cache file
       if ( download && fs.existsSync(cache_file) ) {
-        // read base64 file, convert back to ASCII, parse into object and return
+        // update access time for cache
+        fs.utimesSync(cache_file, new Date(), new Date())
+        
+        // read base64 file, parse into object and return
         const file = fs.readFileSync(cache_file, {encoding: 'utf8', flag: 'r'})
-        // const str = Buffer.from(file, "base64").toString()
         const res = JSON.parse(file)
         resolve(Service.successResponse(res, 200));
         return
