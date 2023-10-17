@@ -17,9 +17,7 @@ const familyAssemblyStatsObject = (family_assembly) => {
       trusted_all: family_assembly.hmm_TC_hit_count || '',
       trusted_divergence: family_assembly.hmm_genome_avg_kimura_div_TC || '',
     };
-  } else {
-    console.log(family_assembly)
-  }
+  } 
 
   if (family_assembly.cons_GA_nrph_hit_count !== null) {
     obj.cons = {
