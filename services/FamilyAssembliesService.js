@@ -9,14 +9,16 @@ const familyAssemblyStatsObject = (family_assembly) => {
 
   if (family_assembly.hmm_GA_nrph_hit_count !== null) {
     obj.hmm = {
-      avg_hit_length: family_assembly.hmm_avg_hit_length,
-      gathering_nonredundant: family_assembly.hmm_GA_nrph_hit_count,
-      gathering_all: family_assembly.hmm_GA_hit_count,
-      gathering_divergence: family_assembly.hmm_genome_avg_kimura_div_GA,
-      trusted_nonredundant: family_assembly.hmm_TC_nrph_hit_count,
-      trusted_all: family_assembly.hmm_TC_hit_count,
-      trusted_divergence: family_assembly.hmm_genome_avg_kimura_div_TC,
+      avg_hit_length: family_assembly.hmm_avg_hit_length || '',
+      gathering_nonredundant: family_assembly.hmm_GA_nrph_hit_count || '',
+      gathering_all: family_assembly.hmm_GA_hit_count || '',
+      gathering_divergence: family_assembly.hmm_genome_avg_kimura_div_GA || '',
+      trusted_nonredundant: family_assembly.hmm_TC_nrph_hit_count || '',
+      trusted_all: family_assembly.hmm_TC_hit_count || '',
+      trusted_divergence: family_assembly.hmm_genome_avg_kimura_div_TC || '',
     };
+  } else {
+    console.log(family_assembly)
   }
 
   if (family_assembly.cons_GA_nrph_hit_count !== null) {
@@ -212,16 +214,20 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
         attributes: ["schema_name"],
         where: { 'name': assembly_id }
       })
-
+      
       if (!assembly) {
         reject(Service.rejectResponse({}, 404));
       }
 
       const models = getModels_Assembly(assembly.schema_name);
 
+      // test patch TODO remove
+      let new_id = id.slice(0,2) + id.slice(4)
+      
       const data = await models.coverageDataModel.findOne({
         attributes: [ "karyotype" ],
-        where: { "family_accession": id }
+        where: { "family_accession": new_id }
+        // where: { "family_accession": id }
       })
 
       if (data && data.karyotype) {
