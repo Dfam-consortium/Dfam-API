@@ -211,20 +211,17 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
       const assembly = await dfam.assemblyModel.findOne({
         attributes: ["schema_name"],
         where: { 'name': assembly_id }
-      })
-      
+      })  
+
       if (!assembly) {
         reject(Service.rejectResponse({}, 404));
       }
 
       const models = getModels_Assembly(assembly.schema_name);
-
-      // test patch TODO remove
-      let new_id = id.slice(0,2) + id.slice(4)
       
       const data = await models.coverageDataModel.findOne({
         attributes: [ "karyotype" ],
-        where: { "family_accession": new_id }
+        where: { "family_accession": id }
         // where: { "family_accession": id }
       })
 

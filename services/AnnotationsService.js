@@ -17,7 +17,7 @@ const mapFields = require("../utils/mapFields.js");
 * nrph Boolean `true` to exclude redundant profile hits. (optional)
 * returns annotationsResponse
 * */
-const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new Promise(
+const readAnnotations = ({ assembly, chrom, start, end, family_accession, nrph }) => new Promise(
   async (resolve, reject) => {
     try {
       if (start > end) {
@@ -130,14 +130,13 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
             }
           }
         });
-
-        if (family) {
-          nhmmer = nhmmer.filter(function(hit) {
-            return hit.query === family || hit.accession === family;
+        if (family_accession) {
+          nhmmerResults = nhmmerResults.filter(function(hit) {
+            return hit.query === family_accession || hit.accession === family_accession;
           });
         }
 
-        return nhmmer;
+        return nhmmerResults;
       });
 
       const mask_regions = await models.maskModel.findAll(query_trf)

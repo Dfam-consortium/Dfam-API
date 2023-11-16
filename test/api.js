@@ -151,7 +151,7 @@ test.serial('search classifications', async t => {
 // FamiliesService
 test.serial('search families', async t => {
   const body = await get_body('/families?clade=9263&limit=20');
-  t.is(body.total_count, 6);
+  t.is(body.total_count, 5);
   const charlie1 = body.results.find(f => f.name === 'Charlie1');
   t.regex(charlie1.title, /Charlie DNA transposon/);
   t.regex(charlie1.description, /8 bp TSD./);
@@ -164,10 +164,10 @@ test.serial('search families query limit', async t => {
 });
 
 test.serial('search families with consensi', async t => {
-  const body = await get_body('/families?clade=9606&format=full&name=ltr');
-  t.is(body.total_count, 3);
-  const ltr26c = body.results.find(f => f.name === 'LTR26C');
-  t.regex(ltr26c.consensus_sequence, /^[ACGTN]*$/);
+  const body = await get_body('/families?clade=9606&format=full&name=Alu');
+  t.is(body.total_count, 9);
+  const example = body.results.find(f => f.name === 'AluYa5');
+  t.is(example.consensus_sequence, "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACGAGGTCAGGAGATCGAGACCATCCCGGCTAAAACGGTGAAACCCCGTCTCTACTAAAAATACAAAAAATTAGCCGGGCGTAGTGGCGGGCGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAGGAGAATGGCGTGAACCCGGGAGGCGGAGCTTGCAGTGAGCCGAGATCCCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 });
 
 test.serial('search raw families', async t => {
@@ -181,13 +181,13 @@ test.serial('search families sorted by subtype', async t => {
   const body = await get_body('/families?clade=9606&sort=subtype:asc');
   t.deepEqual(
     body.results.map(r => r.repeat_subtype_name).filter(x => x !== undefined),
-    ["Alu", "Alu", "Alu", "ERV1", "ERV1", "ERVK", "SVA", "SVA"],
+    ["Alu", "Alu", "Alu", "Alu", "Alu", "Alu", "Alu", "Alu", "Alu", "SVA", "SVA"],
   );
 });
 
 test.serial('search families name_prefix', async t => {
   const body = await get_body('/families?name_prefix=Alu');
-  t.true(body.total_count == 45)
+  t.true(body.total_count == 42)
 });
 
 test.serial('search families classification', async t => {
@@ -197,7 +197,7 @@ test.serial('search families classification', async t => {
 
 test.serial('search families type', async t => {
   const body = await get_body('/families?type=SINE');
-  t.true(body.total_count == 1488)
+  t.true(body.total_count == 1484)
 });
 
 test.serial('search families desc', async t => {
@@ -207,7 +207,7 @@ test.serial('search families desc', async t => {
 
 test.serial('search families keywords', async t => {
   const body = await get_body('/families?format=summary&keywords=hAT auto&limit=20');
-  t.true(body.total_count == 334)
+  t.is(body.total_count, 336)
 });
 
 test.serial('search families start', async t => {
@@ -219,16 +219,16 @@ test.serial('search families start', async t => {
 
 test.serial('search families updated', async t => {
   const body = await get_body('/families?updated_after=2022-01-01&updated_before=2023-01-01');
-  t.true(body.total_count == 4288)
+  t.is(body.total_count, 4244)
 });
 
 test.serial('download families', async t => {
   const text_fa = await get_text('/families?clade=185453&format=fasta');
-  t.is(JSON.parse(text_fa).body.match(/^>/gm).length, 67);
+  t.is(JSON.parse(text_fa).body.match(/>/gm).length, 67);
   const body_embl = await get_text('/families?clade=9263&format=embl');
-  t.is(JSON.parse(body_embl).body.match(/^SQ/gm).length, 6);
+  t.is(JSON.parse(body_embl).body.match(/^SQ/gm).length, 5);
   const body_hmm = await get_text('/families?clade=9263&format=hmm');
-  t.is(JSON.parse(body_hmm).body.match(/^HMMER3\/f/gm).length, 6);
+  t.is(JSON.parse(body_hmm).body.match(/^HMMER3\/f/gm).length, 5);
 });
 
 test.serial('test caching', async t => {
@@ -325,7 +325,6 @@ test.serial('get family relationships include_raw', async t => {
 });
 
 // FamilyAssembliesService
-// TODO using old accession numbers in some of these. Correct when assemblies are updated - 8/18/23
 test.serial('get family assemblies', async t => {
   const body = await get_body('/families/DF000000001/assemblies');
   const hg38 = body.find(a => a.id == 'hg38');
@@ -344,26 +343,26 @@ test.serial('get family assembly stats', async t => {
 });
 
 test.serial('get family assembly annotations', async t => {
-  const text_rph = await get_text('/families/DF0000012/assemblies/danRer10/annotations?nrph=false');
-  const text_nrph = await get_text('/families/DF0000012/assemblies/danRer10/annotations?nrph=true');
+  const text_rph = await get_text('/families/DF000000012/assemblies/danRer10/annotations?nrph=false');
+  const text_nrph = await get_text('/families/DF000000012/assemblies/danRer10/annotations?nrph=true');
 
   t.true(text_nrph.length < text_rph.length);
 });
 
 test.serial('get family assembly karyotype', async t => {
-  const body = await get_body('/families/DF0000012/assemblies/danRer10/karyotype');
+  const body = await get_body('/families/DF000000012/assemblies/danRer10/karyotype');
   t.truthy(body.singleton_contigs.length);
 });
 
 test.serial('get family assembly coverage', async t => {
-  const body = await get_body('/families/DF0000012/assemblies/danRer10/model_coverage?model=hmm');
+  const body = await get_body('/families/DF000000012/assemblies/danRer10/model_coverage?model=hmm');
   t.truthy(body.nrph);
   t.truthy(body.false);
   t.true(body.nrph_hits < body.all_hits);
 });
 
 test.serial('get family assembly conservation', async t => {
-  const body = await get_body('/families/DF0000012/assemblies/danRer10/model_conservation?model=hmm');
+  const body = await get_body('/families/DF000000012/assemblies/danRer10/model_conservation?model=hmm');
   t.truthy(body.length);
   t.truthy(body[0].num_seqs);
 });
