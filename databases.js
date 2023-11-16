@@ -1,11 +1,23 @@
-var winston = require('winston');
+var logger = require('./logger');
 var config = require('./config');
-
+const isMainThread = require('node:worker_threads').isMainThread;
+const threadId = require('node:worker_threads').threadId;
 var Sequelize = require('sequelize');
 
+/**
+ * databases.js
+ *
+ * A simple module that supports a single set of mysql2 connections and 
+ * Sequelize models for use in many parts of an Express application.
+ */
+
 function connect(dbinfo) {
-  winston.info(`Connecting to ${dbinfo.database}`);
-  return new Sequelize(
+  if ( isMainThread ) {
+    logger.info(`Main thread connecting to ${dbinfo.database}`);
+  }else {
+    logger.info(`Worker thread ` + threadId + ` connecting to ${dbinfo.database}`);
+  }
+  const dbconn =  new Sequelize(
     dbinfo.database,
     dbinfo.user,
     dbinfo.password,
@@ -15,13 +27,18 @@ function connect(dbinfo) {
       dialect: "mysql",
       dialectOptions: {
         charset: "latin1_swedish_ci",
+        timezone: "local"
       },
       define: {
         timestamps: false,
       },
       timezone: config.apiserver.db_timezone,
+      //logging: false,
+      //benchmark: true,
+      //logQueryParameters: true,
       logging: function(message, data) {
-        winston.debug(message);
+        logger.debug(message);
+        //console.log(message);
       },
       pool: {
         max: 5,
@@ -30,25 +47,56 @@ function connect(dbinfo) {
       }
     }
   );
+  //dbconn.authenticate();
+  //console.log("DONE dbconn authenticate....");
+  return dbconn;
 }
 
-var dfam_connection = connect(config.schema.Dfam);
-const dfam_models = require("./dbmodels").getDfamModels(dfam_connection);
+var _dfam_conn;
+const getConn_Dfam = function () {
+  if (! _dfam_conn) {
+    _dfam_conn = connect(config.schema.Dfam);
+  }
+  return(_dfam_conn);
+};
 
-var users_connection = connect(config.schema.DfamUser);
-const dfam_user_models = require("./dbmodels").getDfamUserModels(users_connection);
+var _dfam_models;
+const getModels_Dfam = function () {
+  if (! _dfam_models) {
+    _dfam_models = require("./dbmodels").getDfamModels(getConn_Dfam());
+  }
+  return(_dfam_models);
+};
 
-const assemblyModels = {};
-function getAssemblyModels(schema_name) {
-  if (!assemblyModels[schema_name]) {
-    const models = assemblyModels[schema_name] = {};
-    const conn = models.conn = connect({
+var _user_conn;
+const getConn_User = function () {
+  if (! _user_conn) {
+    _user_conn = connect(config.schema.DfamUser);
+  }
+  return(_user_conn);
+};
+
+var _user_models;
+const getModels_User = function () {
+  if (! _user_models) {
+    _user_models = require("./dbmodels").getDfamUserModels(getConn_User());
+  }
+  return(_user_models);
+};
+    
+var _assembly_models = {};
+const getModels_Assembly = function(schema_name) {
+  if (!_assembly_models[schema_name]) {
+    
+    const conn = connect({
       database: schema_name,
       host: config.schema.AssemblyDB.host,
       port: config.schema.AssemblyDB.port,
       user: config.schema.AssemblyDB.user,
       password: config.schema.AssemblyDB.password,
     });
+
+    const models = _assembly_models[schema_name] = {};
 
     models.modelFileModel = require("./models/assembly/model_file.js")(conn, Sequelize);
     models.karyotypeModel = require("./models/assembly/karyotype.js")(conn, Sequelize);
@@ -64,14 +112,13 @@ function getAssemblyModels(schema_name) {
     models.maskModel.belongsTo(models.sequenceModel, { foreignKey: 'seq_accession' });
   }
 
-  return assemblyModels[schema_name];
-}
-
+  return _assembly_models[schema_name];
+};
 
 module.exports = {
-  "dfam": dfam_connection,
-  dfam_models,
-  "users": users_connection,
-  dfam_user_models,
-  "getAssemblyModels": getAssemblyModels
+  getConn_Dfam,
+  getModels_Dfam,
+  getConn_User,
+  getModels_User,
+  getModels_Assembly
 };

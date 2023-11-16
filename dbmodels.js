@@ -38,6 +38,7 @@ exports.getDfamModels = function(conn) {
   models.familyModel.belongsToMany(models.dfamTaxdbModel, { as: 'clades', through: 'family_clade', foreignKey: 'family_id', otherKey: 'dfam_taxdb_tax_id' });
   models.familyModel.hasMany(models.familyFeatureModel, { foreignKey: 'family_id', as: 'features' });
   models.familyFeatureModel.hasMany(models.featureAttributeModel, { foreignKey: 'family_feature_id', as: 'feature_attributes' });
+  models.familyModel.hasMany(models.familyAssemblyDataModel, { foreignKey: 'family_id', as: 'family_assembly_data' });
   models.familyModel.hasMany(models.codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
   models.familyModel.belongsTo(models.sourceMethodModel, { foreignKey: 'source_method_id', as: 'source_method' });
   models.familyModel.belongsTo(models.assemblyModel, { foreignKey: 'source_assembly_id', as: 'source_assembly' });

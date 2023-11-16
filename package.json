@@ -1,46 +1,65 @@
 {
-  "name": "dfam-api",
-  "version": "0.3.11",
-  "description": "Dfam API server",
-  "author": "Jeb Rosen <jeb.rosen@systemsbiology.org>",
+  "name": "dfam-rest-api",
+  "version": "0.4.0",
+  "description": "The Dfam REST API provides a means for programs and scripts to access information from the current release of the Dfam database. It provides the core functionality used by the dfam.org website and is offered for use  in community developed applications and workflows.   For more information on getting started with the Dfam API, see the documentation and examples at [https://dfam.org/help/api](https://dfam.org/help/api)  ### Known Consumers https://dfam.org/  ### Authors Robert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen, Anthony Gray  Copyright 2016-2023 Institute for Systems Biology",
   "main": "index.js",
-  "watch": {
-    "start": "**/*.js"
-  },
   "scripts": {
+    "prestart": "npm install",
     "start": "node index.js",
+    "build": "npm build",
     "lint": "eslint .; true",
+    "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
-    "test": "ava",
-    "coverage": "nyc ava",
-    "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml"
+    "test": "ava --no-worker-threads >& ./test/test.ava.log",
+    "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml",
+    "artillery": "artillery run ./test/artillery-test.yaml >& ./test/test.artillery.log"
   },
+  "keywords": [
+    "openapi-generator",
+    "openapi"
+  ],
   "license": "CC0-1.0",
   "private": true,
   "dependencies": {
-    "connect": "^3.7.0",
+    "body-parser": "^1.19.0",
+    "camelcase": "^5.3.1",
+    "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
-    "dateformat": "^4.5.1",
-    "js-yaml": "^4.1.0",
+    "express": "^4.16.4",
+    "express-openapi-validator": "^5.0.4",
+    "js-yaml": "^3.3.0",
     "md5": "^2.3.0",
-    "mysql2": "^2.3.3",
-    "on-finished": "^2.4.1",
-    "rss-parser": "^3.12.0",
+    "mysql2": "^3.4.2",
+    "npm-watch": "^0.11.0",
+    "ono": "^5.0.1",
+    "openapi-sampler": "^1.0.0-beta.15",
+    "piscina": "^4.0.0",
+    "rss-parser": "^3.13.0",
     "sequelize": "^6.17.0",
-    "swagger-tools": "^0.10.4",
-    "tmp": "^0.2.1",
-    "uuid": "^8.3.2",
-    "winston": "^3.6.0",
-    "word-wrap": "^1.2.3"
+    "swagger-ui-express": "^4.0.2",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
-    "ava": "^3.15.0",
-    "eslint": "^7.32.0",
-    "mysql": "^2.18.1",
-    "npm-watch": "^0.11.0",
-    "nyc": "^15.1.0",
-    "sequelize-auto": "^0.8.8",
-    "spectacle-docs": "^1.1.0",
-    "supertest": "^6.2.2"
+    "artillery": "^2.0.0-34",
+    "ava": "^5.3.1",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^8.44.0",
+    "supertest": "^6.3.3"
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true
+    }
+  },
+  "ava": {
+    "workerThreads": false,
+    "timeout": "40s"
+  },
+  "watch": {
+    "start": [
+      "./services/*.js",
+      "./controllers/*.js"
+    ]
   }
 }

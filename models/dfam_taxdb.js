@@ -8,22 +8,22 @@ module.exports = function(sequelize, DataTypes) {
       comment: "A ncbi_taxdb_nodes identifier"
     },
     scientific_name: {
-      type: DataTypes.STRING(128),
+      type: DataTypes.STRING(256),
       allowNull: false,
       comment: "The scientific name of the organism ( from NCBI )"
     },
     sanitized_name: {
-      type: DataTypes.STRING(128),
+      type: DataTypes.STRING(256),
       allowNull: false,
       comment: "The sanitized name of the organism ( internally created - TODO: explain )"
     },
     common_name: {
-      type: DataTypes.STRING(128),
+      type: DataTypes.STRING(256),
       allowNull: true,
       comment: "The common name for the species, if one is defined ( from NCBI )"
     },
     unique_name: {
-      type: DataTypes.STRING(128),
+      type: DataTypes.STRING(256),
       allowNull: true,
       comment: "This is populated when there is a name clash and represents a unique_version of name_txt ( from NCBI )"
     },

@@ -3,5 +3,6 @@ node_modules/
 /.nyc_output/
 /Dfam-API.log
 /Dfam-API-worker.log
-/autogen/output/
-/coverage/
+combined.log
+error.log
+openapi.yaml.sans_example

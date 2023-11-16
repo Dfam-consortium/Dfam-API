@@ -5,10 +5,24 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(45),
       allowNull: false,
       primaryKey: true,
-      comment: "The version of the NCBI Taxonomy Database"
     },
     dfam_release_date: {
       type: DataTypes.DATEONLY,
+      allowNull: false,
+      primaryKey: true
+    },
+    total_families: {
+      type: DataTypes.INTEGER(10).UNSIGNED,
+      allowNull: false,
+      primaryKey: true
+    },
+    curated_families: {
+      type: DataTypes.INTEGER(10).UNSIGNED,
+      allowNull: false,
+      primaryKey: true
+    },
+    species: {
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: false,
       primaryKey: true
     }
@@ -24,6 +38,9 @@ module.exports = function(sequelize, DataTypes) {
         fields: [
           { name: "dfam_version" },
           { name: "dfam_release_date" },
+          { name: "total_families" },
+          { name: "curated_families" },
+          { name: "species" }
         ]
       },
     ]
