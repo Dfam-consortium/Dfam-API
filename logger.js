@@ -7,9 +7,9 @@ const logger = createLogger({
     format.json(),
   ),
   defaultMeta: { service: 'user-service' },
+  //  new transports.File({ filename: 'Dfam-API-error.log', level: 'error', timestamp: true }),
   transports: [
-    new transports.File({ filename: 'error.log', level: 'error', timestamp: true }),
-    new transports.File({ filename: 'combined.log', timestamp: true }),
+    new transports.File({ filename: 'Dfam-API.log', timestamp: true }),
   ],
 });
 
