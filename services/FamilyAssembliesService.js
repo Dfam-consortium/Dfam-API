@@ -184,7 +184,11 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
       }
 
       resolve(Service.successResponse(
-        files.dataValues[column], 200
+        { payload: files.dataValues[column],
+          code: 200,
+          content_type: 'text/plain',
+          encoding: 'gzip',
+        }
       ));
 
     } catch (e) {

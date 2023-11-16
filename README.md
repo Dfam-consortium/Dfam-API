@@ -168,3 +168,6 @@ This is where the API Gateway ends, and the unique business-logic of your applic
 - **.js** - auto-generated code, providing a stub Promise for each operationId defined in the `openapi.yaml`. Each method receives the variables that were defined in the `openapi.yaml` file, and wraps a Promise in a try/catch clause. The Promise resolves both success and failure in a call to the `Service.js` utility class for building the appropriate response that will be sent back to the Controller and then to the caller of this endpoint.
 
 #### models/
+
+## Download File Caching
+Large download requests are cached in `/u2/webresults/browse-cache`. The filenames are `<hash of query parameters>.cache`. The `cache_cleanup.py` script is periodically run as a cron job to remove old cache files.
