@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require("fs");
 
-let conf_file = "../Conf/dfam-rel.conf";
+let conf_file = "../Conf/dfam.conf";
 if (process.env.DFAM_CONF) {
   conf_file = process.env.DFAM_CONF;
 }

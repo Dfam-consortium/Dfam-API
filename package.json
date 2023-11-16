@@ -37,7 +37,8 @@
     "rss-parser": "^3.13.0",
     "sequelize": "^6.17.0",
     "swagger-ui-express": "^4.0.2",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "word-wrap": "^1.2.3"
   },
   "devDependencies": {
     "artillery": "^2.0.0-34",
