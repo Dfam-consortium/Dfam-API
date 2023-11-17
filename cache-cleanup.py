@@ -3,7 +3,10 @@ from datetime import datetime, timedelta
 import json
  
 current_directory = os.path.dirname(os.path.abspath(__file__))
-config_dir = current_directory + '/../Conf/dfam-rel.conf'
+# dfweb Config file
+config_dir = current_directory + '/dfam.conf'
+# Dev config file
+# config_dir = current_directory + '/../Conf/dfam-rel.conf'
 
 with open(config_dir) as f:
     config = json.load(f)
