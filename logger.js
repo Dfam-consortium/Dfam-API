@@ -1,7 +1,8 @@
 const { transports, createLogger, format } = require('winston');
 
 const logger = createLogger({
-  level: 'info',
+  // TODO: Set this in the user environment
+  level: 'verbose',
   format: format.combine(
     format.timestamp(),
     format.json(),

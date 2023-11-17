@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const camelCase = require('camelcase');
 const config = require('../config');
+const logger = require('../logger');
+
 
 class Controller {
 
@@ -47,7 +49,6 @@ class Controller {
     }
     const responsePayload = serviceResponse.payload !== undefined ? serviceResponse.payload : serviceResponse;
     if (responsePayload instanceof Object) {
-      // TODO is this the best way to check?
       if ( serviceResponse.encoding !== undefined ) {
         response.send(responsePayload);
       }else {
@@ -150,11 +151,15 @@ class Controller {
 
   static async handleRequest(request, response, serviceOperation) {
     try {
+      const start = new Date();
       //console.log(JSON.stringify(request.query));
       const serviceResponse = await serviceOperation(this.collectRequestParams(request));
       Controller.sendResponse(response, serviceResponse);
+      const time = new Date() - start;
+      logger.verbose(`${request.method} ${request.url} ${response.statusCode} ${time}ms`);
     } catch (error) {
       Controller.sendError(response, error);
+      logger.error(error);
     }
   }
 }

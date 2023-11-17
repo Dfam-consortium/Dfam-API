@@ -108,16 +108,19 @@ npm run lint
 
 ### Building Documentation
 
+First make sure the redocly dependency is globally installed:
 ```
-npm run build-docs
+npm install @redocly/cli -g
+```
+
+Then invoke redocly on the OpenAPI 2.0 file:
+```
+redocly build-docs openapi.yaml
 ```
 
 And to deploy them:
 ```
-cp -r autogen/apidocs/ /path/to/target
-
-e.g.
-  cp -r autogen/apidocs/ /usr/local/Dfam-warehouse/releases/Dfam_3.0
+cp redoc-static.html /usr/local/Dfam-warehouse/releases/Dfam_3.8/apidocs/index.html
          
 ```
 
