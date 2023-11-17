@@ -11,7 +11,7 @@
     "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
     "test": "ava --no-worker-threads >& ./test/test.ava.log",
-    "build-docs": "spectacle -t autogen/apidocs/ api/swagger/swagger.yaml",
+    "build-docs": "redocly build-docs api/openapi.yaml",
     "artillery": "artillery run ./test/artillery-test.yaml >& ./test/test.artillery.log"
   },
   "keywords": [
