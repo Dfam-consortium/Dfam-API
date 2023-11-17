@@ -94,7 +94,7 @@ const readSearchResults = ({ id }) => new Promise(
       if (!searchRec) {
         reject(Service.rejectResponse('Not Found', 404));
       }
-      
+
       let dataDir = getDateDir(searchRec.started, id);
       let nhmmer_out = dataDir + "/nhmmer.out"
       let trf_out = dataDir + "/trf.out"
@@ -141,6 +141,7 @@ const readSearchResults = ({ id }) => new Promise(
         
       } else if (jobRec.status === "DONE") {
         if (!fs.existsSync(nhmmer_out)){
+          response.message = "Job Complete, Preparing Data"
           resolve(Service.successResponse(response, 202));
         }
         // if file exists, handled below
