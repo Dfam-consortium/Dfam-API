@@ -94,6 +94,10 @@ const readSearchResults = ({ id }) => new Promise(
       if (!searchRec) {
         reject(Service.rejectResponse('Not Found', 404));
       }
+      
+      let dataDir = getDateDir(searchRec.started, id);
+      let nhmmer_out = dataDir + "/nhmmer.out"
+      let trf_out = dataDir + "/trf.out"
 
       const jobRec = searchRec.job;
 
@@ -136,7 +140,11 @@ const readSearchResults = ({ id }) => new Promise(
         reject(Service.rejectResponse(response, 500));
         
       } else if (jobRec.status === "DONE") {
-        // handled below
+        if (!fs.existsSync(nhmmer_out)){
+          resolve(Service.successResponse(response, 202));
+        }
+        // if file exists, handled below
+        
       } else {
         response.status = jobRec.status;
         response.message = "Unknown status.";
@@ -145,9 +153,6 @@ const readSearchResults = ({ id }) => new Promise(
 
       const FAILURE_MESSAGE = "Failed to retrieve search results. Please try submitting the search again and contact help if the problem continues.";
       
-      var dataDir = getDateDir(searchRec.started, id);
-      let nhmmer_out = dataDir + "/nhmmer.out"
-      let trf_out = dataDir + "/trf.out"
       let getQuerySizes = {};
       try {
         fs.access(nhmmer_out, fs.constants.R_OK, (err) => err);
