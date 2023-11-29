@@ -306,10 +306,10 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       rows = await family.familySubqueries(rows, format);
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download)
 
-      // If large request write data to working file and rename to finished file
-      if (total_count > config.CACHE_CUTOFF && download && fs.existsSync(working_file)) {
+      if (download) {
         // compress response body
         let compressed = zlib.gzipSync(formatted.body);
+        
         // base64 encode body
         let b64 = Buffer.from(compressed).toString('base64')
         formatted.body = b64
@@ -317,15 +317,19 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         // write object to string
         let str = JSON.stringify(formatted)
 
-        //write and rename file
-        fs.writeFileSync(working_file, str)
-        fs.renameSync(working_file, cache_file)
+        // If large request write data to working file and rename to finished file
+        if (total_count > config.CACHE_CUTOFF && fs.existsSync(working_file)) {
+          //write and rename file
+          fs.writeFileSync(working_file, str)
+          fs.renameSync(working_file, cache_file)
+        // otherwise, remove placeholder working file
+        } else if (fs.existsSync(working_file)){
+          fs.unlinkSync(working_file)
+        }
 
-      // otherwise, remove placeholder working file
-      } else if (download && fs.existsSync(working_file) ){
-        fs.unlinkSync(working_file)
+        resolve(Service.successResponse(str, 200));
       }
-    
+
       resolve(Service.successResponse(formatted, 200));
 
     } catch (e) {
