@@ -314,20 +314,19 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         let b64 = Buffer.from(compressed).toString('base64')
         formatted.body = b64
 
-        // write object to string
-        let str = JSON.stringify(formatted)
-
         // If large request write data to working file and rename to finished file
         if (total_count > config.CACHE_CUTOFF && fs.existsSync(working_file)) {
+          // write object to string
+          let str = JSON.stringify(formatted)
+
           //write and rename file
           fs.writeFileSync(working_file, str)
           fs.renameSync(working_file, cache_file)
+
         // otherwise, remove placeholder working file
         } else if (fs.existsSync(working_file)){
           fs.unlinkSync(working_file)
         }
-
-        resolve(Service.successResponse(str, 200));
       }
 
       resolve(Service.successResponse(formatted, 200));
