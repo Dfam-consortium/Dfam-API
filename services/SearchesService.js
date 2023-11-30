@@ -140,7 +140,7 @@ const readSearchResults = ({ id }) => new Promise(
         reject(Service.rejectResponse(response, 500));
         
       } else if (jobRec.status === "DONE") {
-        if (!fs.existsSync(nhmmer_out)){
+        if (!(fs.existsSync(nhmmer_out) && fs.existsSync(trf_out))){
           response.message = "Job Complete, Preparing Data"
           resolve(Service.successResponse(response, 202));
         }
