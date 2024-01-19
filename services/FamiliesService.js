@@ -102,6 +102,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         // read base64 file, parse into object and return
         const file = fs.readFileSync(cache_file, {encoding: 'utf8', flag: 'r'})
         const res = JSON.parse(file)
+        logger.info(`Using Cached File ${cache_file}`)
         resolve(Service.successResponse(res, 200));
         return
 
@@ -113,6 +114,8 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       // Write blank working file so client knows it's in process before query is returned
       } else if (download) {
         fs.writeFileSync(working_file, "")
+        logger.info(`Created Working file ${working_file}`)
+
       }
 
       // TODO: Consider making these configurable in Dfam.conf
@@ -318,20 +321,27 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         if (total_count > config.CACHE_CUTOFF && fs.existsSync(working_file)) {
           // write object to string
           let str = JSON.stringify(formatted)
-
           //write and rename file
           fs.writeFileSync(working_file, str)
           fs.renameSync(working_file, cache_file)
+          logger.info(`Wrote Cache File ${cache_file}`)
 
         // otherwise, remove placeholder working file
         } else if (fs.existsSync(working_file)){
           fs.unlinkSync(working_file)
+          logger.info(`Removed Working File ${working_file}`)
+          
         }
       }
 
       resolve(Service.successResponse(formatted, 200));
 
     } catch (e) {
+      if (download){
+        logger.error(`Caching Request Failed: ${md5(JSON.stringify(args))} - ${e}`)
+      } else {
+        logger.error(`Error - ${e}`)
+      }
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
         e.status || 405,
