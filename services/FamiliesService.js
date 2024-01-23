@@ -41,6 +41,7 @@ const fs = require('fs');
 * */
 const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
+    const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
     // TODO Move these functions to utils/family.js
     async function familyRowsToObjects(total_count, rows, format, copyright, download) {
       // Download isn't applicable here yet?
@@ -51,8 +52,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         payload: data
       };
     }
-    async function workerFormatAccessions(total_count, rows, format, copyright, download) {
-      const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
+    async function workerFormatAccessions(total_count, rows, format, copyright, download, write_file=null) {
 
       if ( ! (format in extensions) ) {
         resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
@@ -78,7 +78,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       } else if (format == "fasta") {
         obj.body = await workerPool.piscina.run({accessions: accs}, { name: 'fasta_command' });
       } else if (format == "hmm") {
-        obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'hmm_command' });
+        obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0, write_file: write_file}, { name: 'hmm_command' });
       } 
 
       return obj;
@@ -93,9 +93,14 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       const cache_name = md5(JSON.stringify(args)) + ".cache" 
       const cache_file = cache_dir + cache_name
       const working_file = cache_file + '.working'
-
+      
+      // If cache is being built, return message
+      if ( download && fs.existsSync(working_file)) {
+        resolve(Service.successResponse({body: "Working..."}, 202));
+        return
+      } 
       // If cache exists, return cache file
-      if ( download && fs.existsSync(cache_file) ) {
+      else if ( download && fs.existsSync(cache_file) ) {
         // update access time for cache
         fs.utimesSync(cache_file, new Date(), new Date())
         
@@ -106,11 +111,6 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         resolve(Service.successResponse(res, 200));
         return
 
-      // If cache is being built, return message
-      } else if ( download && fs.existsSync(working_file)) {
-        resolve(Service.successResponse({body: "Working..."}, 202));
-        return
-      
       // Write blank working file so client knows it's in process before query is returned
       } else if (download) {
         fs.writeFileSync(working_file, "")
@@ -307,34 +307,45 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       // process rows into file
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
-      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download)
+      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = download ? working_file: null)
 
       if (download) {
         // compress response body
-        let compressed = zlib.gzipSync(formatted.body);
+        // let compressed = zlib.gzipSync(formatted.body);
         
         // base64 encode body
-        let b64 = Buffer.from(compressed).toString('base64')
-        formatted.body = b64
+        // let b64 = Buffer.from(compressed).toString('base64')
+        // formatted.body = b64
 
         // If large request write data to working file and rename to finished file
         if (total_count > config.CACHE_CUTOFF && fs.existsSync(working_file)) {
           // write object to string
-          let str = JSON.stringify(formatted)
+          // let str = JSON.stringify(formatted)
           //write and rename file
-          fs.writeFileSync(working_file, str)
-          fs.renameSync(working_file, cache_file)
-          logger.info(`Wrote Cache File ${cache_file}`)
+          // fs.writeFileSync(working_file, str)
+          fs.writeFileSync(cache_file, '{"attachment": "families.hmm", "content_type": "text/plain", "encoding": "identity", "body": ')
 
-        // otherwise, remove placeholder working file
-        } else if (fs.existsSync(working_file)){
+          const zipping = await new Promise((resolve, reject) => {
+              const gzip = zlib.createGzip()
+              const inp = fs.createReadStream(working_file)
+              const out = fs.createWriteStream(cache_file, {'flags': 'a'})
+              inp.pipe(gzip).pipe(out).on('finish', (err) => {
+                if (err) return reject(err);
+                else resolve()
+              })
+            }
+          )
+          fs.appendFileSync(cache_file, '}')
+          logger.info(`Wrote Cache File ${cache_file}`)
+          resolve(Service.successResponse({body: "Working..."}, 202));
+        } 
+        if (fs.existsSync(working_file) && fs.existsSync(cache_file)){
           fs.unlinkSync(working_file)
           logger.info(`Removed Working File ${working_file}`)
-          
         }
+      } else {
+        resolve(Service.successResponse(formatted, 200));
       }
-
-      resolve(Service.successResponse(formatted, 200));
 
     } catch (e) {
       if (download){

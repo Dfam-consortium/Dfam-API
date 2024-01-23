@@ -15,6 +15,7 @@ const hmm = require("./hmm");
 const fasta = require("./fasta");
 const stockholm = require("./stockholm");
 const embl = require("./embl");
+const { appendFileSync } = require("fs");
 
 const familyModel = require("../models/family")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data")(conn, Sequelize);
@@ -24,7 +25,7 @@ familyModel.hasOne(hmmModelDataModel, { foreignKey: 'family_id' });
 const threadId = require('node:worker_threads').threadId;
 logger.info("Worker Starting Up: " + threadId);
 
-const hmm_command = async function ({accessions, include_copyright = 0}) {
+const hmm_command = async function ({accessions, include_copyright = 0, write_file=null}) {
   logger.info("Worker: " + threadId + " , command = hmm_command");
   let ret_val = "";
   if (include_copyright) {
@@ -48,10 +49,20 @@ const hmm_command = async function ({accessions, include_copyright = 0}) {
       logger.error(`Missing HMM for family: ${acc}`);
       return;
     }
+    let write_data = hmm.annotateHmm(fam, zlib.gunzipSync(hmm_data.hmm).toString())
 
-    ret_val = ret_val + await hmm.annotateHmm(fam, zlib.gunzipSync(hmm_data.hmm).toString());
+    if (write_file) {
+      appendFileSync(write_file, write_data)
+    } else {
+      ret_val = ret_val + write_data
+    }
   }
-  return ret_val;
+  
+  if (write_file) {
+    return null;
+  } else {
+    return ret_val;
+  }
 };
 
 

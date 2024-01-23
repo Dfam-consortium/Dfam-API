@@ -61,7 +61,8 @@
   "watch": {
     "start": [
       "./services/*.js",
-      "./controllers/*.js"
+      "./controllers/*.js",
+      "./utils/*.js"
     ]
   }
 }
