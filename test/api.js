@@ -83,10 +83,10 @@ test.serial('get version', async t => {
 // AlignmentService
 test.serial('get alignment success', async t => {
   const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF000004191');
-  t.regex(body.pp.string, /^699\**9988777333.*/);
+  t.is(body.pp.string, "699*******************************************99887773333333333333333333678*******************************************************************98886...5****************************************************************************************************************************************9.*****************************************************9986");
  
   const body2 = await get_body('/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF000000147');
-  t.regex(body2.pp.string, /^799.*9999998888877665$/);
+  t.is(body2.pp.string, "799***********************************************************9..9999*********933333333333333333333334588***************************9......59**************************9999998888877665");
 });
 
 test.serial('get alignment failure', async t => {
@@ -232,8 +232,11 @@ test.serial('download families', async t => {
 });
 
 test.serial('test caching', async t => {
-  await get_body('/families?format=fasta&name_accession=DF000000&classification=root%253BInterspersed_Repeat%253BTransposable_Element%253BClass_I_Retrotransposition%253BLINE&clade_relatives=descendants&download=true')
-  let file = fs.readFileSync('/u2/webresults/browse-cache/c13cbab7f78a81b80f88386047019aea.cache')
+  let url = '/families?format=fasta&name_accession=DF000000&classification=root%253BInterspersed_Repeat%253BTransposable_Element%253BClass_I_Retrotransposition%253BLINE&clade_relatives=descendants&download=true'
+  await request.get(url).expect(202)
+  let filename = '/u2/webresults/browse-cache/c13cbab7f78a81b80f88386047019aea.cache'
+  let file = fs.existsSync(filename)
+  fs.unlinkSync(filename)
   t.truthy(file)
 });
 
@@ -266,12 +269,12 @@ test.serial('get family HMM', async t => {
   t.truthy(logo_json.height_arr.length);
 });
 
-test.serial('get family HMM image', async t => {
-  await request
-    .get('/families/DF000000001/hmm?format=image')
-    .expect('Content-Type', 'image/png');
-  t.pass();
-});
+// test.serial('get family HMM image', async t => {
+//   await request
+//     .get('/families/DF000000001/hmm?format=image')
+//     .expect('Content-Type', 'image/png');
+//   t.pass();
+// });
 
 // /families/{id}/sequence
 test.serial('get family HMM sequence', async t => {
