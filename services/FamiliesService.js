@@ -74,9 +74,9 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       // TODO: Consider pagination for large queries
       // TODO: Consider copyright for bulk and download only     
       if (format == "embl") {
-        obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'embl_command' });
+        obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0, write_file: write_file}, { name: 'embl_command' });
       } else if (format == "fasta") {
-        obj.body = await workerPool.piscina.run({accessions: accs}, { name: 'fasta_command' });
+        obj.body = await workerPool.piscina.run({accessions: accs, write_file: write_file}, { name: 'fasta_command' });
       } else if (format == "hmm") {
         obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0, write_file: write_file}, { name: 'hmm_command' });
       } 
@@ -310,16 +310,8 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = download ? working_file: null)
       
       if (download) {
-        // If large request write data to working file and rename to finished file
+        // If large compress, encode, and wrap saved working file in JSON to complete cache file
         if (total_count > config.CACHE_CUTOFF && fs.existsSync(working_file)) {
-          //   const gzip = zlib.createGzip()
-          //   const inp = fs.createReadStream(working_file)
-          //   const out = fs.createWriteStream(cache_file, {'flags': 'a'})
-          //   inp.pipe(gzip).pipe(out).on('finish', (err) => {
-          //     if (err) return reject(err);
-          //     else resolve()
-          //   })
-
           fs.writeFileSync(cache_file, `{"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`)
           const zip = await new Promise((resolve, reject) => {
             let zipper = child_process.spawn("sh", ["-c", `cat ${working_file} | gzip | base64 -w 0 >> ${cache_file}`]);
@@ -333,6 +325,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
           logger.info(`Wrote Cache File ${cache_file}`)
           resolve(Service.successResponse({body: "Working..."}, 202));
         } 
+        // Remove working file if cache file is done
         if (fs.existsSync(working_file) && fs.existsSync(cache_file)){
           fs.unlinkSync(working_file)
           logger.info(`Removed Working File ${working_file}`)
