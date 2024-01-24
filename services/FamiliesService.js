@@ -307,12 +307,28 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       // process rows into file
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
-      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = download ? working_file: null)
-      
+      let caching = total_count > config.CACHE_CUTOFF
+      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file: null)
+
       if (download) {
-        // If large compress, encode, and wrap saved working file in JSON to complete cache file
-        if (total_count > config.CACHE_CUTOFF && fs.existsSync(working_file)) {
+        if (!caching) {
+          // compress response body
+          let compressed = zlib.gzipSync(formatted.body);
+          // base64 encode body
+          let b64 = Buffer.from(compressed).toString('base64')
+          formatted.body = b64
+          // cleanup working file
+          fs.unlinkSync(working_file)
+          logger.info(`Removed Working File ${working_file}`)
+          // return data directly
+          resolve(Service.successResponse(formatted, 200));
+          return
+        }
+        // If large file,  compress, encode, and wrap saved working file in JSON to complete cache file
+        if (caching && fs.existsSync(working_file)) {
+          // build JSON header
           fs.writeFileSync(cache_file, `{"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`)
+          // compress and encode working data into cache file
           const zip = await new Promise((resolve, reject) => {
             let zipper = child_process.spawn("sh", ["-c", `cat ${working_file} | gzip | base64 -w 0 >> ${cache_file}`]);
             zipper.on('error', err => reject(err));
@@ -321,16 +337,17 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
               else {reject(code)}
             })
           })
+          // finish JSON
           fs.appendFileSync(cache_file, '"}')
+          // Log and remove working file
           logger.info(`Wrote Cache File ${cache_file}`)
-          resolve(Service.successResponse({body: "Working..."}, 202));
-        } 
-        // Remove working file if cache file is done
-        if (fs.existsSync(working_file) && fs.existsSync(cache_file)){
           fs.unlinkSync(working_file)
           logger.info(`Removed Working File ${working_file}`)
-        }
+          // delay returning to allow caching system to open file and return data
+          resolve(Service.successResponse({body: "Working..."}, 202));
+        } 
       } else {
+        // without dowload, return data directly
         resolve(Service.successResponse(formatted, 200));
       }
 
