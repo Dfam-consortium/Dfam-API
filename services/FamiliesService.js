@@ -308,34 +308,28 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = download ? working_file: null)
-
+      
       if (download) {
-        // compress response body
-        // let compressed = zlib.gzipSync(formatted.body);
-        
-        // base64 encode body
-        // let b64 = Buffer.from(compressed).toString('base64')
-        // formatted.body = b64
-
         // If large request write data to working file and rename to finished file
         if (total_count > config.CACHE_CUTOFF && fs.existsSync(working_file)) {
-          // write object to string
-          // let str = JSON.stringify(formatted)
-          //write and rename file
-          // fs.writeFileSync(working_file, str)
-          fs.writeFileSync(cache_file, '{"attachment": "families.hmm", "content_type": "text/plain", "encoding": "identity", "body": ')
+          //   const gzip = zlib.createGzip()
+          //   const inp = fs.createReadStream(working_file)
+          //   const out = fs.createWriteStream(cache_file, {'flags': 'a'})
+          //   inp.pipe(gzip).pipe(out).on('finish', (err) => {
+          //     if (err) return reject(err);
+          //     else resolve()
+          //   })
 
-          const zipping = await new Promise((resolve, reject) => {
-              const gzip = zlib.createGzip()
-              const inp = fs.createReadStream(working_file)
-              const out = fs.createWriteStream(cache_file, {'flags': 'a'})
-              inp.pipe(gzip).pipe(out).on('finish', (err) => {
-                if (err) return reject(err);
-                else resolve()
-              })
-            }
-          )
-          fs.appendFileSync(cache_file, '}')
+          fs.writeFileSync(cache_file, `{"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`)
+          const zip = await new Promise((resolve, reject) => {
+            let zipper = child_process.spawn("sh", ["-c", `cat ${working_file} | gzip | base64 -w 0 >> ${cache_file}`]);
+            zipper.on('error', err => reject(err));
+            zipper.on('close', (code) => {
+              if (code == 0) {resolve(code)}
+              else {reject(code)}
+            })
+          })
+          fs.appendFileSync(cache_file, '"}')
           logger.info(`Wrote Cache File ${cache_file}`)
           resolve(Service.successResponse({body: "Working..."}, 202));
         } 
