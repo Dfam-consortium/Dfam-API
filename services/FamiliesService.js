@@ -42,6 +42,10 @@ const fs = require('fs');
 const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
     const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
+
+    const args_hash = md5(JSON.stringify(args));
+    if (download) { logger.info(`Download Request ${args_hash} Recieved`)}
+
     // TODO Move these functions to utils/family.js
     async function familyRowsToObjects(total_count, rows, format, copyright, download) {
       // Download isn't applicable here yet?
@@ -90,12 +94,13 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       }
 
       const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
-      const cache_name = md5(JSON.stringify(args)) + ".cache" 
+      const cache_name = args_hash + ".cache" 
       const cache_file = cache_dir + cache_name
       const working_file = cache_file + '.working'
       
       // If cache is being built, return message
       if ( download && fs.existsSync(working_file)) {
+        logger.info(`Waiting on ${args_hash}`)
         resolve(Service.successResponse({body: "Working..."}, 202));
         return
       } 
@@ -312,6 +317,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       if (download) {
         if (!caching) {
+          logger.info(`Returning ${args_hash} Without Caching`)
           // compress response body
           let compressed = zlib.gzipSync(formatted.body);
           // base64 encode body
@@ -326,6 +332,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         }
         // If large file,  compress, encode, and wrap saved working file in JSON to complete cache file
         if (caching && fs.existsSync(working_file)) {
+          logger.info(`Caching ${args_hash}`)
           // build JSON header
           fs.writeFileSync(cache_file, `{"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`)
           // compress and encode working data into cache file
@@ -353,7 +360,11 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
     } catch (e) {
       if (download){
-        logger.error(`Caching Request Failed: ${md5(JSON.stringify(args))} - ${e}`)
+        logger.error(`Caching Request Failed: ${args_hash} - ${e}`)
+        if (fs.existsSync(working_file)){
+          fs.unlinkSync(working_file)
+          logger.info(`Removed Working File ${working_file}`)
+        }
       } else {
         logger.error(`Error - ${e}`)
       }
