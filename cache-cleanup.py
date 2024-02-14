@@ -19,14 +19,14 @@ logging.basicConfig(filename='/webresults/cache-cleanup.log',
         datefmt='%H:%M:%S',
         level=logging.INFO
 )
-logging.info(f'Running Cache Cleanup - {datetime.today().strftime('%Y-%m-%d %H:%M:%S')}')
+logging.info(f'Running Cache Cleanup - {datetime.today().strftime("%Y-%m-%d %H:%M:%S")}')
 
 logger = logging.getLogger('Cache-Cleanup')
 
 for file in os.listdir(CACHE_DIR):
     file_path = CACHE_DIR + file
     atime = datetime.fromtimestamp(os.stat(file_path).st_atime, tz = None)
-    crtime = datetime.fromtimestamp(os.stat(file_path).st_birthtime, tz = None)
+    crtime = datetime.fromtimestamp(os.stat(file_path).st_ctime, tz = None)
     size = os.stat(file_path).st_size
     elapsed_time = NOW - atime
     removed = 'Retained'
