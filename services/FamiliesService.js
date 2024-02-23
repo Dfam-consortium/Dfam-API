@@ -44,7 +44,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
     const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
 
     const args_hash = md5(JSON.stringify(args));
-    if (download) { logger.info(`Download Request ${args_hash} Recieved`)}
+    if (download) { logger.info(`Download Request ${args_hash} Recieved - ${JSON.stringify(args)}`)}
 
     // TODO Move these functions to utils/family.js
     async function familyRowsToObjects(total_count, rows, format, copyright, download) {
