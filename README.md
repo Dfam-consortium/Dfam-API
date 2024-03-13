@@ -174,3 +174,6 @@ This is where the API Gateway ends, and the unique business-logic of your applic
 
 ## Download File Caching
 Large download requests are cached in `/u2/webresults/browse-cache`. The filenames are `<hash of query parameters>.cache`. The `/home/dfweb/cache_cleanup.py` script is periodically run as a cron job to remove old cache files.
+```
+0 0 */10 * * python3 /webresults/cache-cleanup.py
+```
