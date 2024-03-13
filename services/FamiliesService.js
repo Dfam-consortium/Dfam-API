@@ -44,7 +44,6 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
     const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
 
     const args_hash = md5(JSON.stringify(args));
-    if (download) { logger.info(`Download Request ${args_hash} Recieved - ${JSON.stringify(args)}`)}
 
     // TODO Move these functions to utils/family.js
     async function familyRowsToObjects(total_count, rows, format, copyright, download) {
@@ -118,9 +117,9 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       // Write blank working file so client knows it's in process before query is returned
       } else if (download) {
+        logger.info(`Download Request ${args_hash} Recieved - ${JSON.stringify(args)}`)
         fs.writeFileSync(working_file, "")
         logger.info(`Created Working file ${working_file}`)
-
       }
 
       // TODO: Consider making these configurable in Dfam.conf
