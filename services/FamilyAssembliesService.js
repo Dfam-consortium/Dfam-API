@@ -3,6 +3,10 @@ const Service = require('./Service');
 const dfam = require("../databases").getModels_Dfam();
 const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const mapFields = require("../utils/mapFields.js");
+const fs = require("fs");
+const child_process = require('child_process');
+const logger = require('../logger.js');
+
 
 const familyAssemblyStatsObject = (family_assembly) => {
   let obj = { };
@@ -156,40 +160,42 @@ const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
 const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => new Promise(
   async (resolve, reject) => {
     try {
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
-        where: { 'name': assembly_id }
+      let idx_dir = "/home/agray/te_idx" // TODO change to config file
+      let assembly_dir = `${idx_dir}/data/${assembly_id}/assembly_alignments`
+      let target_file = `${assembly_dir}/${id}.bed.bgz`
+
+      if (!fs.existsSync(assembly_dir)) {
+        reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
+      }
+
+      if (!fs.existsSync(target_file)) {
+        reject(Service.rejectResponse(`Family ${id} Not Found In ${assembly_id}`, 404));
+      }
+      let nrph_arg = nrph ? "--nrph" : ""
+      const proc = await new Promise((resolve, reject) => {
+        //TODO change command to use executable
+        let runner = child_process.spawn(`${idx_dir}/target/release/te_idx`, ["read-family-assembly-annotations", "--id", id, "--assembly-id", assembly_id, nrph_arg]);
+        const outputBuffers = [];
+        runner.on('error', err => {reject(err)});
+        runner.stdout.on("data", (data) => {outputBuffers.push(data);})
+        runner.on('close', (code) => {
+          if (code !== 0) {logger.info("closing err"); reject(code)}
+          else {
+            resolve(outputBuffers.join(''))
+          }
+        })
       })
-
-      if (!assembly) {
-        reject(Service.rejectResponse({}, 404));
+      logger.info(proc)
+      const res =   { payload: proc,
+        code: 200,
+        content_type: 'text/plain',
+        encoding: 'gzip',
       }
 
-      const models = getModels_Assembly(assembly.schema_name);
-
-      let column;
-      if (nrph === true) {
-        column = "nrph_hit_list";
-      } else  {
-        column = "hit_list";
+      if (download) {
+        res.attachment = `${assembly_id}_${id}${nrph ? ".nrph" : ""}.bed.bgz`
       }
-
-      const files = await models.modelFileModel.findOne({
-        attributes: [ column ],
-        where: { "family_accession": id }
-      })
-
-      if (!files || !files[column]) {
-        reject(Service.rejectResponse({}, 404));
-      }
-
-      resolve(Service.successResponse(
-        { payload: files.dataValues[column],
-          code: 200,
-          content_type: 'text/plain',
-          encoding: 'gzip',
-        }
-      ));
+      resolve(Service.successResponse(res));
 
     } catch (e) {
       reject(Service.rejectResponse(
