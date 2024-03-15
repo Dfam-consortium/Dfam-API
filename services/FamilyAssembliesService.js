@@ -7,6 +7,7 @@ const fs = require("fs");
 const child_process = require('child_process');
 const tmp = require('tmp');
 tmp.setGracefulCleanup();
+const zlib = require("zlib")
 
 const familyAssemblyStatsObject = (family_assembly) => {
   let obj = { };
@@ -171,8 +172,11 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
       if (!fs.existsSync(target_file)) {
         reject(Service.rejectResponse(`Family ${id} Not Found In ${assembly_id}`, 404));
       }
+      const fields = ["seq_id", "seq_start", "seq_end", "family_accession", "hit_bit_score", "strand", "ali_start", "ali_end", "model_start", "model_end", "hit_evalue_score", "nrph_hit", "divergence", "family_name", "cigar", "caf"]
+      const header = zlib.gzipSync(fields.slice(0,13).join("\t") + '\n')
       const tempobj = tmp.fileSync();
       const tempfile = tempobj.name
+      fs.appendFileSync(tempfile, header)
       const proc = await new Promise((resolve, reject) => {
         let proc_args = ["read-family-assembly-annotations", "--id", id, "--assembly-id", assembly_id, "--outfile", tempfile]
         if (nrph) {proc_args.push("--nrph")}
@@ -192,7 +196,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
       }
 
       if (download) {
-        res.attachment = `${assembly_id}_${id}${nrph ? ".nrph" : ""}.bed.bgz`
+        res.attachment = `${assembly_id}_${id}${nrph ? ".nrph" : ""}.tsv`
       }
       resolve(Service.successResponse(res));
 
