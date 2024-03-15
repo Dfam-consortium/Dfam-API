@@ -5,8 +5,8 @@ const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const mapFields = require("../utils/mapFields.js");
 const fs = require("fs");
 const child_process = require('child_process');
-const logger = require('../logger.js');
-
+const tmp = require('tmp');
+tmp.setGracefulCleanup();
 
 const familyAssemblyStatsObject = (family_assembly) => {
   let obj = { };
@@ -171,22 +171,21 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
       if (!fs.existsSync(target_file)) {
         reject(Service.rejectResponse(`Family ${id} Not Found In ${assembly_id}`, 404));
       }
-      let nrph_arg = nrph ? "--nrph" : ""
+      const tempobj = tmp.fileSync();
+      const tempfile = tempobj.name
       const proc = await new Promise((resolve, reject) => {
-        //TODO change command to use executable
-        let runner = child_process.spawn(`${idx_dir}/target/release/te_idx`, ["read-family-assembly-annotations", "--id", id, "--assembly-id", assembly_id, nrph_arg]);
-        const outputBuffers = [];
-        runner.on('error', err => {reject(err)});
-        runner.stdout.on("data", (data) => {outputBuffers.push(data);})
+        let proc_args = ["read-family-assembly-annotations", "--id", id, "--assembly-id", assembly_id, "--outfile", tempfile]
+        if (nrph) {proc_args.push("--nrph")}
+        let runner = child_process.spawn(`${idx_dir}/target/release/te_idx`, proc_args);
+        runner.on('error', err => { reject(err) });
         runner.on('close', (code) => {
-          if (code !== 0) {logger.info("closing err"); reject(code)}
-          else {
-            resolve(outputBuffers.join(''))
-          }
+          if (code !== 0) { reject(code) }
+          else { resolve(code) }
         })
       })
-      logger.info(proc)
-      const res =   { payload: proc,
+      let data = fs.readFileSync(tempfile)
+      const res = { 
+        payload: data,
         code: 200,
         content_type: 'text/plain',
         encoding: 'gzip',
