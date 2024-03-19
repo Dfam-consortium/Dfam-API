@@ -8,6 +8,7 @@ const child_process = require('child_process');
 const tmp = require('tmp');
 tmp.setGracefulCleanup();
 const zlib = require("zlib")
+const {IDX_DIR} = require('../config');
 
 const familyAssemblyStatsObject = (family_assembly) => {
   let obj = { };
@@ -161,8 +162,7 @@ const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
 const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => new Promise(
   async (resolve, reject) => {
     try {
-      let idx_dir = "/home/agray/te_idx" // TODO change to config file
-      let assembly_dir = `${idx_dir}/data/${assembly_id}/assembly_alignments`
+      let assembly_dir = `${IDX_DIR}/data/${assembly_id}/assembly_alignments`
       let target_file = `${assembly_dir}/${id}.bed.bgz`
 
       if (!fs.existsSync(assembly_dir)) {
@@ -180,7 +180,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
       const proc = await new Promise((resolve, reject) => {
         let proc_args = ["read-family-assembly-annotations", "--id", id, "--assembly-id", assembly_id, "--outfile", tempfile]
         if (nrph) {proc_args.push("--nrph")}
-        let runner = child_process.spawn(`${idx_dir}/target/release/te_idx`, proc_args);
+        let runner = child_process.spawn(`${IDX_DIR}/target/release/te_idx`, proc_args);
         runner.on('error', err => { reject(err) });
         runner.on('close', (code) => {
           if (code !== 0) { reject(code) }
