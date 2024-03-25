@@ -301,6 +301,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       const count_result = await dfam.familyModel.findAndCountAll(query);
       const total_count = count_result.count;
+      logger.info(`Retrieved ${total_count} Families for ${args_hash}}`)
 
       // Return message if query is too large to be sent
       if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
@@ -313,6 +314,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       rows = await family.familySubqueries(rows, format);
       let caching = total_count > config.CACHE_CUTOFF
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file: null)
+      logger.info(`Retrieved subqueries completed for ${args_hash}}`)
 
       if (download) {
         if (!caching) {
