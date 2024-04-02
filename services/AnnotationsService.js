@@ -32,7 +32,7 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
           reject(Service.rejectResponse({ message: "Requested range is too long." }, 400));
       }
       
-      let assembly_dir = `${IDX_DIR}/data/${assembly}/assembly_alignments`
+      let assembly_dir = `${IDX_DIR}/data/${assembly}/`
       if (!fs.existsSync(assembly_dir)) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       }

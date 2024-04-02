@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const dfam = require("../databases").getModels_Dfam();
-const getModels_Assembly = require("../databases.js").getModels_Assembly;
+// const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const mapFields = require("../utils/mapFields.js");
 const fs = require("fs");
 const child_process = require('child_process');
@@ -9,6 +9,7 @@ const tmp = require('tmp');
 tmp.setGracefulCleanup();
 const zlib = require("zlib")
 const {IDX_DIR} = require('../config');
+const te_idx = require("../utils/te_idx.js");
 
 const familyAssemblyStatsObject = (family_assembly) => {
   let obj = { };
@@ -220,33 +221,32 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
 const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
   async (resolve, reject) => {
     try {
-
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
-        where: { 'name': assembly_id }
-      })  
-
-      if (!assembly) {
-        reject(Service.rejectResponse({}, 404));
+      let assembly_dir = `${IDX_DIR}/data/${assembly_id}/`
+      if (!fs.existsSync(assembly_dir)) {
+        reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
       }
 
-      const models = getModels_Assembly(assembly.schema_name);
-      
-      const data = await models.coverageDataModel.findOne({
-        attributes: [ "karyotype" ],
-        where: { "family_accession": id }
-        // where: { "family_accession": id }
-      })
+      let seq_args = ["coverage-query","--assembly", assembly_id, "--fam", id]
+      let karyotype = await te_idx(seq_args)
 
-      if (data && data.karyotype) {
-        resolve(Service.successResponse(JSON.parse(data.karyotype.toString()), 200))
+      console.log(karyotype)
+
+      // const data = await models.coverageDataModel.findOne({
+      //   attributes: [ "karyotype" ],
+      //   where: { "family_accession": id }
+      //   // where: { "family_accession": id }
+      // })
+
+      if (karyotype) {
+        // resolve(Service.successResponse(JSON.parse(karyotype.toString()), 200))
+        resolve(Service.successResponse(karyotype, 200))
       } else {
         reject(Service.rejectResponse({}, 404));
       }
 
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
+        e.message || `Invalid input - ${e.message}`,
         e.status || 405,
       ));
     }
