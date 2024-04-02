@@ -6,10 +6,10 @@ const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
 const config = require("../config");
 const dfam = require("../databases").getModels_Dfam();
-const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const zlib = require("zlib");
 
 const Service = require('./Service');
+const te_idx = require("../utils/te_idx.js");
 
 
 const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
@@ -166,23 +166,18 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos
 const readAlignment = async ({ assembly, chrom, start, end, family }) => new Promise(
   async (resolve, reject) => {
     try {
+
       if (Math.abs(end-start) > 30000) {
         reject(Service.rejectResponse("Requested range is too long.", 400))
       }
 
-      const assembly_rec = await dfam.assemblyModel.findOne({
-        where: { name: assembly },
-        attributes: ['schema_name'],
-      });
-
-      if (!assembly_rec) {reject(Service.rejectResponse("Assembly Not Found", 404));}
-
-      const models = getModels_Assembly(assembly_rec.schema_name);
-
-      const sequence = await models.sequenceModel.findOne({
-        attributes: ['accession'],
-        where: { id: chrom }
-      });
+      let assembly_dir = `${config.IDX_DIR}/data/${assembly}/assembly_alignments`
+      if (!fs.existsSync(assembly_dir)) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      }
+      
+      let seq_args = ["seq-query","--assembly", assembly, "--chrom", chrom]
+      let sequence = await te_idx(seq_args, join=false)
 
       if (!sequence) {reject(Service.rejectResponse("Sequence Not Found", 404));}
 
@@ -196,7 +191,7 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
       const twoBitFile = path.join(config.dfam_warehouse_dir,
         "ref-genomes", assembly, "dfamseq.mask.2bit");
       
-        let reAligned = reAlignAnnotationHMM(twoBitFile, sequence.accession, chrom, start, end, hmm_data)
+        let reAligned = reAlignAnnotationHMM(twoBitFile, sequence, chrom, start, end, hmm_data)
         if (!reAligned){
           reject(Service.rejectResponse("Realignment failed",404))
         }
