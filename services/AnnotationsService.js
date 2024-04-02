@@ -1,20 +1,13 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
-// const winston = require('winston');
-// const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const dfam = require("../databases").getModels_Dfam();
 const Sequelize = require("sequelize");
-const mapFields = require("../utils/mapFields.js");
 const {IDX_DIR} = require('../config');
 const fs = require("fs");
-const child_process = require('child_process');
-const logger = require('../logger.js');
+const te_idx = require("../utils/te_idx.js");
 
-// const tmp = require('tmp');
-// tmp.setGracefulCleanup();
 
 /**
-* Retrieve annotations for a given genome assembly in a given range.
 * Retrieve annotations for a given genome assembly in a given range.
 *
 * assembly String Genome assembly to search. A list of assemblies is available at `/assemblies`.
@@ -44,30 +37,11 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       }
 
-      // TODO DRY this section
       let seq_args = ["seq-query","--assembly", assembly, "--chrom", chrom]
-      const seq = await new Promise((resolve, reject) => {
-        let runner = child_process.spawn(`${IDX_DIR}/target/release/te_idx`, seq_args);
-        let data=[];
-        runner.on('error', err => { reject(err) });
-        runner.stdout.on('data', d => { data.push(d) });
-        runner.on('close', (code) => {
-          if (code !== 0) { reject(code) }
-          else { resolve(JSON.parse(data.toString())) }
-        })
-      })
+      let seq = await te_idx(seq_args, join=false)
 
       let trf_args = ["trf-query","--assembly", assembly, "--start", start, "--end", end, "--chrom", seq]
-      const trfResults = await new Promise((resolve, reject) => {
-        let runner = child_process.spawn(`${IDX_DIR}/target/release/te_idx`, trf_args);
-        let trf_data=[];
-        runner.on('error', err => { reject(err) });
-        runner.stdout.on('data', d => { trf_data.push(d) });
-        runner.on('close', (code) => {
-          if (code !== 0) { reject(code) }
-          else { resolve(JSON.parse(trf_data.join('').toString())) }
-        })
-      })
+      const trfResults = await te_idx(trf_args)
 
       let nhmmer_args = ["nhmmer-query","--assembly", assembly, "--start", start, "--end", end, "--chrom", seq]
       if ( family_accession ) { 
@@ -77,45 +51,34 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       if (nrph === true) {
         nhmmer_args.push("--nrph");
       }
-      const nhmmerResults = await new Promise((resolve, reject) => {
-        let runner = child_process.spawn(`${IDX_DIR}/target/release/te_idx`, nhmmer_args);
-        let nhmmer_data=[];
-        runner.on('error', err => { reject(err) });
-        runner.stdout.on('data', d => { nhmmer_data.push(d) });
-        runner.on('close', (code) => {
-          if (code !== 0) { reject(code) }
-          else { resolve(JSON.parse(nhmmer_data.join('').toString())) }
-        })
-      })
+      const nhmmerResults = await te_idx(nhmmer_args)
 
-      var family_name_mappings = {};
-      for (hit in nhmmerResults) {
-        // Accumulate accessions whose names and types we need to retrieve
-        if (!family_name_mappings[hit.accession]) {
-          family_name_mappings[hit.accession] = [];
-        }
-        family_name_mappings[hit.accession].push(hit);
-      }
+      // collect all accessions found, as well as thier positions in the list of results
+      accession_idxs = {}
+      nhmmerResults.forEach((hit, i) => {
+        if (!accession_idxs[hit.accession]) {accession_idxs[hit.accession] = []}
+        accession_idxs[hit.accession].push(i)
+      })
 
       // Retrieve the names and types of all matched families
       const families = await dfam.familyModel.findAll({
-        where: { accession: { [Sequelize.Op.in]: Object.keys(family_name_mappings) } },
+        where: { accession: { [Sequelize.Op.in]: Object.keys(accession_idxs) } },
         attributes: ["name", "accession"],
         include: [ { model: dfam.classificationModel, as: 'classification', include: [
           { model: dfam.rmTypeModel, as: 'rm_type', attributes: ["name"] }
         ] } ],
       })
 
-      // TODO fix this
+      // add names and types to list of hits
       families.forEach(function(family) {
-        nhmmerResults[family.accession].forEach((hit) => {
-          hit.query = family.name;
-          hit.type = null;
-          if (family.classification) {
-            if (family.classification.rm_type) {
-              hit.type = family.classification.rm_type.name;
+        accession_idxs[family.accession].forEach((i) => {
+            nhmmerResults[i].query = family.name;
+            nhmmerResults[i].type = null;
+            if (family.classification) {
+              if (family.classification.rm_type) {
+                nhmmerResults[i].type = family.classification.rm_type.name;
+              }
             }
-          }
         });
       });
 
@@ -125,7 +88,6 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         query: `${chrom}:${start}-${end}`,
         hits: nhmmerResults,
         tandem_repeats: trfResults,
-        families: families
       }, 200 ));
       
     } catch (e) {
