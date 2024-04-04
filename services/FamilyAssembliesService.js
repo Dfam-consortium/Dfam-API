@@ -5,11 +5,11 @@ const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const mapFields = require("../utils/mapFields.js");
 const fs = require("fs");
 const child_process = require('child_process');
-const tmp = require('tmp');
-tmp.setGracefulCleanup();
 const zlib = require("zlib")
 const {IDX_DIR} = require('../config');
-const te_idx = require("../utils/te_idx.js");
+
+const tmp = require('tmp');
+tmp.setGracefulCleanup();
 
 const familyAssemblyStatsObject = (family_assembly) => {
   let obj = { };
@@ -165,6 +165,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
     try {
       let assembly_dir = `${IDX_DIR}/data/${assembly_id}/assembly_alignments`
       let target_file = `${assembly_dir}/${id}.bed.bgz`
+      let te_idx = `${IDX_DIR}/target/release/te_idx`
 
       if (!fs.existsSync(assembly_dir)) {
         reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
@@ -173,31 +174,53 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
       if (!fs.existsSync(target_file)) {
         reject(Service.rejectResponse(`Family ${id} Not Found In ${assembly_id}`, 404));
       }
-      const fields = ["seq_id", "seq_start", "seq_end", "family_accession", "hit_bit_score", "strand", "ali_start", "ali_end", "model_start", "model_end", "hit_evalue_score", "nrph_hit", "divergence", "family_name", "cigar", "caf"]
-      const header = zlib.gzipSync(fields.slice(0,13).join("\t") + '\n')
+      // .bed fields => seq_id, seq_start, seq_end, family_accession, hit_bit_score, strand, ali_start, ali_end,
+      //                model_start, model_end, hit_evalue_score, nrph_hit, divergence, family_name, cigar, caf
+      const fields = [
+        "sequence name",	"model accession",	"model name",	"bit score",	"e-value",	"hmm start",	"hmm end",	"hmm length",	
+        "strand",	"alignment start",	"alignment end",	"envelope start",	"envelope end",	"sequence length"
+      ]
+      const header = zlib.gzipSync("#"+fields.join("\t") + '\n')  
+      
+      let proc_args = ["read-family-assembly-annotations", "--id", id, "--assembly-id", assembly_id]
+      if (nrph) {proc_args.push("--nrph")}
+
+      // 2.3-2.7secs
+      // const proc = await new Promise((resolve, reject) => {
+      //   let data = [header]
+      //   let runner = child_process.spawn(te_idx, proc_args);
+      //   runner.on('error', err => { reject(err) });
+      //   runner.stdout.on('data', chunk => data.push(chunk));
+      //   runner.on('close', (code) => {
+      //     if (code !== 0) { reject(code) }
+      //     else { resolve(Buffer.concat(data)) }
+      //   })
+      // })
+
+      // 1.2-1.6secs
       const tempobj = tmp.fileSync();
       const tempfile = tempobj.name
       fs.appendFileSync(tempfile, header)
+      proc_args.push("--outfile")
+      proc_args.push(tempfile)
       const proc = await new Promise((resolve, reject) => {
-        let proc_args = ["read-family-assembly-annotations", "--id", id, "--assembly-id", assembly_id, "--outfile", tempfile]
-        if (nrph) {proc_args.push("--nrph")}
-        let runner = child_process.spawn(`${IDX_DIR}/target/release/te_idx`, proc_args);
+        let runner = child_process.spawn(te_idx, proc_args);
         runner.on('error', err => { reject(err) });
         runner.on('close', (code) => {
           if (code !== 0) { reject(code) }
-          else { resolve(code) }
+          else { resolve(fs.readFileSync(tempfile)) }
         })
       })
-      let data = fs.readFileSync(tempfile)
+
       const res = { 
-        payload: data,
+        payload: proc,
         code: 200,
         content_type: 'text/plain',
         encoding: 'gzip',
       }
 
       if (download) {
-        res.attachment = `${assembly_id}_${id}${nrph ? ".nrph" : ""}.tsv`
+        res.attachment = `${id}.${assembly_id}${nrph ? ".nr-hits" : ""}.tsv`
       }
       resolve(Service.successResponse(res));
 

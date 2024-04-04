@@ -85,7 +85,7 @@ const getModels_User = function () {
 };
     
 var _assembly_models = {};
-const getModels_Assembly = function(schema_name) {
+const getModels_Assembly = function(schema_name) { // TODO update after DB change
   if (!_assembly_models[schema_name]) {
     
     const conn = connect({
@@ -110,6 +110,7 @@ const getModels_Assembly = function(schema_name) {
     // models.maskModel = require("./models/assembly/mask.js")(conn, Sequelize);
     // models.maskModel.removeAttribute('id');
     // models.maskModel.belongsTo(models.sequenceModel, { foreignKey: 'seq_accession' });
+    // TODO remove model files
   }
 
   return _assembly_models[schema_name];
@@ -120,5 +121,5 @@ module.exports = {
   getModels_Dfam,
   getConn_User,
   getModels_User,
-  // getModels_Assembly
+  getModels_Assembly
 };
