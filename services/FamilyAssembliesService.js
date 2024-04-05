@@ -226,7 +226,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
 
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
+        e.message || `Invalid Input - ${e} - ${e.message}`,
         e.status || 405,
       ));
     }

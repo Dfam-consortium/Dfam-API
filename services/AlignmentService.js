@@ -199,7 +199,7 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
 
   } catch (e) {
     reject(Service.rejectResponse(
-      e.message || 'Invalid input',
+      e.message || `Invalid Input - ${e} - ${e.message}`,
       e.status || 405,
     ));
   }
