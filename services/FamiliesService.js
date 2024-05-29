@@ -307,6 +307,12 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
         const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
         resolve(Service.successResponse( { payload: {message} }, 400 ));
+        if (download && fs.existsSync(working_file)) {
+          // cleanup working file
+          fs.unlinkSync(working_file)
+          logger.info(`Removed Working File ${working_file}`)
+        }
+        return
       }
 
       // process rows into file
