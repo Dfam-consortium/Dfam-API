@@ -37,13 +37,17 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       }
 
-      let seq_args = ["seq-query","--assembly", assembly, "--chrom", chrom]
-      let seq = await te_idx(seq_args, join=false)
+      let seq
+      if (chrom.startsWith('chr')){
+        seq = chrom.slice(3)
+      } else {
+        seq = chrom
+      }
 
-      let trf_args = ["trf-query","--assembly", assembly, "--start", start, "--end", end, "--chrom", seq]
+      let trf_args = ["idx-query","--assembly", assembly, "--data-type", "masks", "--chrom", seq, "--start", start, "--end", end]
       const trfResults = await te_idx(trf_args)
 
-      let nhmmer_args = ["nhmmer-query","--assembly", assembly, "--start", start, "--end", end, "--chrom", seq]
+      let nhmmer_args = ["idx-query","--assembly", assembly, "--data-type", "assembly_alignments",  "--chrom", seq, "--start", start, "--end", end]
       if ( family_accession ) { 
         nhmmer_args.push("--family");
         nhmmer_args.push(family_accession);
@@ -52,7 +56,6 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         nhmmer_args.push("--nrph");
       }
       const nhmmerResults = await te_idx(nhmmer_args)
-
       // collect all accessions found, as well as thier positions in the list of results
       accession_idxs = {}
       nhmmerResults.forEach((hit, i) => {
