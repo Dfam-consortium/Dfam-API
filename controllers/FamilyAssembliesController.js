@@ -21,7 +21,7 @@ const readFamilyAssemblyAnnotationStats = async (request, response) => {
 };
 
 const readFamilyAssemblyAnnotations = async (request, response) => {
-  await Controller.handleRequest(request, response, service.readFamilyAssemblyAnnotations);
+  await Controller.handleStream(request, response, service.readFamilyAssemblyAnnotations);
 };
 
 const readFamilyAssemblyKaryotype = async (request, response) => {
