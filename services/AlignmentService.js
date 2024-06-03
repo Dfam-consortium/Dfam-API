@@ -176,10 +176,9 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       }
       
-      let seq_args = ["seq-query","--assembly", assembly, "--chrom", chrom]
-      let sequence = await te_idx(seq_args, join=false)
-
-      if (!sequence) {reject(Service.rejectResponse("Sequence Not Found", 404));}
+      let seq_args = ["--assembly", assembly, "--query", chrom]
+      let sequence = await te_idx.get_chrom_id(seq_args) 
+      if (!sequence) {reject(Service.rejectResponse("Sequence Not Found", 404)); return}
 
       const model = await dfam.hmmModelDataModel.findOne({
         attributes: [ "hmm" ],
@@ -191,11 +190,14 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
       const twoBitFile = path.join(config.dfam_warehouse_dir,
         "ref-genomes", assembly, "dfamseq.mask.2bit");
       
-        let reAligned = reAlignAnnotationHMM(twoBitFile, sequence, chrom, start, end, hmm_data)
-        if (!reAligned){
-          reject(Service.rejectResponse("Realignment failed",404))
-        }
-        resolve(Service.successResponse(reAligned, 200));
+      let reAligned = reAlignAnnotationHMM(twoBitFile, sequence, chrom, start, end, hmm_data)
+
+      if (!reAligned){
+        reject(Service.rejectResponse("Realignment failed",404))
+        return
+      }
+      
+      resolve(Service.successResponse({reAligned}));
 
   } catch (e) {
     reject(Service.rejectResponse(

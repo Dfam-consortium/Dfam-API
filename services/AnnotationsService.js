@@ -6,7 +6,6 @@ const {IDX_DIR} = require('../config');
 const fs = require("fs");
 const te_idx = require("../utils/te_idx.js");
 
-
 /**
 * Retrieve annotations for a given genome assembly in a given range.
 *
@@ -37,17 +36,13 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       }
 
-      let seq
-      if (chrom.startsWith('chr')){
-        seq = chrom.slice(3)
-      } else {
-        seq = chrom
-      }
+      let seq_args = ["--assembly", assembly, "--query", chrom]
+      let seq = await te_idx.get_chrom_id(seq_args) 
+      if (!seq) {reject(Service.rejectResponse("Sequence Not Found", 404)); return}
 
-      let trf_args = ["idx-query","--assembly", assembly, "--data-type", "masks", "--chrom", seq, "--start", start, "--end", end]
-      const trfResults = await te_idx(trf_args)
-
-      let nhmmer_args = ["idx-query","--assembly", assembly, "--data-type", "assembly_alignments",  "--chrom", seq, "--start", start, "--end", end]
+      let trf_args = ["--assembly", assembly, "--data-type", "masks", "--chrom", seq, "--start", start, "--end", end]
+      const trfResults = await te_idx.idx_query(trf_args)
+      let nhmmer_args = ["--assembly", assembly, "--data-type", "assembly_alignments",  "--chrom", seq, "--start", start, "--end", end]
       if ( family_accession ) { 
         nhmmer_args.push("--family");
         nhmmer_args.push(family_accession);
@@ -55,7 +50,7 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       if (nrph === true) {
         nhmmer_args.push("--nrph");
       }
-      const nhmmerResults = await te_idx(nhmmer_args)
+      const nhmmerResults = await te_idx.idx_query(nhmmer_args)
       // collect all accessions found, as well as thier positions in the list of results
       accession_idxs = {}
       nhmmerResults.forEach((hit, i) => {
