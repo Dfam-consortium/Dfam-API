@@ -43,7 +43,6 @@ exports.getDfamModels = function(conn) {
   models.familyModel.hasMany(models.codingSequenceModel, { foreignKey: 'family_id', as: 'coding_sequences' });
   models.familyModel.belongsTo(models.sourceMethodModel, { foreignKey: 'source_method_id', as: 'source_method' });
   models.familyModel.belongsTo(models.assemblyModel, { foreignKey: 'source_assembly_id', as: 'source_assembly' });
-  models.familyModel.belongsToMany(models.percentageIDModel, { foreignKey: 'family_id' });
 
   models.familyHasCitationModel.belongsTo(models.citationModel, { as: 'citation', foreignKey: 'citation_pmid' });
 
@@ -68,7 +67,9 @@ exports.getDfamModels = function(conn) {
   models.familyAssemblyDataModel.belongsTo(models.familyModel, { foreignKey: 'family_id' });
   models.familyAssemblyDataModel.belongsTo(models.assemblyModel, { foreignKey: 'assembly_id' });
   models.assemblyModel.belongsTo(models.dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
-  models.assemblyModel.belongsToMany(models.percentageIDModel, { foreignKey: 'assembly_id' });
+
+  models.percentageIDModel.belongsTo(models.familyModel, {foreignKey: "family_id"})
+  models.percentageIDModel.belongsTo(models.assemblyModel, {foreignKey: "assembly_id"})
 
   return models;
 };

@@ -209,28 +209,16 @@ const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, downlo
 const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
   async (resolve, reject) => {
     try {
-
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["id"],
-        where: { 'name': assembly_id }
-      })  
-
-      if (!assembly) {
-        reject(Service.rejectResponse({}, 404));
-      }
-
-      const fam_id = dfam.familyModel.findOne( 
-        {where: { 'accession': id }, 
-        attributes: ["id"]
-      })
-
       const data = await dfam.familyAssemblyDataModel.findOne({
         attributes: [ "coverage_karyotype" ],
-        where: { "family_id": fam_id, "assembly_id": assembly }
+        include: [
+          { model: dfam.familyModel, where: { 'accession': id }, attributes: [] },
+          { model: dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
+        ],
       })
 
-      if (data && data.karyotype) {
-        resolve(Service.successResponse(JSON.parse(data.karyotype.toString()), 200))
+      if (data && data.coverage_karyotype) {
+        resolve(Service.successResponse(JSON.parse(data.coverage_karyotype.toString()), 200))
       } else {
         reject(Service.rejectResponse({}, 404));
       }
@@ -256,23 +244,15 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
 const readFamilyAssemblyModelConservation = ({ id, assembly_id, model }) => new Promise(
   async (resolve, reject) => {
     try {
-
-      const fam_id = await dfam.familyModel.findOne({
-        attributes: ["id"],
-        where: { 'accession': id }
-      })
-
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["id"],
-        where: { 'name': assembly_id }
-      })
-
-      if (!assembly || model != "hmm") {
+      if ( model != "hmm") {
         reject(Service.rejectResponse({}, 404));
       }
         
-      const conservations = await dfam.percentageIdModel.findOne({
-        where: { "family_id": fam_id, "assembly_id": assembly }
+      const conservations = await dfam.percentageIDModel.findAll({
+        include: [
+          { "model": dfam.familyModel, where: { 'accession': id }, attributes: [] },
+          { "model": dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
+        ]
       })
       const objs = conservations.map((cons) => {
         const obj = mapFields(cons, {}, {
@@ -308,18 +288,9 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
   async (resolve, reject) => {
     try {
 
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["id"],
-        where: { 'name': assembly_id }
-      })
-      if (!assembly || model != "hmm") {
+      if ( model != "hmm") {
         reject(Service.rejectResponse({}, 404));
       }
-    
-      const fam_id = await dfam.familyModel.findOne({
-        attributes: ["id"],
-        where: { 'accession': id }
-      })
 
       const coverage = await dfam.familyAssemblyDataModel.findOne({
         attributes: [ 
@@ -330,16 +301,21 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
           ["coverage_num_full", "num_full"], 
           ["coverage_num_full_nrph", "num_full_nrph"] 
         ],
-        where: { "family_id": fam_id, "assembly_id": assembly }
+        include: [
+          { "model": dfam.familyModel, where: { 'accession': id }, attributes: [] },
+          { "model": dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
+        ]
       })
+      
       if (coverage) {
+        data = coverage.dataValues
         resolve(Service.successResponse({
-          "nrph": coverage.nrph.toString(),
-          "nrph_hits": coverage.num_full_nrph,
-          "all": coverage.forward.toString(),
-          "all_hits": coverage.num_full,
-          "false": coverage.reversed.toString(),
-          "false_hits": coverage.num_rev,
+          "nrph": data.nrph.toString(),
+          "nrph_hits": data.num_full_nrph,
+          "all": data.forward.toString(),
+          "all_hits": data.num_full,
+          "false": data.reversed.toString(),
+          "false_hits": data.num_rev,
         }));
       } else {
         reject(Service.rejectResponse({}, 404));

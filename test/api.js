@@ -80,40 +80,42 @@ test.serial('get version', async t => {
   t.truthy(body.species);
 });
 
-// AlignmentService
+// TODO FIX
+// AlignmentService 
 test.serial('get alignment success', async t => {
-  const body = await get_body('/alignment?assembly=mm10&chrom=chr1&start=35640910&end=35641251&family=DF000004191');
+  const body = await get_body('/alignment?assembly=test_ex&chrom=chr1&start=35640910&end=35641251&family=DF000004191');
   t.is(body.pp.string, "699*******************************************99887773333333333333333333678*******************************************************************98886...5****************************************************************************************************************************************9.*****************************************************9986");
  
-  const body2 = await get_body('/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF000000147');
+  const body2 = await get_body('/alignment?assembly=test_ex&chrom=chr3&start=147735008&end=147734825&family=DF000000147');
   t.is(body2.pp.string, "799***********************************************************9..9999*********933333333333333333333334588***************************9......59**************************9999998888877665");
 });
 
 test.serial('get alignment failure', async t => {
   await get_notfound('/alignment?assembly=fake&chrom=chr1&start=1&end=1000&family=DF000004191');
-  await get_notfound('/alignment?assembly=mm10&chrom=fake&start=1&end=1000&family=DF000004191');
+  await get_notfound('/alignment?assembly=hg38&chrom=fake&start=1&end=1000&family=DF000004191');
  
-  await request.get('/alignment?assembly=mm10&chrom=chr1&start=1&end=40000&family=DF000004191')
+  await request.get('/alignment?assembly=hg38&chrom=chr1&start=1&end=40000&family=DF000004191')
     .expect(400);
   t.pass();
  });
 
-// AnnotationsService
+ // TODO FIX
+// AnnotationsService 
 test.serial('get annotations', async t => {
-  const body = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true');
+  const body = await get_body('/annotations?assembly=test_ex&chrom=chr1&start=168130000&end=168180000&nrph=true');
   t.true(body.hits.length > 1);
   t.true(body.tandem_repeats.length > 1);
 
-  const body2 = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF000000001');
+  const body2 = await get_body('/annotations?assembly=test_ex&chrom=chr1&start=168130000&end=168180000&family=DF000000001');
   t.true(body2.hits.length > 1);
   t.true(body2.tandem_repeats.length > 1);
 
   await get_notfound('/annotations?assembly=fake&chrom=chr1&start=168130000&end=168180000&nrph=true');
 
-  const body3 = await get_body('/annotations?assembly=hg38&chrom=fake&start=168130000&end=168180000&nrph=true');
+  const body3 = await get_body('/annotations?assembly=test_ex&chrom=fake&start=168130000&end=168180000&nrph=true');
   t.is(body3.hits.length, 0);
 
-  await request.get('/annotations?assembly=hg38&chrom=fake&start=158000000&end=168000000&nrph=true')
+  await request.get('/annotations?assembly=test_ex&chrom=fake&start=158000000&end=168000000&nrph=true')
     .expect(400);
 });
 
@@ -231,7 +233,7 @@ test.serial('download families', async t => {
   t.is(JSON.parse(body_hmm).body.match(/^HMMER3\/f/gm).length, 5);
 });
 
-test.serial('test caching', async t => {
+test.serial('test caching', async t => { // works on dfam
   let url = '/families?format=fasta&name_accession=DF000000&classification=root%253BInterspersed_Repeat%253BTransposable_Element%253BClass_I_Retrotransposition%253BLINE&clade_relatives=descendants&download=true'
   await request.get(url).expect(202)
   let filename = '/u2/webresults/browse-cache/c13cbab7f78a81b80f88386047019aea.cache'
@@ -341,31 +343,31 @@ test.serial('get family annotation stats', async t => {
 });
 
 test.serial('get family assembly stats', async t => {
-  const body = await get_body('/families/DF000000012/assemblies/danRer10/annotation_stats');
+  const body = await get_body('/families/DF000000012/assemblies/hg38/annotation_stats');
   t.truthy(body.hmm.trusted_all);
 });
 
 test.serial('get family assembly annotations', async t => {
-  const text_rph = await get_text('/families/DF000000012/assemblies/danRer10/annotations?nrph=false');
-  const text_nrph = await get_text('/families/DF000000012/assemblies/danRer10/annotations?nrph=true');
+  const text_rph = await get_text('/families/DF000000012/assemblies/hg38/annotations?nrph=false');
+  const text_nrph = await get_text('/families/DF000000012/assemblies/hg38/annotations?nrph=true');
 
   t.true(text_nrph.length < text_rph.length);
 });
 
-test.serial('get family assembly karyotype', async t => {
-  const body = await get_body('/families/DF000000012/assemblies/danRer10/karyotype');
+test.serial('get family assembly karyotype', async t => { 
+  const body = await get_body('/families/DF000000012/assemblies/hg38/karyotype');
   t.truthy(body.singleton_contigs.length);
 });
 
-test.serial('get family assembly coverage', async t => {
-  const body = await get_body('/families/DF000000012/assemblies/danRer10/model_coverage?model=hmm');
+test.serial('get family assembly coverage', async t => { 
+  const body = await get_body('/families/DF000000012/assemblies/hg38/model_coverage?model=hmm');
   t.truthy(body.nrph);
   t.truthy(body.false);
   t.true(body.nrph_hits < body.all_hits);
 });
 
-test.serial('get family assembly conservation', async t => {
-  const body = await get_body('/families/DF000000012/assemblies/danRer10/model_conservation?model=hmm');
+test.serial('get family assembly conservation', async t => { 
+  const body = await get_body('/families/DF000000012/assemblies/hg38/model_conservation?model=hmm');
   t.truthy(body.length);
   t.truthy(body[0].num_seqs);
 });
@@ -405,14 +407,14 @@ test.serial('submit search', async t => {
   t.truthy(body.id);
 });
 
-test.serial('read search results', async t => {
+test.serial('read search results', async t => { // needs to be run on dfam
   const body = await get_body('/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac');
   t.truthy(body.results);
   t.truthy(body.results[0].hits);
   t.truthy(body.results[0].tandem_repeats);
 });
 
-test.serial('read search result alignments', async t => {
+test.serial('read search result alignments', async t => { // needs to be run on dfam
   const body = await get_body('/searches/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302');
   t.truthy(body.hmm);
   t.truthy(body.match);
