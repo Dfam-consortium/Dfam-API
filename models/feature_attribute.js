@@ -1,11 +1,11 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('feature_attribute', {
     family_feature_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      comment: "A family_feature identifier",
       references: {
         model: 'family_feature',
         key: 'id'
@@ -14,28 +14,13 @@ module.exports = function(sequelize, DataTypes) {
     attribute: {
       type: DataTypes.STRING(45),
       allowNull: false,
-      primaryKey: true,
-      comment: "A free-form attribute for a feature"
+      primaryKey: true
     },
     value: {
-      type: DataTypes.STRING(256),
-      allowNull: true,
-      comment: "The feature’s attribute value."
+      type: DataTypes.STRING(512),
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'feature_attribute',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "family_feature_id" },
-          { name: "attribute" },
-        ]
-      },
-    ]
+    tableName: 'feature_attribute'
   });
 };

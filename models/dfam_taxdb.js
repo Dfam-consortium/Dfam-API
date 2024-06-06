@@ -1,50 +1,33 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('dfam_taxdb', {
     tax_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
-      primaryKey: true,
-      comment: "A ncbi_taxdb_nodes identifier"
+      primaryKey: true
     },
     scientific_name: {
       type: DataTypes.STRING(256),
-      allowNull: false,
-      comment: "The scientific name of the organism ( from NCBI )"
+      allowNull: false
     },
     sanitized_name: {
       type: DataTypes.STRING(256),
-      allowNull: false,
-      comment: "The sanitized name of the organism ( internally created - TODO: explain )"
+      allowNull: false
     },
     common_name: {
       type: DataTypes.STRING(256),
-      allowNull: true,
-      comment: "The common name for the species, if one is defined ( from NCBI )"
+      allowNull: true
     },
     unique_name: {
       type: DataTypes.STRING(256),
-      allowNull: true,
-      comment: "This is populated when there is a name clash and represents a unique_version of name_txt ( from NCBI )"
+      allowNull: true
     },
     lineage: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "A semicolon delimited list of clades from the tree root to the organism"
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'dfam_taxdb',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "tax_id" },
-        ]
-      },
-    ]
+    tableName: 'dfam_taxdb'
   });
 };

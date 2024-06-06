@@ -1,47 +1,33 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('seed_align_data', {
     family_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      comment: "A Dfam family identifier",
       references: {
         model: 'family',
         key: 'id'
       }
     },
     comsa_data: {
-      type: DataTypes.BLOB,
+      type: "LONGBLOB",
       allowNull: false
     },
     graph_json: {
-      type: DataTypes.BLOB,
-      allowNull: false,
-      comment: "Cached data for the seed alignment visualization."
+      type: "LONGBLOB",
+      allowNull: false
     },
     avg_kimura_divergence: {
       type: DataTypes.FLOAT,
-      allowNull: true,
-      comment: "The average Kimura divergence of the seeds to the derived consensus."
+      allowNull: true
     },
     sequence_count: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER(11),
       allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'seed_align_data',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "family_id" },
-        ]
-      },
-    ]
+    tableName: 'seed_align_data'
   });
 };

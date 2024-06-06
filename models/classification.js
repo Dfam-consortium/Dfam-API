@@ -1,117 +1,78 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('classification', {
     id: {
-      autoIncrement: true,
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      comment: "Surrogate identifier - auto indexed"
+      autoIncrement: true
     },
     parent_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: true
     },
     name: {
       type: DataTypes.STRING(80),
-      allowNull: false,
-      comment: "Classification name.  No spaces, \"_\" used to separate words and \"-\" is used to join name\/value pairs.  Ie. Inverted_Domain_Group-1.  There is no guarantee a name is unique except at any given level in the tree. The unique specifier for a classification is either its \"id\" in the table or the concatenation of the full path from the root to the node."
+      allowNull: false
     },
     tooltip: {
       type: DataTypes.STRING(128),
-      allowNull: true,
-      comment: "A short description of the classification suitable for use as a tooltip."
+      allowNull: true
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "Freeform description of the classification."
+      allowNull: true
     },
     hyperlink: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "A link to a relevant webpage on this class"
+      allowNull: true
     },
     repeatmasker_type_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: true,
-      comment: "All entries in this table should map uniquely to a Type\/Subtype designation used by RepeatMasker.",
       references: {
         model: 'repeatmasker_type',
         key: 'id'
       }
     },
     repeatmasker_subtype_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: true,
-      comment: "All entries in this table should map uniquely to a Type\/Subtype designation used by RepeatMasker.",
       references: {
         model: 'repeatmasker_subtype',
         key: 'id'
       }
     },
     sort_order: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: true,
-      comment: "Explicitly define sort rode for children of a single parent in a tree.  Note this requires re-ordering of the results post-query."
+      type: DataTypes.INTEGER(8).UNSIGNED,
+      allowNull: true
     },
     repbase_equiv: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "One or more closely equivalent RepBase class names.  Freeform.\n"
+      allowNull: true
     },
     wicker_equiv: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "One more more closely equivalent Wicker et.al. class names. Freeform."
+      allowNull: true
     },
     curcio_derbyshire_equiv: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "One or more closely equivalent Curcio and Derbyshire class names.  Freeform."
+      allowNull: true
     },
     piegu_equiv: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "One or more closely equivalent Piegu et.al. class names.  Freeform."
+      allowNull: true
     },
     lineage: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "A text field to hold the “;” separated path from the root of the taxonomy to and including this node.  This is redundant information for optimization purposes and must be rebuilt whenever the table is modified."
+      allowNull: true
     },
     aliases: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "Comma separated list of aliases (spaces allowed)"
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'classification',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "id" },
-        ]
-      },
-      {
-        name: "fk_classification_repeatmasker_types1_idx",
-        using: "BTREE",
-        fields: [
-          { name: "repeatmasker_type_id" },
-        ]
-      },
-      {
-        name: "fk_classification_repeatmasker_subtypes1_idx",
-        using: "BTREE",
-        fields: [
-          { name: "repeatmasker_subtype_id" },
-        ]
-      },
-    ]
+    tableName: 'classification'
   });
 };

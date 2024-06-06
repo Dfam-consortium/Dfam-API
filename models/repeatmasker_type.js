@@ -1,45 +1,23 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('repeatmasker_type', {
     id: {
-      autoIncrement: true,
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      comment: "Surrogate identifier - auto indexed"
+      autoIncrement: true
     },
     name: {
       type: DataTypes.STRING(25),
       allowNull: false,
-      comment: "Repeatmasker TE type name",
-      unique: "name_UNIQUE"
+      unique: true
     },
     description: {
       type: DataTypes.STRING(128),
-      allowNull: true,
-      comment: "Repeatmasker TE type description"
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'repeatmasker_type',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "id" },
-        ]
-      },
-      {
-        name: "name_UNIQUE",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "name" },
-        ]
-      },
-    ]
+    tableName: 'repeatmasker_type'
   });
 };

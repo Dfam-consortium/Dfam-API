@@ -2,10 +2,23 @@
 
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('percentage_id', {
-    family_accession: {
-      type: DataTypes.STRING(20),
+    family_id: {
+      type: DataTypes.BIGINT,
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      references: {
+        model: 'family',
+        key: 'id'
+      }
+    },
+    assembly_id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'assembly',
+        key: 'id'
+      }
     },
     threshold: {
       type: DataTypes.ENUM('GA','TC','2','4','8','16'),

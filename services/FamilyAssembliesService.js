@@ -1,11 +1,9 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const dfam = require("../databases").getModels_Dfam();
-const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const mapFields = require("../utils/mapFields.js");
 const fs = require("fs");
 const child_process = require('child_process');
-const zlib = require("zlib")
 const {IDX_DIR} = require('../config');
 
 const tmp = require('tmp');
@@ -213,7 +211,7 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
     try {
 
       const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
+        attributes: ["id"],
         where: { 'name': assembly_id }
       })  
 
@@ -221,11 +219,14 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
         reject(Service.rejectResponse({}, 404));
       }
 
-      const models = getModels_Assembly(assembly.schema_name);
-      
-      const data = await models.coverageDataModel.findOne({
-        attributes: [ "karyotype" ],
-        where: { "family_accession": id }
+      const fam_id = dfam.familyModel.findOne( 
+        {where: { 'accession': id }, 
+        attributes: ["id"]
+      })
+
+      const data = await dfam.familyAssemblyDataModel.findOne({
+        attributes: [ "coverage_karyotype" ],
+        where: { "family_id": fam_id, "assembly_id": assembly }
       })
 
       if (data && data.karyotype) {
@@ -256,19 +257,22 @@ const readFamilyAssemblyModelConservation = ({ id, assembly_id, model }) => new 
   async (resolve, reject) => {
     try {
 
+      const fam_id = await dfam.familyModel.findOne({
+        attributes: ["id"],
+        where: { 'accession': id }
+      })
+
       const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
+        attributes: ["id"],
         where: { 'name': assembly_id }
       })
 
       if (!assembly || model != "hmm") {
         reject(Service.rejectResponse({}, 404));
       }
-    
-      const models = getModels_Assembly(assembly.schema_name);
-    
-      const conservations = await models.percentageIdModel.findAll({
-        where: { "family_accession": id }
+        
+      const conservations = await dfam.percentageIdModel.findOne({
+        where: { "family_id": fam_id, "assembly_id": assembly }
       })
       const objs = conservations.map((cons) => {
         const obj = mapFields(cons, {}, {
@@ -305,18 +309,28 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
     try {
 
       const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
+        attributes: ["id"],
         where: { 'name': assembly_id }
       })
       if (!assembly || model != "hmm") {
         reject(Service.rejectResponse({}, 404));
       }
     
-      const models = getModels_Assembly(assembly.schema_name);
-    
-      const coverage = await models.coverageDataModel.findOne({
-        attributes: [ "reversed", "forward", "nrph", "num_rev", "num_full", "num_full_nrph" ],
-        where: { "family_accession": id }
+      const fam_id = await dfam.familyModel.findOne({
+        attributes: ["id"],
+        where: { 'accession': id }
+      })
+
+      const coverage = await dfam.familyAssemblyDataModel.findOne({
+        attributes: [ 
+          ["coverage_reversed", "reversed"], 
+          ["coverage_forward", "forward"], 
+          ["coverage_nrph", "nrph"], 
+          ["coverage_num_rev", "num_rev"], 
+          ["coverage_num_full", "num_full"], 
+          ["coverage_num_full_nrph", "num_full_nrph"] 
+        ],
+        where: { "family_id": fam_id, "assembly_id": assembly }
       })
       if (coverage) {
         resolve(Service.successResponse({
