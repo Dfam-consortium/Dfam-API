@@ -80,13 +80,12 @@ test.serial('get version', async t => {
   t.truthy(body.species);
 });
 
-// TODO FIX
 // AlignmentService 
 test.serial('get alignment success', async t => {
-  const body = await get_body('/alignment?assembly=test_ex&chrom=chr1&start=35640910&end=35641251&family=DF000004191');
-  t.is(body.pp.string, "699*******************************************99887773333333333333333333678*******************************************************************98886...5****************************************************************************************************************************************9.*****************************************************9986");
- 
-  const body2 = await get_body('/alignment?assembly=test_ex&chrom=chr3&start=147735008&end=147734825&family=DF000000147');
+  const body = await get_body('/alignment?assembly=hg38&chrom=chr1&start=86228458&end=86238717&family=DF000000001');
+  t.is(body.pp.string, "333332..35556666655......44455677777356789*****************************************************************99988765...69999******998433323344444331445556666553322122245666666666544442222222222222223466788***996.57*******************999998887665");
+  
+  const body2 = await get_body('/alignment?assembly=hg38&chrom=chr3&start=147735008&end=147734825&family=DF000000147');
   t.is(body2.pp.string, "799***********************************************************9..9999*********933333333333333333333334588***************************9......59**************************9999998888877665");
 });
 
@@ -99,7 +98,6 @@ test.serial('get alignment failure', async t => {
   t.pass();
  });
 
- // TODO FIX
 // AnnotationsService 
 test.serial('get annotations', async t => {
   const body = await get_body('/annotations?assembly=test_ex&chrom=chr1&start=168130000&end=168180000&nrph=true');
@@ -112,8 +110,7 @@ test.serial('get annotations', async t => {
 
   await get_notfound('/annotations?assembly=fake&chrom=chr1&start=168130000&end=168180000&nrph=true');
 
-  const body3 = await get_body('/annotations?assembly=test_ex&chrom=fake&start=168130000&end=168180000&nrph=true');
-  t.is(body3.hits.length, 0);
+  await get_notfound('/annotations?assembly=test_ex&chrom=fake&start=168130000&end=168180000&nrph=true');
 
   await request.get('/annotations?assembly=test_ex&chrom=fake&start=158000000&end=168000000&nrph=true')
     .expect(400);

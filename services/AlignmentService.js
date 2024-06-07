@@ -91,7 +91,6 @@ const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
     alignRec['pp'] = {
       'string': ppStr,
     };
-
     return alignRec;
   } catch (err) {
     err
@@ -184,20 +183,19 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
         attributes: [ "hmm" ],
         include: [ { model: dfam.familyModel, where: { accession: family }, attributes: [] } ],
       });
-
       const hmm_data = await promisify(zlib.gunzip)(model.hmm);
 
       const twoBitFile = path.join(config.dfam_warehouse_dir,
         "ref-genomes", assembly, "dfamseq.mask.2bit");
       
-      let reAligned = reAlignAnnotationHMM(twoBitFile, sequence, chrom, start, end, hmm_data)
+      let reAligned = await reAlignAnnotationHMM(twoBitFile, sequence, chrom, start, end, hmm_data)
 
       if (!reAligned){
         reject(Service.rejectResponse("Realignment failed",404))
         return
       }
       
-      resolve(Service.successResponse({reAligned}));
+      resolve(Service.successResponse(reAligned));
 
   } catch (e) {
     reject(Service.rejectResponse(
