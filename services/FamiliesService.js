@@ -327,10 +327,26 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       logger.info(`Retrieved subqueries completed for ${args_hash}`)
 
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file: null)
-      if (!formatted) {
-        logger.error(`Formatting Failed for ${args_hash}`)
-      } else if (!formatted.body) {
-        logger.error(`Formatted boy does not exist for ${args_hash}`)
+      if (download && !formatted) {
+        let message = `Formatting Failed for ${args_hash}`;
+        logger.error(message);
+        resolve(Service.rejectResponse( { payload: {message} }, 500 ));
+        if (download && fs.existsSync(working_file)) {
+          // cleanup working file
+          fs.unlinkSync(working_file);
+          logger.info(`Removed Working File ${working_file}`);
+        }
+        return
+      } else if (download && !formatted.body) {
+        let message = `Formatted body does not exist for ${args_hash}`;
+        logger.error(message);
+        resolve(Service.rejectResponse( { payload: {message} }, 500 ));
+        if (download && fs.existsSync(working_file)) {
+          // cleanup working file
+          fs.unlinkSync(working_file);
+          logger.info(`Removed Working File ${working_file}`);
+        }
+        return
       }
       else {
         logger.info(`Successfully Formatted ${args_hash}`)
