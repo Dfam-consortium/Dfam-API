@@ -156,7 +156,7 @@ class Controller {
       const serviceResponse = await serviceOperation(this.collectRequestParams(request));
       Controller.sendResponse(response, serviceResponse);
       const time = new Date() - start;
-      logger.verbose(`${request.method} ${request.url} ${response.statusCode} ${time}ms`);
+      logger.verbose(`${request.method} ${request.url} ${request.headers['x-forwarded-for'] || request.socket.remoteAddress} ${response.statusCode} ${time}ms`);
     } catch (error) {
       Controller.sendError(response, error);
       logger.error(error);
