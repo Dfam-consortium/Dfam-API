@@ -348,7 +348,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       } 
       else if (
         download && (
-          (!caching && !formatted.body) || // failing to build response body when not caching
+          (!caching && !formatted.body) && // failing to build response body when not caching
           (fs.existsSync(working_file) && !fs.statSync(working_file).size > 0) // cache file exists and is empty
         )
       ) {
@@ -385,7 +385,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         if (caching && fs.existsSync(working_file)) {
           logger.info(`Caching ${args_hash}`)
           // build JSON header
-          fs.writeFileSync(cache_file, `"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`)
+          fs.writeFileSync(cache_file, `{"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`)
           // compress and encode working data into cache file
           const zip = await new Promise((resolve, reject) => {
             let zipper = child_process.spawn("sh", ["-c", `cat ${working_file} | gzip | base64 -w 0 >> ${cache_file}`]);
