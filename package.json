@@ -10,7 +10,7 @@
     "lint": "eslint .; true",
     "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
-    "test": "ava --no-worker-threads >& ./test/test.ava.log",
+    "test": "ava --no-worker-threads",
     "build-docs": "redocly build-docs api/openapi.yaml",
     "artillery": "artillery run ./test/artillery-test.yaml >& ./test/test.artillery.log"
   },

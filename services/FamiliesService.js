@@ -248,16 +248,16 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
 const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
     const args_hash = md5(JSON.stringify(args));
+    const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
+    const cache_name = args_hash + ".cache" 
+    const cache_file = cache_dir + cache_name
+    const working_file = cache_file + '.working'
+
     try {
 
       if (!format) {
         format = "summary";
       }
-
-      const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
-      const cache_name = args_hash + ".cache" 
-      const cache_file = cache_dir + cache_name
-      const working_file = cache_file + '.working'
       
       // If cache is being built, return message
       if ( download && fs.existsSync(working_file)) {
@@ -311,8 +311,12 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       logger.info(`Retrieved ${total_count} Families for ${args_hash}}`)
 
       // Return message if query is too large to be sent
-      if ((limit === undefined && total_count > format_rules.limit) || (limit && limit > format_rules.limit)) {
+      if (
+        (!limit && total_count > format_rules.limit) || 
+        (limit && limit > format_rules.limit)
+      ) {
         const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
+        logger.error(message)
         resolve(Service.rejectResponse( { payload: {message} }, 405 ));
         if (download && fs.existsSync(working_file)) {
           // cleanup working file
@@ -321,14 +325,16 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         }
         return
       }
-      let caching = total_count > config.CACHE_CUTOFF
+      let caching = download && total_count > config.CACHE_CUTOFF
 
       // process rows into file
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
       logger.info(`Retrieved subqueries completed for ${args_hash}`)
+      
+      // if caching, a working file will be written to instead of formatted.body 
+      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file : null)
 
-      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file: null)
       if (download && !formatted) {
         let message = `Formatting Failed for ${args_hash}`;
         logger.error(message);
@@ -339,7 +345,13 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
           logger.info(`Removed Working File ${working_file}`);
         }
         return
-      } else if (download && !formatted.body) {
+      } 
+      else if (
+        download && (
+          (!caching && !formatted.body) || // failing to build response body when not caching
+          (fs.existsSync(working_file) && !fs.statSync(working_file).size > 0) // cache file exists and is empty
+        )
+      ) {
         let message = `Formatted body does not exist for ${args_hash}`;
         logger.error(message);
         resolve(Service.rejectResponse( { payload: {message} }, 500 ));
