@@ -39,6 +39,9 @@ const fs = require('fs');
 * download Boolean If true, adds headers to trigger a browser download. (optional)
 * returns familiesResponse
 * */
+
+const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
+
  // TODO Move these functions to utils/family.js
  async function familyRowsToObjects(total_count, rows, format, copyright, download) {
   // Download isn't applicable here yet?
@@ -244,7 +247,6 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
 
 const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
-    const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
     const args_hash = md5(JSON.stringify(args));
     try {
 
@@ -309,7 +311,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       logger.info(`Retrieved ${total_count} Families for ${args_hash}}`)
 
       // Return message if query is too large to be sent
-      if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
+      if ((limit === undefined && total_count > format_rules.limit) || (limit && limit > format_rules.limit)) {
         const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
         resolve(Service.rejectResponse( { payload: {message} }, 405 ));
         if (download && fs.existsSync(working_file)) {
@@ -331,7 +333,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         let message = `Formatting Failed for ${args_hash}`;
         logger.error(message);
         resolve(Service.rejectResponse( { payload: {message} }, 500 ));
-        if (download && fs.existsSync(working_file)) {
+        if (fs.existsSync(working_file)) {
           // cleanup working file
           fs.unlinkSync(working_file);
           logger.info(`Removed Working File ${working_file}`);
@@ -341,7 +343,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         let message = `Formatted body does not exist for ${args_hash}`;
         logger.error(message);
         resolve(Service.rejectResponse( { payload: {message} }, 500 ));
-        if (download && fs.existsSync(working_file)) {
+        if (fs.existsSync(working_file)) {
           // cleanup working file
           fs.unlinkSync(working_file);
           logger.info(`Removed Working File ${working_file}`);
