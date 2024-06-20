@@ -94,6 +94,16 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       const cache_file = cache_dir + cache_name
       const working_file = cache_file + '.working'
 
+      // TODO: RMH-2024-06-20
+      // These synchronous ( e.g "Sync" ) functions should probably be replaced with
+      // their asynchronous counterparts to avoid blocking the event loop.  E.g:
+      //
+      //      import fs from "fs/promises";  // Node 11+
+      //      cache_exists = await fs.exists(cache_file);
+      //      if ( download && cache_exists ) {
+      //
+      // Same with readFileSync and writeFileSync below.
+
       // If cache exists, return cache file
       if ( download && fs.existsSync(cache_file) ) {
         // update access time for cache
@@ -291,7 +301,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       // The query can produce N rows for a given family if the family has more than one
       // taxonomic label *and* the user asks for all families descendant from a clade 
-      // higher than both labels.  Anthony round that a simple query.distinct here fixes
+      // higher than both labels.  Anthony found that a simple query.distinct here fixes
       // the problem. 6/27/23
       query.distinct = true;
 
