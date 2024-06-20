@@ -153,10 +153,13 @@ class Controller {
     try {
       const start = new Date();
       //console.log(JSON.stringify(request.query));
+      let req_ip = request.ip
+      let x_for = request.headers['x-forwarded-for']
+      let remAddr = request.connection.remoteAddress
       const serviceResponse = await serviceOperation(this.collectRequestParams(request));
       Controller.sendResponse(response, serviceResponse);
       const time = new Date() - start;
-      logger.verbose(`${request.method} ${request.url} ${response.statusCode} ${time}ms`);
+      logger.verbose(`${request.method} ${request.url} ${response.statusCode} ${time}ms Experimental: req_ip: ${req_ip} x_for: ${x_for} remAddr: ${remAddr}`);
     } catch (error) {
       Controller.sendError(response, error);
       logger.error(error);

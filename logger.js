@@ -1,11 +1,19 @@
 const { transports, createLogger, format } = require('winston');
+const {combine, json} = format;
+const moment = require('moment-timezone');
+
+const appendTimestamp = format((info, opts) => {
+  if(opts.tz)
+    info.timestamp = moment().tz(opts.tz).format();
+  return info;
+});
 
 const logger = createLogger({
   // TODO: Set this in the user environment
   level: 'verbose',
-  format: format.combine(
-    format.timestamp(),
-    format.json(),
+  format: combine(
+    appendTimestamp({ tz: 'America/Vancouver' }),
+    json(),
   ),
   defaultMeta: { service: 'user-service' },
   //  new transports.File({ filename: 'Dfam-API-error.log', level: 'error', timestamp: true }),

@@ -39,60 +39,225 @@ const fs = require('fs');
 * download Boolean If true, adds headers to trigger a browser download. (optional)
 * returns familiesResponse
 * */
+
+const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
+
+ // TODO Move these functions to utils/family.js
+ async function familyRowsToObjects(total_count, rows, format, copyright, download) {
+  // Download isn't applicable here yet?
+  // Copyright isn't applicable on these formats
+  const objs = rows.map(row => family.familyQueryRowToObject(row, format));
+  const data = { total_count, results: objs };
+  return {
+    payload: data
+  };
+}
+
+async function workerFormatAccessions(total_count, rows, format, copyright, download, write_file=null) {
+
+  if ( ! (format in extensions) ) {
+    resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
+  }
+
+  var obj = {};
+  if (download) {
+    obj.attachment = "families" + extensions[format];
+  }
+  obj.content_type = "text/plain";
+  obj.encoding = "identity";
+
+  var accs = [];
+  for (const row of rows) {
+    accs.push(row.accession);
+  }
+
+  // TODO: Consider compressing the results
+  // TODO: Consider pagination for large queries
+  // TODO: Consider copyright for bulk and download only     
+  if (format == "embl") {
+    obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0, write_file: write_file}, { name: 'embl_command' });
+  } else if (format == "fasta") {
+    obj.body = await workerPool.piscina.run({accessions: accs, write_file: write_file}, { name: 'fasta_command' });
+  } else if (format == "hmm") {
+    obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0, write_file: write_file}, { name: 'hmm_command' });
+  } 
+
+  return obj;
+}
+
+function buildFamQuery (format_rules, name, name_accession, name_prefix, classification, clade_info, clade_relatives, desc, type, subtype, updated_after, updated_before, keywords, include_raw, sort, limit, start) {
+  const query = { };
+  query.attributes = ["id", "accession"];
+  query.where = [];
+  query.include = [
+    { model: dfam.classificationModel, as: 'classification', include: [
+      { model: dfam.rmTypeModel, as: 'rm_type' },
+      { model: dfam.rmSubTypeModel, as: 'rm_subtype' },
+    ] },
+  ];
+  query.order = [];
+
+  // See sequelize/sequelize#11617
+  query.subQuery = false;
+
+  if (format_rules.metadata >= 1) {
+    query.attributes = query.attributes.concat(["name", "version", "title", "length", "description"]);
+  }
+
+  if (format_rules.metadata >= 2) {
+    query.attributes = query.attributes.concat([
+      "consensus", "author", "deposited_by_id", "date_created", "date_modified",
+      "target_site_cons", "refineable", "disabled", "model_mask", "hmm_general_threshold",
+      "source_method_desc",
+    ]);
+    query.include.push({ model: dfam.curationStateModel, as: 'curation_state' });
+    query.include.push({ model: dfam.sourceMethodModel, as: 'source_method' });
+    query.include.push({ model: dfam.assemblyModel, as: 'source_assembly' });
+  }
+
+  if (name) {
+    query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name, '\\') + "%" } });
+  } else if (name_prefix) {
+    query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name_prefix, '\\') + "%" } });
+  } else if (name_accession) {
+    const where_name_acc = "%" + escape.escape_sql_like(name_accession, '\\') + "%";
+    query.where.push({ [Sequelize.Op.or]: [
+      { name: { [Sequelize.Op.like]: where_name_acc } },
+      { accession: { [Sequelize.Op.like]: where_name_acc } },
+    ] });
+  }
+
+  if (classification) {
+    let class_decode = decodeURIComponent(classification)
+    query.where.push({ [Sequelize.Op.or]: [
+      { "$classification.lineage$": class_decode },
+      { "$classification.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(class_decode, '\\') + ";%" } },
+    ] });
+  }
+
+  if (clade_info) {
+    const cladeInclude = {
+      model: dfam.dfamTaxdbModel,
+      as: 'clades',
+      include: [],
+    };
+    query.include.push(cladeInclude);
+
+    const clade_where_query = [];
+    clade_where_query.push({
+      "tax_id": { [Sequelize.Op.in]: clade_info.ids },
+    });
+
+    if (clade_relatives === "descendants" || clade_relatives === "both") {
+      clade_where_query.push({
+        "lineage": { [Sequelize.Op.like]: escape.escape_sql_like(clade_info.lineage, '\\') + ";%" }
+      });
+    }
+
+    cladeInclude.where = { [Sequelize.Op.or]: clade_where_query };
+  }
+
+  if (desc) {
+    query.where.push({
+      description: { [Sequelize.Op.like]: "%" + escape.escape_sql_like(desc, '#') + "%" }
+    });
+  }
+
+  if (type) {
+    query.where.push({ '$classification.rm_type.name$': type });
+  }
+
+  if (subtype) {
+    query.where.push({ '$classification.rm_subtype.name$': subtype });
+  }
+
+  // TODO: new Date(...) is full of surprises.
+
+  if (updated_after) {
+    query.where.push({ [Sequelize.Op.or]: [
+      { date_modified: { [Sequelize.Op.gt]: new Date(updated_after) } },
+      { date_created: { [Sequelize.Op.gt]: new Date(updated_after) } },
+    ] });
+  }
+
+  if (updated_before) {
+    query.where.push({ [Sequelize.Op.or]: [
+      { date_modified: { [Sequelize.Op.lt]: new Date(updated_before) } },
+      { date_created: { [Sequelize.Op.lt]: new Date(updated_before) } },
+    ] });
+  }
+
+  if (keywords) {
+    keywords.split(" ").forEach(function(word) {
+      const word_esc = "%" + escape.escape_sql_like(word, '\\') + "%";
+      query.where.push({ [Sequelize.Op.or]: [
+        { name:        { [Sequelize.Op.like]: word_esc } },
+        { title:       { [Sequelize.Op.like]: word_esc } },
+        { description: { [Sequelize.Op.like]: word_esc } },
+        { accession:   { [Sequelize.Op.like]: word_esc } },
+        { author:      { [Sequelize.Op.like]: word_esc } },
+      ] });
+    });
+  }
+
+  if (!include_raw) {
+    query.where.push({ accession: { [Sequelize.Op.like]: "DF%" } });
+  }
+
+  const simpleSortKeys = [ "accession", "name", "length", "date_created", "date_modified" ];
+
+  if (sort) {
+    sort.split(",").forEach(function(term) {
+      const match = /(\S+):(asc|desc)/.exec(term);
+      if (match) {
+        if (simpleSortKeys.includes(match[1])) {
+          query.order.push([match[1], match[2]]);
+        } else if (match[1] == "type") {
+          query.order.push(["classification", "rm_type", "name", match[2]]);
+        } else if (match[1] == "subtype") {
+          query.order.push(["classification", "rm_subtype", "name", match[2]]);
+        }
+      }
+    });
+  }
+
+  if (!query.order.length) {
+    query.order.push(["accession", "ASC"]);
+  }
+
+  if (limit !== undefined) {
+    query.limit = limit;
+  }
+
+  if (start !== undefined) {
+    query.offset = start;
+  }
+
+  // To log the queries for debugging
+  //query.logging = console.log;
+
+  // The query can produce N rows for a given family if the family has more than one
+  // taxonomic label *and* the user asks for all families descendant from a clade 
+  // higher than both labels.  Anthony round that a simple query.distinct here fixes
+  // the problem. 6/27/23
+  query.distinct = true;
+
+  return query
+}
+
 const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
-    // TODO Move these functions to utils/family.js
-    async function familyRowsToObjects(total_count, rows, format, copyright, download) {
-      // Download isn't applicable here yet?
-      // Copyright isn't applicable on these formats
-      const objs = rows.map(row => family.familyQueryRowToObject(row, format));
-      const data = { total_count, results: objs };
-      return {
-        payload: data
-      };
-    }
-    async function workerFormatAccessions(total_count, rows, format, copyright, download) {
-      const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
+    const args_hash = md5(JSON.stringify(args));
+    const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
+    const cache_name = args_hash + ".cache" 
+    const cache_file = cache_dir + cache_name
+    const working_file = cache_file + '.working'
 
-      if ( ! (format in extensions) ) {
-        resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
-      }
-
-      var obj = {};
-      if (download) {
-        obj.attachment = "families" + extensions[format];
-      }
-      obj.content_type = "text/plain";
-      obj.encoding = "identity";
-
-      var accs = [];
-      for (const row of rows) {
-        accs.push(row.accession);
-      }
-
-      // TODO: Consider compressing the results
-      // TODO: Consider pagination for large queries
-      // TODO: Consider copyright for bulk and download only     
-      if (format == "embl") {
-        obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'embl_command' });
-      } else if (format == "fasta") {
-        obj.body = await workerPool.piscina.run({accessions: accs}, { name: 'fasta_command' });
-      } else if (format == "hmm") {
-        obj.body = await workerPool.piscina.run({accessions: accs, include_copyright: 0}, { name: 'hmm_command' });
-      } 
-
-      return obj;
-    }
     try {
 
       if (!format) {
         format = "summary";
       }
-
-      const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
-      const cache_name = md5(JSON.stringify(args)) + ".cache" 
-      const cache_file = cache_dir + cache_name
-      const working_file = cache_file + '.working'
 
       // TODO: RMH-2024-06-20
       // These synchronous ( e.g "Sync" ) functions should probably be replaced with
@@ -104,8 +269,14 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       //
       // Same with readFileSync and writeFileSync below.
 
+      // If cache is being built, return message
+      if ( download && fs.existsSync(working_file)) {
+        logger.info(`Waiting on ${args_hash}`)
+        resolve(Service.successResponse({body: "Working..."}, 202));
+        return
+      } 
       // If cache exists, return cache file
-      if ( download && fs.existsSync(cache_file) ) {
+      else if ( download && fs.existsSync(cache_file) ) {
         // update access time for cache
         fs.utimesSync(cache_file, new Date(), new Date())
         
@@ -116,16 +287,11 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         resolve(Service.successResponse(res, 200));
         return
 
-      // If cache is being built, return message
-      } else if ( download && fs.existsSync(working_file)) {
-        resolve(Service.successResponse({body: "Working..."}, 202));
-        return
-      
       // Write blank working file so client knows it's in process before query is returned
       } else if (download) {
+        logger.info(`Download Request ${args_hash} Recieved - ${JSON.stringify(args)}`)
         fs.writeFileSync(working_file, "")
         logger.info(`Created Working file ${working_file}`)
-
       }
 
       // TODO: Consider making these configurable in Dfam.conf
@@ -149,6 +315,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       const clade_info = await collectClades(clade, clade_relatives);
 
+<<<<<<< HEAD
       const query = { };
       query.attributes = ["id", "accession"];
       query.where = [];
@@ -305,50 +472,119 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       // the problem. 6/27/23
       query.distinct = true;
 
+=======
+      const query = buildFamQuery(format_rules, name, name_accession, name_prefix, classification, clade_info, clade_relatives, desc, type, subtype, updated_after, updated_before, keywords, include_raw, sort, limit, start);
+>>>>>>> a2df85282b8d04da67729817718ef61ceeca2e14
       const count_result = await dfam.familyModel.findAndCountAll(query);
       const total_count = count_result.count;
+      logger.info(`Retrieved ${total_count} Families for ${args_hash}}`)
 
       // Return message if query is too large to be sent
-      if (total_count > format_rules.limit && (limit === undefined || limit > format_rules.limit)) {
+      if (
+        (!limit && total_count > format_rules.limit) || 
+        (limit && limit > format_rules.limit)
+      ) {
         const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
-        resolve(Service.successResponse( { payload: {message} }, 400 ));
+        logger.error(message)
+        resolve(Service.rejectResponse( { payload: {message} }, 405 ));
+        if (download && fs.existsSync(working_file)) {
+          // cleanup working file
+          fs.unlinkSync(working_file)
+          logger.info(`Removed Working File ${working_file}`)
+        }
+        return
       }
+      let caching = download && total_count > config.CACHE_CUTOFF
 
       // process rows into file
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
-      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download)
+      logger.info(`Retrieved subqueries completed for ${args_hash}`)
+      
+      // if caching, a working file will be written to instead of formatted.body 
+      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file : null)
 
-      if (download) {
-        // compress response body
-        let compressed = zlib.gzipSync(formatted.body);
-        
-        // base64 encode body
-        let b64 = Buffer.from(compressed).toString('base64')
-        formatted.body = b64
-
-        // If large request write data to working file and rename to finished file
-        if (total_count > config.CACHE_CUTOFF && fs.existsSync(working_file)) {
-          // write object to string
-          let str = JSON.stringify(formatted)
-          //write and rename file
-          fs.writeFileSync(working_file, str)
-          fs.renameSync(working_file, cache_file)
-          logger.info(`Wrote Cache File ${cache_file}`)
-
-        // otherwise, remove placeholder working file
-        } else if (fs.existsSync(working_file)){
-          fs.unlinkSync(working_file)
-          logger.info(`Removed Working File ${working_file}`)
-          
+      if (download && !formatted) {
+        let message = `Formatting Failed for ${args_hash}`;
+        logger.error(message);
+        resolve(Service.rejectResponse( { payload: {message} }, 500 ));
+        if (fs.existsSync(working_file)) {
+          // cleanup working file
+          fs.unlinkSync(working_file);
+          logger.info(`Removed Working File ${working_file}`);
         }
+        return
+      } 
+      else if (
+        download && (
+          (!caching && !formatted.body) && // failing to build response body when not caching
+          (fs.existsSync(working_file) && !fs.statSync(working_file).size > 0) // cache file exists and is empty
+        )
+      ) {
+        let message = `Formatted body does not exist for ${args_hash}`;
+        logger.error(message);
+        resolve(Service.rejectResponse( { payload: {message} }, 500 ));
+        if (fs.existsSync(working_file)) {
+          // cleanup working file
+          fs.unlinkSync(working_file);
+          logger.info(`Removed Working File ${working_file}`);
+        }
+        return
+      }
+      else {
+        logger.info(`Successfully Formatted ${args_hash}`)
       }
 
-      resolve(Service.successResponse(formatted, 200));
+      if (download) {
+        if (!caching) {
+          logger.info(`Returning ${args_hash} Without Caching`)
+          // compress response body
+          let compressed = zlib.gzipSync(formatted.body);
+          // base64 encode body
+          let b64 = Buffer.from(compressed).toString('base64')
+          formatted.body = b64
+          // cleanup working file
+          fs.unlinkSync(working_file)
+          logger.info(`Removed Working File ${working_file}`)
+          // return data directly
+          resolve(Service.successResponse(formatted, 200));
+          return
+        }
+        // If large file,  compress, encode, and wrap saved working file in JSON to complete cache file
+        if (caching && fs.existsSync(working_file)) {
+          logger.info(`Caching ${args_hash}`)
+          // build JSON header
+          fs.writeFileSync(cache_file, `{"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`)
+          // compress and encode working data into cache file
+          const zip = await new Promise((resolve, reject) => {
+            let zipper = child_process.spawn("sh", ["-c", `cat ${working_file} | gzip | base64 -w 0 >> ${cache_file}`]);
+            zipper.on('error', err => reject(err));
+            zipper.on('close', (code) => {
+              if (code == 0) {resolve(code)}
+              else {reject(code)}
+            })
+          })
+          // finish JSON
+          fs.appendFileSync(cache_file, '"}')
+          // Log and remove working file
+          logger.info(`Wrote Cache File ${cache_file}`)
+          fs.unlinkSync(working_file)
+          logger.info(`Removed Working File ${working_file}`)
+          // delay returning to allow caching system to open file and return data
+          resolve(Service.successResponse({body: "Working..."}, 202));
+        } 
+      } else {
+        // without dowload, return data directly
+        resolve(Service.successResponse(formatted, 200));
+      }
 
     } catch (e) {
       if (download){
-        logger.error(`Caching Request Failed: ${md5(JSON.stringify(args))} - ${e}`)
+        logger.error(`Caching Request Failed: ${args_hash} - ${e}`)
+        if (fs.existsSync(working_file)){
+          fs.unlinkSync(working_file)
+          logger.info(`Removed Working File ${working_file}`)
+        }
       } else {
         logger.error(`Error - ${e}`)
       }
