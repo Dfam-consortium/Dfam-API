@@ -308,7 +308,10 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       const query = buildFamQuery(format_rules, name, name_accession, name_prefix, classification, clade_info, clade_relatives, desc, type, subtype, updated_after, updated_before, keywords, include_raw, sort, limit, start);
       const count_result = await dfam.familyModel.findAndCountAll(query);
       const total_count = count_result.count;
-      logger.info(`Retrieved ${total_count} Families for ${args_hash}}`)
+
+      if (download) {
+        logger.info(`Retrieved ${total_count} Families for ${args_hash}}`)
+      }
 
       // Return message if query is too large to be sent
       if (
@@ -316,8 +319,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         (limit && limit > format_rules.limit)
       ) {
         const message = `Result size of ${total_count} is above the per-query limit of ${format_rules.limit}. Please narrow your search terms or use the limit and start parameters.`;
-        logger.error(message)
-        resolve(Service.rejectResponse( { payload: {message} }, 405 ));
+        resolve(Service.rejectResponse( message, 405 ));
         if (download && fs.existsSync(working_file)) {
           // cleanup working file
           fs.unlinkSync(working_file)
@@ -330,7 +332,9 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       // process rows into file
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
-      logger.info(`Retrieved subqueries completed for ${args_hash}`)
+      if (download) {
+        logger.info(`Retrieved subqueries completed for ${args_hash}`)
+      }
       
       // if caching, a working file will be written to instead of formatted.body 
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file : null)
@@ -362,7 +366,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         }
         return
       }
-      else {
+      else if (download){
         logger.info(`Successfully Formatted ${args_hash}`)
       }
 
@@ -742,7 +746,7 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
         obj.payload = await workerPool.piscina.run({accessions: [id]}, { name: 'stockholm_command' });
         obj.content_type = "text/plain";
         obj.encoding = "identity";
-      }else if (format == "alignment_summary") {
+      } else if (format == "alignment_summary") {
         const family = await dfam.familyModel.findOne({
           attributes: [ "id", "name" ],
           where: { accession: id },
@@ -757,7 +761,7 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
         if (seedAlignData && seedAlignData.graph_json && seedAlignData.graph_json.length > 0) {
           graphData = JSON.parse(await promisify(zlib.gunzip)(seedAlignData.graph_json));
         } else {
-          logger.warn(`Family with accession ${id} has no seed alignment graph data.`);
+          reject(Service.rejectResponse(`Family with accession ${id} has no seed alignment graph data.`, 404))
         }
 
         // low_priority TODO: Include values for graphData.publicSequences and
@@ -769,7 +773,11 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
         obj.content_type = "application/json";
         obj.encoding = "identity";
       }
-      resolve(Service.successResponse(obj));
+      if (obj.payload) {
+        resolve(Service.successResponse(obj));
+      } else {
+        reject(Service.rejectResponse(`Error Recovering Seed For ${id}`, 404))
+      }
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',

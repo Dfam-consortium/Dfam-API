@@ -129,7 +129,7 @@ const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
       })
 
       if (!family_assembly) {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Family Assembly Not Found", 404));
       } 
 
       resolve(Service.successResponse(familyAssemblyStatsObject(family_assembly)));
@@ -162,7 +162,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
       })
 
       if (!assembly) {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Assembly Not Found", 404));
       }
 
       const models = getModels_Assembly(assembly.schema_name);
@@ -180,7 +180,7 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
       })
 
       if (!files || !files[column]) {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Model File Not Found", 404));
       }
 
       resolve(Service.successResponse(
@@ -218,7 +218,7 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
       })  
 
       if (!assembly) {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Assembly Not Found", 404));
       }
 
       const models = getModels_Assembly(assembly.schema_name);
@@ -232,7 +232,7 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
       if (data && data.karyotype) {
         resolve(Service.successResponse(JSON.parse(data.karyotype.toString()), 200))
       } else {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Karyotype Not Found", 404));
       }
 
     } catch (e) {
@@ -263,7 +263,7 @@ const readFamilyAssemblyModelConservation = ({ id, assembly_id, model }) => new 
       })
 
       if (!assembly || model != "hmm") {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Assembly Not Found", 404));
       }
     
       const models = getModels_Assembly(assembly.schema_name);
@@ -310,7 +310,7 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
         where: { 'name': assembly_id }
       })
       if (!assembly || model != "hmm") {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Assembly Not Found", 404));
       }
     
       const models = getModels_Assembly(assembly.schema_name);
@@ -329,7 +329,7 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
           "false_hits": coverage.num_rev,
         }));
       } else {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Coverage Not Found", 404));
       }
     } catch (e) {
       reject(Service.rejectResponse(

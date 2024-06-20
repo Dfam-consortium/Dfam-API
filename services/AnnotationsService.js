@@ -37,7 +37,7 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         where: { "name": assembly },
       })
       if (!assembly_model) {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Assembly Model Not Found", 404));
       }
 
       const models = await getModels_Assembly(assembly_model.schema_name);
