@@ -12,4 +12,12 @@ done
 
 echo Logs Downloaded To $downloadTime.log
 echo Converting The Log File To CSV
-python3 ./logToCSV.py -i $downloadTime.log -o $downloadTime.csv
+python3 ./logToCSV.py -i $downloadTime.log -o $downloadTime.cat
+
+echo Sorting CSV
+# preserve header, sort from line 2
+# sort by date, then by time
+(head -n 1 $downloadTime.cat && tail -n +2 $downloadTime.cat | sort -t , -k 1,1 -k 2,2) > $downloadTime.csv 
+rm $downloadTime.cat $downloadTime.log
+
+echo CSV Complete
