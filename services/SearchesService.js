@@ -12,6 +12,7 @@ const resultStore = config.dfamdequeuer.result_store;
 const winston = require('winston');
 const zlib = require('zlib');
 const promisify = require('util').promisify;
+const fsp = require('fs/promises');
 const fs = require('fs');
 const child_process = require('child_process');
 const { Op } = require("sequelize");
@@ -140,7 +141,11 @@ const readSearchResults = ({ id }) => new Promise(
         reject(Service.rejectResponse(response, 500));
         
       } else if (jobRec.status === "DONE") {
-        if (!(fs.existsSync(nhmmer_out) && fs.existsSync(trf_out))){
+
+        // TODO: exists is deprecated
+          // if (!(await fsp.access(nhmmer_out).then(()=> true).catch(()=> false) && await fs.access(trf_out).then(()=> true).catch(()=> false))){
+          // fs.existsSync())
+        if (!(await promisify(fs.exists)(nhmmer_out) && await promisify(fs.exists)(trf_out))){
           response.message = "Job Complete, Preparing Data"
           resolve(Service.successResponse(response, 202));
         }
@@ -375,7 +380,7 @@ const sanitizeFASTAInput = (sequence) => {
 const parseNhmmscan = async ( filePath ) => {
   try {
 
-    let data = await fs.readFileSync(filePath, {encoding: 'utf-8'})
+    let data = await fsp.readFile(filePath, {encoding: 'utf-8'})
     //  L1ME3G_3end           DF0000302.4          Query                  46.4   4.8e-12  16.6     466     612    +       456     597     435     617     924   3' end
     //   of L1 retrotransposon, L1ME3G_3end subfamily
     const nhmmscanData = /^\S+\s+DF\d+\.?\d*\s+\S+\s+[\d.]+\s+/;
@@ -456,7 +461,7 @@ const parseNhmmscan = async ( filePath ) => {
 // search.
 const  parseTRF = async (filePath) => {
   try {
-    let data = await fs.readFileSync(filePath, {encoding: 'utf-8'})
+    let data = await fsp.readFile(filePath, {encoding: 'utf-8'})
 
     //6181 6275 4 23.0 4 72 10 66 51 0 48 0 1.00 AAGG AAGGAAGGAAAGAAAAAAGGAAGGGAGGAGGGAAGGAGGGAAAAAGGGAAGGAGGGAAGGAAAGGAAGGAAGGGAAAGAAGGAAAGGAAGGAAGG
     const trfData = /^\d+\s+\d+\s+\d+\s+[\d.]+\s+/;

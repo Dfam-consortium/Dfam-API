@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
 const camelCase = require('camelcase');
 const config = require('../config');
@@ -79,7 +79,7 @@ class Controller {
   * @param fieldName
   * @returns {string}
   */
-  static collectFile(request, fieldName) {
+  static async collectFile(request, fieldName) {
     let uploadedFileName = '';
     if (request.files && request.files.length > 0) {
       const fileObject = request.files.find(file => file.fieldname === fieldName);
@@ -88,7 +88,7 @@ class Controller {
         const extension = fileArray.pop();
         fileArray.push(`_${Date.now()}`);
         uploadedFileName = `${fileArray.join('')}.${extension}`;
-        fs.renameSync(path.join(config.FILE_UPLOAD_PATH, fileObject.filename),
+        await fs.rename(path.join(config.FILE_UPLOAD_PATH, fileObject.filename),
           path.join(config.FILE_UPLOAD_PATH, uploadedFileName));
       }
     }
