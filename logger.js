@@ -15,10 +15,10 @@ const myFormat = combine(
   appendTimestamp({ tz: 'America/Vancouver' }),
   printf(({ level, message, date, time }) => {
     if (level === 'info') {
-      return `{"type": ${level}, "message": ${message}, "date": ${date}, "time": ${time}}`;
+      return `{"type": "${level}", "message": "${message}", "date": "${date}", "time": "${time}"}`;
     }
     else if (level === "verbose") {
-      return `{"type": ${level}, "method": ${message.method}, "endpoint": ${message.endpoint}, "params": ${message.params}, "code": ${message.code}, "res_time": ${message.res_time}, "client_ip": ${message.client_ip}, "date": ${date}, "time": ${time}}`;
+      return `{"type": "${level}", "method": "${message.method}", "endpoint": "${message.endpoint}", "params": "${message.params}", "code": "${message.code}", "res_time": "${message.res_time}", "client_ip": "${message.client_ip}", "date": "${date}", "time": "${time}"}`;
     }
     else if (level === "error") {
       let code;
@@ -39,10 +39,10 @@ const myFormat = combine(
           err_message = ""
         }
       }
-      return `{"type": ${level}, "message": ${err_message}, "url": ${message.url}, "code": ${code}, "date": ${date}, "time": ${time}}`;
+      return `{"type": "${level}", "message": "${err_message}", "url": "${message.url}", "code": "${code}", "date": "${date}", "time": "${time}"}`;
     }
     else {
-      return `Unhandled Log Level Type: ${level} ${message} ${date} ${time}`
+      return `{"type": "${level}", "message": "${message}", "date": "${date}", "time": "${time}"}`
     }
   }),
 )

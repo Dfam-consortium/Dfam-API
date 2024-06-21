@@ -279,7 +279,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       // Write blank working file so client knows it's in process before query is returned
       } else if (download) {
-        logger.info(`Download Request ${args_hash} Recieved - ${JSON.stringify(args)}`)
+        logger.info(`Download Request ${args_hash} Recieved - ${JSON.stringify(args).replaceAll('"', "'")}`)
         await fs.writeFile(working_file, "")
         logger.info(`Created Working file ${working_file}`)
       }
@@ -310,7 +310,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       const total_count = count_result.count;
 
       if (download) {
-        logger.info(`Retrieved ${total_count} Families for ${args_hash}}`)
+        logger.info(`Retrieved ${total_count} Families for ${args_hash}`)
       }
 
       // Return message if query is too large to be sent
