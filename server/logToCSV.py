@@ -19,7 +19,7 @@ FIELDS = [
     "method",
     "endpoint",
     "params",
-    "res_code",
+    "code",
     "res_time",
     "client_ip",
 ]
