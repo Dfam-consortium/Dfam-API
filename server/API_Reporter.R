@@ -1,31 +1,3 @@
-"
-/version -> getVersion
-/blogposts -> readBlogPosts
-/assemblies -> readAssemblies
-/families -> readFamilies
-/families/{id} -> readFamilyById
-/families/{id}/hmm -> readFamilyHmm
-/families/{id}/sequence -> readFamilySequence
-/families/{id}/seed -> readFamilySeed
-/families/{id}/relationships -> readFamilyRelationships
-/families/{id}/assemblies -> readFamilyAssemblies
-/families/{id}/annotation_stats -> readFamilyAnnotationStats
-/families/{id}/assemblies/{assem_id}/model_coverage -> readFamilyAssemblyModelCoverage
-/families/{id}/assemblies/{assem_id}/model_conservation -> readFamilyAssemblyModelConservation
-/families/{id}/assemblies/{assem_id}/annotations -> readFamilyAssemblyAnnotations
-/families/{id}/assemblies/{assem_id}/annotation_stats -> readFamilyAssemblyAnnotationStats
-/families/{id}/assemblies/{assem_id}/karyotype -> readFamilyAssemblyKaryotype
-/classes -> readClassification
-/taxa -> readTaxa
-/taxa/coverage -> readCoverage
-/taxa/{id} -> readTaxaById
-/annotations -> readAnnotations
-/alignment -> readAlignment
-/searches -> submitSearch
-/searches/{id} -> readSearchResults
-/searches/{id}/alignment -> readSearchResultAlignment
-"
-
 library(shiny)
 library(bslib)
 library(dplyr)
@@ -44,7 +16,6 @@ getLogData <- function(url) {
   return(df)
 }
 
-# api hits/errors over time
 getCountsByType <- function(df, resolution) {
   temp <- switch(
     resolution,
@@ -215,7 +186,6 @@ plotAvgResponseTime <- function(apiCalls, selector) {
     by.y = "endpoint_group",
     all.x = TRUE
   )
-  # data$res_time[is.na(data$res_time)] <- 0
   data$mean_time <- round(ave(data$res_time, as.factor(data$endpoint), FUN = mean))
   p <- ggplot(data, aes(x = endpoint, y = res_time, fill = mean_time)) +
     geom_boxplot(show.legend = FALSE, outlier.size = 0.5, ) +
@@ -366,7 +336,7 @@ ui <- fluidPage(
             "res",
             label = "Time Resolution",
             choices = res_choices,
-            selected = res_choices[3]
+            selected = res_choices[4]
           ),
           uiOutput("date_slider")
         ),
@@ -534,8 +504,4 @@ server <- function(input, output) {
   
 }
 
-app <- shinyApp(ui, server)
-runApp(app, host="10.2.9.26", port=10011, launch.browser=FALSE)
-# log_csv <- "http://www.repeatmasker.org/~agray/2024-07-10-Export.csv"
-# # log_csv <- "http://www.repeatmasker.org/~agray/2024-06-24-Export.csv"
-# df <- getLogData(log_csv)
+shinyApp(ui, server)
