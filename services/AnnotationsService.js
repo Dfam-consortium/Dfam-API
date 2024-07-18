@@ -2,7 +2,7 @@
 const Service = require('./Service');
 const dfam = require("../databases").getModels_Dfam();
 const Sequelize = require("sequelize");
-const {IDX_DIR} = require('../config');
+const {IDX_DIR, ASSEMBLY_SUFFIX} = require('../config');
 const fs = require("fs");
 const te_idx = require("../utils/te_idx.js");
 
@@ -30,19 +30,16 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       if (Math.abs(end-start) > 1000000) {
           reject(Service.rejectResponse({ message: "Requested range is too long." }, 400));
       }
-      
-      let assembly_dir = `${IDX_DIR}/data/${assembly}/`
+      let full_assembly = `${assembly}${ASSEMBLY_SUFFIX}`
+      let assembly_dir = `${IDX_DIR}/${full_assembly}/`
       if (!fs.existsSync(assembly_dir)) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       }
 
-      let seq_args = ["--assembly", assembly, "--query", chrom]
-      let seq = await te_idx.get_chrom_id(seq_args) 
-      if (!seq) {reject(Service.rejectResponse("Sequence Not Found", 404)); return}
+      let trf_args = ["--assembly", full_assembly, "idx-query", "--data-type", "masks", "--chrom", chrom, "--start", start, "--end", end]
+      const trfResults = await te_idx.query(trf_args)
 
-      let trf_args = ["--assembly", assembly, "--data-type", "masks", "--chrom", seq, "--start", start, "--end", end]
-      const trfResults = await te_idx.idx_query(trf_args)
-      let nhmmer_args = ["--assembly", assembly, "--data-type", "assembly_alignments",  "--chrom", seq, "--start", start, "--end", end]
+      let nhmmer_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end]
       if ( family_accession ) { 
         nhmmer_args.push("--family");
         nhmmer_args.push(family_accession);
@@ -50,7 +47,7 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       if (nrph === true) {
         nhmmer_args.push("--nrph");
       }
-      const nhmmerResults = await te_idx.idx_query(nhmmer_args)
+      const nhmmerResults = await te_idx.query(nhmmer_args)
       // collect all accessions found, as well as thier positions in the list of results
       accession_idxs = {}
       nhmmerResults.forEach((hit, i) => {

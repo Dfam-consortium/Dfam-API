@@ -4,13 +4,11 @@ const path = require('path');
 const promisify = require('util').promisify;
 const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
-const config = require("../config");
 const dfam = require("../databases").getModels_Dfam();
+const {ucsc_utils_bin, hmmer_bin_dir, dfam_warehouse_dir} = require('../config');
 const zlib = require("zlib");
 
 const Service = require('./Service');
-const te_idx = require("../utils/te_idx.js");
-
 
 const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
   try {
@@ -97,7 +95,7 @@ const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
   }
 }
 
-async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos, hmmData) {
+async function reAlignAnnotationHMM(twoBitFile, seqName, startPos, endPos, hmmData) {
 
   const [seqFile, hmmFile] = await Promise.all([
     tmpFileAsync({ detachDescriptor: true }),
@@ -119,8 +117,8 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos
     ordEnd = startPos;
   }
 
-  const twoBitToFa = path.join(config.ucsc_utils_bin, 'twoBitToFa');
-  const search = twoBitFile + ':' + seqID + ':' + (ordStart-1) + '-' + ordEnd;
+  const twoBitToFa = path.join(ucsc_utils_bin, 'twoBitToFa');
+  const search = twoBitFile + ':' + seqName + ':' + (ordStart-1) + '-' + ordEnd;
 
   // Grab sequence data from twoBit format
   const writeFastaFile = execFileAsync(twoBitToFa, [search, 'stdout']).then(function(fasta) {
@@ -135,7 +133,7 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos
     await Promise.all([writeHmmFile, writeFastaFile]);
 
     // Do the search
-    const nhmmer = path.join(config.hmmer_bin_dir, 'nhmmer');
+    const nhmmer = path.join(hmmer_bin_dir, 'nhmmer');
 
     // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
     // TODO: (JR) A region might match a model more than once. The "best" match within the
@@ -170,25 +168,22 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
         reject(Service.rejectResponse("Requested range is too long.", 400))
       }
 
-      let assembly_dir = `${config.IDX_DIR}/data/${assembly}/assembly_alignments`
-      if (!fs.existsSync(assembly_dir)) {
-        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
-      }
-      
-      let seq_args = ["--assembly", assembly, "--query", chrom]
-      let sequence = await te_idx.get_chrom_id(seq_args) 
-      if (!sequence) {reject(Service.rejectResponse("Sequence Not Found", 404)); return}
-
       const model = await dfam.hmmModelDataModel.findOne({
         attributes: [ "hmm" ],
         include: [ { model: dfam.familyModel, where: { accession: family }, attributes: [] } ],
       });
+
+      if (!model){
+        reject(Service.rejectResponse("Model Not Found",404))
+        return
+      }
+      
       const hmm_data = await promisify(zlib.gunzip)(model.hmm);
 
-      const twoBitFile = path.join(config.dfam_warehouse_dir,
+      const twoBitFile = path.join(dfam_warehouse_dir,
         "ref-genomes", assembly, "dfamseq.mask.2bit");
       
-      let reAligned = await reAlignAnnotationHMM(twoBitFile, sequence, chrom, start, end, hmm_data)
+      let reAligned = await reAlignAnnotationHMM(twoBitFile, chrom, start, end, hmm_data)
 
       if (!reAligned){
         reject(Service.rejectResponse("Realignment failed",404))
