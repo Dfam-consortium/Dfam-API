@@ -18,8 +18,6 @@ const config = {
   VERSION_MINOR: '4',
   VERSION_BUGFIX: '0',
   CACHE_CUTOFF: 100,
-  IDX_DIR: "/usr/local/Dfam-warehouse/releases/annotations",
-  IDX_EXE: "/usr/local/te_idx/te_idx"
 };
 
 for(var key in conf)

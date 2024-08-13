@@ -4,7 +4,7 @@ const dfam = require("../databases").getModels_Dfam();
 const mapFields = require("../utils/mapFields.js");
 const fs = require("fs");
 const child_process = require('child_process');
-const {IDX_DIR, IDX_EXE} = require('../config');
+const {te_idx_dir, te_idx_bin} = require('../config');
 
 const tmp = require('tmp');
 tmp.setGracefulCleanup();
@@ -165,10 +165,12 @@ const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, downlo
         where: {"name": assembly_id},
         attributes:["schema_name"]
       })
+      full_assembly = full_assembly.schema_name
+
       if (! full_assembly) {
         reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
       }
-      let assembly_dir = `${IDX_DIR}/${full_assembly}/assembly_alignments`
+      let assembly_dir = `${te_idx_dir}/${full_assembly}/assembly_alignments`
       let target_file = `${assembly_dir}/${id}.bed.bgz`
 
       if (!fs.existsSync(assembly_dir)) {
@@ -187,7 +189,7 @@ const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, downlo
       if (nrph) {proc_args.push("--nrph")}
 
       // 2.3-2.7secs
-      let runner = child_process.spawn(IDX_EXE, proc_args);
+      let runner = child_process.spawn(te_idx_bin, proc_args);
       runner.on('error', err => { reject(err) });
       runner.stdout.on('data', chunk => res.write(chunk));
       runner.on('close', (code) => {
