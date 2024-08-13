@@ -34,13 +34,20 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         where: {"name": assembly},
         attributes:["schema_name"]
       })
-      full_assembly = full_assembly.schema_name
       if (! full_assembly) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      } else {
+        full_assembly = full_assembly.schema_name
       }
+
       let assembly_dir = `${te_idx_dir}/${full_assembly}/`
       if (!fs.existsSync(assembly_dir)) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      }
+
+      let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom)
+      if (! chrom_in_assem) {
+        reject(Service.rejectResponse(`Sequence ${chrom} Not Found In Assembly ${assembly}`, 404));
       }
 
       let trf_args = ["--assembly", full_assembly, "idx-query", "--data-type", "masks", "--chrom", chrom, "--start", start, "--end", end]

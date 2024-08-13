@@ -100,20 +100,23 @@ test.serial('get alignment failure', async t => {
 
 // AnnotationsService 
 test.serial('get annotations', async t => {
-  const body = await get_body('/annotations?assembly=test_ex&chrom=chr1&start=168130000&end=168180000&nrph=true');
+  const body = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&nrph=true');
   t.true(body.hits.length > 1);
   t.true(body.tandem_repeats.length > 1);
 
-  const body2 = await get_body('/annotations?assembly=test_ex&chrom=chr1&start=168130000&end=168180000&family=DF000000001');
+  const body2 = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF000000001');
   t.true(body2.hits.length > 1);
   t.true(body2.tandem_repeats.length > 1);
+});
 
+test.serial('get annotations failure', async t => {
   await get_notfound('/annotations?assembly=fake&chrom=chr1&start=168130000&end=168180000&nrph=true');
 
-  await get_notfound('/annotations?assembly=test_ex&chrom=fake&start=168130000&end=168180000&nrph=true');
+  await get_notfound('/annotations?assembly=hg38&chrom=fake&start=168130000&end=168180000&nrph=true');
 
-  await request.get('/annotations?assembly=test_ex&chrom=fake&start=158000000&end=168000000&nrph=true')
+  await request.get('/annotations?assembly=hg38&chrom=fake&start=158000000&end=168000000&nrph=true')
     .expect(400);
+  t.pass();
 });
 
 // AssembliesService

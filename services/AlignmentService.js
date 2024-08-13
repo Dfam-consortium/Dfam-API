@@ -5,10 +5,11 @@ const promisify = require('util').promisify;
 const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
 const dfam = require("../databases").getModels_Dfam();
-const {ucsc_utils_bin, hmmer_bin_dir, dfam_warehouse_dir} = require('../config');
+const {ucsc_utils_bin, hmmer_bin_dir, dfam_warehouse_dir, te_idx_dir} = require('../config');
 const zlib = require("zlib");
 
 const Service = require('./Service');
+const te_idx = require("../utils/te_idx.js");
 
 const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
   try {
@@ -168,6 +169,17 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
         reject(Service.rejectResponse("Requested range is too long.", 400))
       }
 
+      let full_assembly = await dfam.assemblyModel.findOne({
+        where: {"name": assembly},
+        attributes:["schema_name"]
+      })
+
+      if (! full_assembly) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      } else {
+        full_assembly = full_assembly.schema_name
+      }
+
       const model = await dfam.hmmModelDataModel.findOne({
         attributes: [ "hmm" ],
         include: [ { model: dfam.familyModel, where: { accession: family }, attributes: [] } ],
@@ -178,11 +190,19 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
         return
       }
       
+      const twoBitFile = path.join(dfam_warehouse_dir, "ref-genomes", assembly, "dfamseq.mask.2bit");
+      
+      if (!fs.existsSync(twoBitFile)) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      }
+
+      let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom)
+      if (! chrom_in_assem) {
+        reject(Service.rejectResponse(`Sequence ${chrom} Not Found In Assembly ${assembly}`, 404));
+      }
+
       const hmm_data = await promisify(zlib.gunzip)(model.hmm);
 
-      const twoBitFile = path.join(dfam_warehouse_dir,
-        "ref-genomes", assembly, "dfamseq.mask.2bit");
-      
       let reAligned = await reAlignAnnotationHMM(twoBitFile, chrom, start, end, hmm_data)
 
       if (!reAligned){

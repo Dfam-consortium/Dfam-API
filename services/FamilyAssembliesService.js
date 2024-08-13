@@ -165,11 +165,12 @@ const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, downlo
         where: {"name": assembly_id},
         attributes:["schema_name"]
       })
-      full_assembly = full_assembly.schema_name
-
       if (! full_assembly) {
-        reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      } else {
+        full_assembly = full_assembly.schema_name
       }
+      
       let assembly_dir = `${te_idx_dir}/${full_assembly}/assembly_alignments`
       let target_file = `${assembly_dir}/${id}.bed.bgz`
 
