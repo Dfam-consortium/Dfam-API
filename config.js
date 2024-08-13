@@ -19,8 +19,7 @@ const config = {
   VERSION_BUGFIX: '0',
   CACHE_CUTOFF: 100,
   IDX_DIR: "/usr/local/Dfam-warehouse/releases/annotations",
-  ASSEMBLY_SUFFIX: "_df38",
-  IDX_EXE: "/home/agray/te_idx/target/release/te_idx"
+  IDX_EXE: "/usr/local/te_idx/te_idx"
 };
 
 for(var key in conf)

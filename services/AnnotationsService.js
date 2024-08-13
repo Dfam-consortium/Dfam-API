@@ -2,7 +2,7 @@
 const Service = require('./Service');
 const dfam = require("../databases").getModels_Dfam();
 const Sequelize = require("sequelize");
-const {IDX_DIR, ASSEMBLY_SUFFIX} = require('../config');
+const {IDX_DIR} = require('../config');
 const fs = require("fs");
 const te_idx = require("../utils/te_idx.js");
 
@@ -30,7 +30,14 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       if (Math.abs(end-start) > 1000000) {
           reject(Service.rejectResponse({ message: "Requested range is too long." }, 400));
       }
-      let full_assembly = `${assembly}${ASSEMBLY_SUFFIX}`
+
+      let full_assembly = await dfam.assemblyModel.findOne({
+        where: {"name": assembly},
+        attributes:["schema_name"]
+      })
+      if (! full_assembly) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      }
       let assembly_dir = `${IDX_DIR}/${full_assembly}/`
       if (!fs.existsSync(assembly_dir)) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));

@@ -4,7 +4,7 @@ const dfam = require("../databases").getModels_Dfam();
 const mapFields = require("../utils/mapFields.js");
 const fs = require("fs");
 const child_process = require('child_process');
-const {IDX_DIR, ASSEMBLY_SUFFIX, IDX_EXE} = require('../config');
+const {IDX_DIR, IDX_EXE} = require('../config');
 
 const tmp = require('tmp');
 tmp.setGracefulCleanup();
@@ -161,7 +161,13 @@ const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
 const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, download }) => new Promise(
   async (resolve, reject) => {
     try {
-      let full_assembly = `${assembly_id}${ASSEMBLY_SUFFIX}`
+      let full_assembly = await dfam.assemblyModel.findOne({
+        where: {"name": assembly_id},
+        attributes:["schema_name"]
+      })
+      if (! full_assembly) {
+        reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
+      }
       let assembly_dir = `${IDX_DIR}/${full_assembly}/assembly_alignments`
       let target_file = `${assembly_dir}/${id}.bed.bgz`
 
