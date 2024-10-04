@@ -180,7 +180,7 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
       const models = getModels_Assembly(assembly_rec.schema_name);
 
       const sequence = await models.sequenceModel.findOne({
-        attributes: ['accession'],
+        attributes: ['id'],
         where: { id: chrom }
       });
 
@@ -195,8 +195,8 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
 
       const twoBitFile = path.join(config.dfam_warehouse_dir,
         "ref-genomes", assembly, "dfamseq.mask.2bit");
-      
-        let reAligned = reAlignAnnotationHMM(twoBitFile, sequence.accession, chrom, start, end, hmm_data)
+
+        let reAligned = reAlignAnnotationHMM(twoBitFile, sequence.id, chrom, start, end, hmm_data)
         if (!reAligned){
           reject(Service.rejectResponse("Realignment failed",404))
         }
