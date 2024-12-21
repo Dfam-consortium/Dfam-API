@@ -5,7 +5,8 @@ const Sequelize = require("sequelize");
 const {te_idx_dir} = require('../config');
 const fs = require("fs");
 const te_idx = require("../utils/te_idx.js");
-
+const { performance } = require('perf_hooks');
+const logger = require('../logger');
 /**
 * Retrieve annotations for a given genome assembly in a given range.
 *
@@ -54,21 +55,30 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       const trfResults = await te_idx.query(trf_args)
 
       let nhmmer_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end]
+      logger.info(`te_idx args before: ${nhmmer_args}`)
+      
       if ( family_accession ) { 
         nhmmer_args.push("--family");
         nhmmer_args.push(family_accession);
       }
-      if (nrph === true) {
+      if (nrph) {
         nhmmer_args.push("--nrph");
       }
+      logger.info(`te_idx args after: ${nhmmer_args}`)
+      const nhmmerStart = performance.now()
       const nhmmerResults = await te_idx.query(nhmmer_args)
+      const nhmmerEnd = performance.now()
+      logger.info(`TE_IDX assembly_alignments query completed in ${nhmmerEnd-nhmmerStart} range ${end-start}`)
+      logger.info(`nhmmerResults number: ${nhmmerResults.length}`)
       // collect all accessions found, as well as thier positions in the list of results
       accession_idxs = {}
       nhmmerResults.forEach((hit, i) => {
         if (!accession_idxs[hit.accession]) {accession_idxs[hit.accession] = []}
         accession_idxs[hit.accession].push(i)
       })
-
+      logger.info(`AccessionIDxs length: ${Object.keys(accession_idxs).length}`)
+      // logger.info(`AccessionIDxs: ${JSON.stringify(accession_idxs)}`)
+  
       // Retrieve the names and types of all matched families
       const families = await dfam.familyModel.findAll({
         where: { accession: { [Sequelize.Op.in]: Object.keys(accession_idxs) } },
@@ -77,6 +87,11 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
           { model: dfam.rmTypeModel, as: 'rm_type', attributes: ["name"] }
         ] } ],
       })
+      // logger.info(`Dfam families ${JSON.stringify(families)}`)
+      logger.info(`Dfam families ${families.length}`)
+      if (Object.keys(accession_idxs).length != families.length ){
+        logger.error(`${Object.keys(accession_idxs).length} != ${families.length}`)
+      }
 
       // add names and types to list of hits
       families.forEach(function(family) {
@@ -98,6 +113,8 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         hits: nhmmerResults,
         tandem_repeats: trfResults,
       }, 200 ));
+      logger.info(`Families found: ${families.length}`)
+
       
     } catch (e) {
       reject(Service.rejectResponse(

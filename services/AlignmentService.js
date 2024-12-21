@@ -5,7 +5,7 @@ const promisify = require('util').promisify;
 const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
 const dfam = require("../databases").getModels_Dfam();
-const {ucsc_utils_bin, hmmer_bin_dir, dfam_warehouse_dir, te_idx_dir} = require('../config');
+const {ucsc_utils_bin, hmmer_bin_dir, dfam_warehouse_dir} = require('../config');
 const zlib = require("zlib");
 
 const Service = require('./Service');
