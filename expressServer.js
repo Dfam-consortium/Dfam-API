@@ -74,6 +74,7 @@ class ExpressServer {
 
     // Setup error handler
     this.app.use((err, req, res, next) => {
+      // IMPORTANT...this is where the runtime errors often show up
       //console.error(err); // dump error to console for debug
       res.status(err.status || 500).json({
         message: err.message,

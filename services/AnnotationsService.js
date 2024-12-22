@@ -21,7 +21,10 @@ const logger = require('../logger');
 const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new Promise(
   async (resolve, reject) => {
     try {
-      let rtoken = Math.random();
+      //Useful for tagging related log messages together
+      //let rtoken = Math.random();
+      //logger.info(`readAnnotations(${rtoken}): assembly=${assembly}, chrom=${chrom}, start=${start}, end=${end}, family=${family}, nrph=${nrph}`);
+      
       // Fixed: This was defined as implicitly global (e.g. not 'let', 'const' or 'var').  
       let family_accession = family;
       if (start > end) {
@@ -58,7 +61,7 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       const tandem_annots = await te_idx.query(teidx_args)
 
       // Obtain the TE annotations from the TE_Idx
-      let teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end]
+      teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end]
 
       if (family_accession) { 
         teidx_args.push("--family");
@@ -106,6 +109,7 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         });
       });
 
+      //logger.info(`readAnnotations(${rtoken}): complete`);
       resolve(Service.successResponse({
         offset: start,
         length: Math.abs(end - start),
