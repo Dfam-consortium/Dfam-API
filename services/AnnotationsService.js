@@ -21,7 +21,9 @@ const logger = require('../logger');
 const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new Promise(
   async (resolve, reject) => {
     try {
-      family_accession = family;
+      let rtoken = Math.random();
+      // Fixed: This was defined as implicitly global (e.g. not 'let', 'const' or 'var').  
+      let family_accession = family;
       if (start > end) {
         const swap = start;
         start = end;
@@ -51,33 +53,33 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         reject(Service.rejectResponse(`Sequence ${chrom} Not Found In Assembly ${assembly}`, 404));
       }
 
-      let trf_args = ["--assembly", full_assembly, "idx-query", "--data-type", "masks", "--chrom", chrom, "--start", start, "--end", end]
-      const trfResults = await te_idx.query(trf_args)
+      // Obtain simple/tandem annotations from the TE_Idx
+      let teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "masks", "--chrom", chrom, "--start", start, "--end", end]
+      const tandem_annots = await te_idx.query(teidx_args)
 
-      let nhmmer_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end]
-      logger.info(`te_idx args before: ${nhmmer_args}`)
-      
-      if ( family_accession ) { 
-        nhmmer_args.push("--family");
-        nhmmer_args.push(family_accession);
+      // Obtain the TE annotations from the TE_Idx
+      let teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end]
+
+      if (family_accession) { 
+        teidx_args.push("--family");
+        teidx_args.push(family_accession);
       }
+
       if (nrph) {
-        nhmmer_args.push("--nrph");
+        teidx_args.push("--nrph");
       }
-      logger.info(`te_idx args after: ${nhmmer_args}`)
-      const nhmmerStart = performance.now()
-      const nhmmerResults = await te_idx.query(nhmmer_args)
-      const nhmmerEnd = performance.now()
-      logger.info(`TE_IDX assembly_alignments query completed in ${nhmmerEnd-nhmmerStart} range ${end-start}`)
-      logger.info(`nhmmerResults number: ${nhmmerResults.length}`)
-      // collect all accessions found, as well as thier positions in the list of results
-      accession_idxs = {}
-      nhmmerResults.forEach((hit, i) => {
+
+      const teStart = performance.now()
+      const teResults = await te_idx.query(teidx_args)
+      const teEnd = performance.now()
+
+      // Collect all accessions found, as well as thier positions in the list of results
+      // Fixed: This was defined as implicitly global (e.g. not 'let', 'const' or 'var').  
+      let accession_idxs = {}
+      teResults.forEach((hit, i) => {
         if (!accession_idxs[hit.accession]) {accession_idxs[hit.accession] = []}
         accession_idxs[hit.accession].push(i)
       })
-      logger.info(`AccessionIDxs length: ${Object.keys(accession_idxs).length}`)
-      // logger.info(`AccessionIDxs: ${JSON.stringify(accession_idxs)}`)
   
       // Retrieve the names and types of all matched families
       const families = await dfam.familyModel.findAll({
@@ -87,20 +89,18 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
           { model: dfam.rmTypeModel, as: 'rm_type', attributes: ["name"] }
         ] } ],
       })
-      // logger.info(`Dfam families ${JSON.stringify(families)}`)
-      logger.info(`Dfam families ${families.length}`)
       if (Object.keys(accession_idxs).length != families.length ){
-        logger.error(`${Object.keys(accession_idxs).length} != ${families.length}`)
+        logger.error(`token=${rtoken}: ${Object.keys(accession_idxs).length} != ${families.length}`)
       }
 
-      // add names and types to list of hits
+      // Add names and types to list of hits
       families.forEach(function(family) {
         accession_idxs[family.accession].forEach((i) => {
-            nhmmerResults[i].query = family.name;
-            nhmmerResults[i].type = null;
+            teResults[i].query = family.name;
+            teResults[i].type = null;
             if (family.classification) {
               if (family.classification.rm_type) {
-                nhmmerResults[i].type = family.classification.rm_type.name;
+                teResults[i].type = family.classification.rm_type.name;
               }
             }
         });
@@ -110,10 +110,9 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         offset: start,
         length: Math.abs(end - start),
         query: `${chrom}:${start}-${end}`,
-        hits: nhmmerResults,
-        tandem_repeats: trfResults,
+        hits: teResults,
+        tandem_repeats: tandem_annots,
       }, 200 ));
-      logger.info(`Families found: ${families.length}`)
 
       
     } catch (e) {
