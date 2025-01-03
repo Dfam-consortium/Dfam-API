@@ -5,7 +5,6 @@ const Sequelize = require("sequelize");
 const {te_idx_dir} = require('../config');
 const fs = require("fs");
 const te_idx = require("../utils/te_idx.js");
-const { performance } = require('perf_hooks');
 const logger = require('../logger');
 /**
 * Retrieve annotations for a given genome assembly in a given range.
@@ -72,9 +71,7 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         teidx_args.push("--nrph");
       }
 
-      const teStart = performance.now()
       const teResults = await te_idx.query(teidx_args)
-      const teEnd = performance.now()
 
       // Collect all accessions found, as well as thier positions in the list of results
       // Fixed: This was defined as implicitly global (e.g. not 'let', 'const' or 'var').  
