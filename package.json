@@ -11,7 +11,7 @@
     "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
     "test": "ava --no-worker-threads",
-    "build-docs": "redocly build-docs api/openapi.yaml",
+    "build-docs": "./genDocs.sh",
     "artillery": "artillery run ./test/artillery-test.yaml >& ./test/test.artillery.log"
   },
   "keywords": [
