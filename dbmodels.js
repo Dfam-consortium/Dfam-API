@@ -27,6 +27,7 @@ exports.getDfamModels = function(conn) {
   models.familyDatabaseAliasModel = require("./models/family_database_alias.js")(conn, Sequelize);
   models.familyAssemblyDataModel = require("./models/family_assembly_data.js")(conn, Sequelize);
   models.assemblyModel = require("./models/assembly.js")(conn, Sequelize);
+  models.percentageIDModel = require("./models/percentage_id.js")(conn, Sequelize);
   models.sourceMethodModel = require("./models/source_method.js")(conn, Sequelize);
 
   models.familyModel.hasMany(models.aliasModel, { foreignKey: 'family_id', as: 'aliases' });
@@ -66,6 +67,9 @@ exports.getDfamModels = function(conn) {
   models.familyAssemblyDataModel.belongsTo(models.familyModel, { foreignKey: 'family_id' });
   models.familyAssemblyDataModel.belongsTo(models.assemblyModel, { foreignKey: 'assembly_id' });
   models.assemblyModel.belongsTo(models.dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
+
+  models.percentageIDModel.belongsTo(models.familyModel, {foreignKey: "family_id"})
+  models.percentageIDModel.belongsTo(models.assemblyModel, {foreignKey: "assembly_id"})
 
   return models;
 };

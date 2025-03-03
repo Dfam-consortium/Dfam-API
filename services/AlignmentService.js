@@ -4,13 +4,12 @@ const path = require('path');
 const promisify = require('util').promisify;
 const { tmpFileAsync, execFileAsync } = require('../utils/async');
 
-const config = require("../config");
 const dfam = require("../databases").getModels_Dfam();
-const getModels_Assembly = require("../databases.js").getModels_Assembly;
+const {ucsc_utils_bin, hmmer_bin_dir, dfam_warehouse_dir} = require('../config');
 const zlib = require("zlib");
 
 const Service = require('./Service');
-
+const te_idx = require("../utils/te_idx.js");
 
 const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
   try {
@@ -91,14 +90,13 @@ const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
     alignRec['pp'] = {
       'string': ppStr,
     };
-
     return alignRec;
   } catch (err) {
     err
   }
 }
 
-async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos, hmmData) {
+async function reAlignAnnotationHMM(twoBitFile, seqName, startPos, endPos, hmmData) {
 
   const [seqFile, hmmFile] = await Promise.all([
     tmpFileAsync({ detachDescriptor: true }),
@@ -120,8 +118,8 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos
     ordEnd = startPos;
   }
 
-  const twoBitToFa = path.join(config.ucsc_utils_bin, 'twoBitToFa');
-  const search = twoBitFile + ':' + seqID + ':' + (ordStart-1) + '-' + ordEnd;
+  const twoBitToFa = path.join(ucsc_utils_bin, 'twoBitToFa');
+  const search = twoBitFile + ':' + seqName + ':' + (ordStart-1) + '-' + ordEnd;
 
   // Grab sequence data from twoBit format
   const writeFastaFile = execFileAsync(twoBitToFa, [search, 'stdout']).then(function(fasta) {
@@ -136,7 +134,7 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos
     await Promise.all([writeHmmFile, writeFastaFile]);
 
     // Do the search
-    const nhmmer = path.join(config.hmmer_bin_dir, 'nhmmer');
+    const nhmmer = path.join(hmmer_bin_dir, 'nhmmer');
 
     // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
     // TODO: (JR) A region might match a model more than once. The "best" match within the
@@ -166,45 +164,57 @@ async function reAlignAnnotationHMM(twoBitFile, seqID, seqName, startPos, endPos
 const readAlignment = async ({ assembly, chrom, start, end, family }) => new Promise(
   async (resolve, reject) => {
     try {
+
       if (Math.abs(end-start) > 30000) {
         reject(Service.rejectResponse("Requested range is too long.", 400))
       }
 
-      const assembly_rec = await dfam.assemblyModel.findOne({
-        where: { name: assembly },
-        attributes: ['schema_name'],
-      });
+      let full_assembly = await dfam.assemblyModel.findOne({
+        where: {"name": assembly},
+        attributes:["schema_name"]
+      })
 
-      if (!assembly_rec) {reject(Service.rejectResponse("Assembly Not Found", 404));}
-
-      const models = getModels_Assembly(assembly_rec.schema_name);
-
-      const sequence = await models.sequenceModel.findOne({
-        attributes: ['id'],
-        where: { id: chrom }
-      });
-
-      if (!sequence) {reject(Service.rejectResponse("Sequence Not Found", 404));}
+      if (! full_assembly) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      } else {
+        full_assembly = full_assembly.schema_name
+      }
 
       const model = await dfam.hmmModelDataModel.findOne({
         attributes: [ "hmm" ],
         include: [ { model: dfam.familyModel, where: { accession: family }, attributes: [] } ],
       });
 
+      if (!model){
+        reject(Service.rejectResponse("Model Not Found",404))
+        return
+      }
+      
+      const twoBitFile = path.join(dfam_warehouse_dir, "ref-genomes", assembly, "dfamseq.mask.2bit");
+      
+      if (!fs.existsSync(twoBitFile)) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      }
+
+      let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom)
+      if (! chrom_in_assem) {
+        reject(Service.rejectResponse(`Sequence ${chrom} Not Found In Assembly ${assembly}`, 404));
+      }
+
       const hmm_data = await promisify(zlib.gunzip)(model.hmm);
 
-      const twoBitFile = path.join(config.dfam_warehouse_dir,
-        "ref-genomes", assembly, "dfamseq.mask.2bit");
+      let reAligned = await reAlignAnnotationHMM(twoBitFile, chrom, start, end, hmm_data)
 
-        let reAligned = reAlignAnnotationHMM(twoBitFile, sequence.id, chrom, start, end, hmm_data)
-        if (!reAligned){
-          reject(Service.rejectResponse("Realignment failed",404))
-        }
-        resolve(Service.successResponse(reAligned, 200));
+      if (!reAligned){
+        reject(Service.rejectResponse("Realignment failed",404))
+        return
+      }
+      
+      resolve(Service.successResponse(reAligned));
 
   } catch (e) {
     reject(Service.rejectResponse(
-      e.message || 'Invalid input',
+      e.message || `Invalid Input - ${e} - ${e.message}`,
       e.status || 405,
     ));
   }

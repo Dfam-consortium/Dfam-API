@@ -1,44 +1,29 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('citation', {
     pmid: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: false,
       primaryKey: true
     },
     title: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "Article title ( culled from PubMed )."
+      allowNull: true
     },
     authors: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "Article authors ( culled from PubMed )."
+      allowNull: true
     },
     journal: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "Journal title ( culled from PubMed )."
+      allowNull: true
     },
     pubdate: {
       type: DataTypes.DATEONLY,
-      allowNull: true,
-      comment: "Publication date ( culled from PubMed )."
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'citation',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "pmid" },
-        ]
-      },
-    ]
+    tableName: 'citation'
   });
 };

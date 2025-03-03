@@ -1,8 +1,13 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
 const dfam = require("../databases").getModels_Dfam();
-const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const mapFields = require("../utils/mapFields.js");
+const fs = require("fs");
+const child_process = require('child_process');
+const {te_idx_dir, te_idx_bin} = require('../config');
+
+const tmp = require('tmp');
+tmp.setGracefulCleanup();
 
 const familyAssemblyStatsObject = (family_assembly) => {
   let obj = { };
@@ -153,47 +158,50 @@ const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
 * download Boolean If true, adds headers to trigger a browser download. (optional)
 * returns String
 * */
-const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => new Promise(
+const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, download }) => new Promise(
   async (resolve, reject) => {
     try {
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
-        where: { 'name': assembly_id }
+      let full_assembly = await dfam.assemblyModel.findOne({
+        where: {"name": assembly_id},
+        attributes:["schema_name"]
       })
 
-      if (!assembly) {
-        reject(Service.rejectResponse("Assembly Not Found", 404));
+      if (! full_assembly) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      } else {
+        full_assembly = full_assembly.schema_name
+      }
+      
+      let assembly_dir = `${te_idx_dir}/${full_assembly}/assembly_alignments`
+      let target_file = `${assembly_dir}/${id}.bed.bgz`
+
+      if (!fs.existsSync(assembly_dir)) {
+        reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
       }
 
-      const models = getModels_Assembly(assembly.schema_name);
-
-      let column;
-      if (nrph === true) {
-        column = "nrph_hit_list";
-      } else  {
-        column = "hit_list";
+      if (!fs.existsSync(target_file)) {
+        reject(Service.rejectResponse(`Family ${id} Not Found In ${assembly_id}`, 404));
       }
 
-      const files = await models.modelFileModel.findOne({
-        attributes: [ column ],
-        where: { "family_accession": id }
+      if (download) {
+        res.attachment = `${id}.${assembly_id}${nrph ? ".nr-hits" : ""}.tsv.gz`
+      }
+      
+      let proc_args = ["--assembly", full_assembly, "read-family-assembly-annotations", "--id", id]
+      if (nrph) {proc_args.push("--nrph")}
+
+      // 2.3-2.7secs
+      let runner = child_process.spawn(te_idx_bin, proc_args);
+      runner.on('error', err => { reject(err) });
+      runner.stdout.on('data', chunk => res.write(chunk));
+      runner.on('close', (code) => {
+        if (code !== 0) { reject(code) }
+        else { resolve(res.end()) }
       })
-
-      if (!files || !files[column]) {
-        reject(Service.rejectResponse("Model File Not Found", 404));
-      }
-
-      resolve(Service.successResponse(
-        { payload: files.dataValues[column],
-          code: 200,
-          content_type: 'text/plain',
-          encoding: 'gzip',
-        }
-      ));
 
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
+        e.message || `Invalid Input - ${e} - ${e.message}`,
         e.status || 405,
       ));
     }
@@ -211,26 +219,16 @@ const readFamilyAssemblyAnnotations = ({ id, assembly_id, nrph, download }) => n
 const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
   async (resolve, reject) => {
     try {
-
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
-        where: { 'name': assembly_id }
-      })  
-
-      if (!assembly) {
-        reject(Service.rejectResponse("Assembly Not Found", 404));
-      }
-
-      const models = getModels_Assembly(assembly.schema_name);
-      
-      const data = await models.coverageDataModel.findOne({
-        attributes: [ "karyotype" ],
-        where: { "family_accession": id }
-        // where: { "family_accession": id }
+      const data = await dfam.familyAssemblyDataModel.findOne({
+        attributes: [ "coverage_karyotype" ],
+        include: [
+          { model: dfam.familyModel, where: { 'accession': id }, attributes: [] },
+          { model: dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
+        ],
       })
 
-      if (data && data.karyotype) {
-        resolve(Service.successResponse(JSON.parse(data.karyotype.toString()), 200))
+      if (data && data.coverage_karyotype) {
+        resolve(Service.successResponse(JSON.parse(data.coverage_karyotype.toString()), 200))
       } else {
         reject(Service.rejectResponse("Karyotype Not Found", 404));
       }
@@ -256,20 +254,15 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
 const readFamilyAssemblyModelConservation = ({ id, assembly_id, model }) => new Promise(
   async (resolve, reject) => {
     try {
-
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
-        where: { 'name': assembly_id }
-      })
-
-      if (!assembly || model != "hmm") {
-        reject(Service.rejectResponse("Assembly Not Found", 404));
+      if ( model != "hmm") {
+        reject(Service.rejectResponse({}, 404));
       }
-    
-      const models = getModels_Assembly(assembly.schema_name);
-    
-      const conservations = await models.percentageIdModel.findAll({
-        where: { "family_accession": id }
+        
+      const conservations = await dfam.percentageIDModel.findAll({
+        include: [
+          { "model": dfam.familyModel, where: { 'accession': id }, attributes: [] },
+          { "model": dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
+        ]
       })
       const objs = conservations.map((cons) => {
         const obj = mapFields(cons, {}, {
@@ -305,28 +298,34 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
   async (resolve, reject) => {
     try {
 
-      const assembly = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
-        where: { 'name': assembly_id }
-      })
-      if (!assembly || model != "hmm") {
-        reject(Service.rejectResponse("Assembly Not Found", 404));
+      if ( model != "hmm") {
+        reject(Service.rejectResponse({}, 404));
       }
-    
-      const models = getModels_Assembly(assembly.schema_name);
-    
-      const coverage = await models.coverageDataModel.findOne({
-        attributes: [ "reversed", "forward", "nrph", "num_rev", "num_full", "num_full_nrph" ],
-        where: { "family_accession": id }
+
+      const coverage = await dfam.familyAssemblyDataModel.findOne({
+        attributes: [ 
+          ["coverage_reversed", "reversed"], 
+          ["coverage_forward", "forward"], 
+          ["coverage_nrph", "nrph"], 
+          ["coverage_num_rev", "num_rev"], 
+          ["coverage_num_full", "num_full"], 
+          ["coverage_num_full_nrph", "num_full_nrph"] 
+        ],
+        include: [
+          { "model": dfam.familyModel, where: { 'accession': id }, attributes: [] },
+          { "model": dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
+        ]
       })
+      
       if (coverage) {
+        data = coverage.dataValues
         resolve(Service.successResponse({
-          "nrph": coverage.nrph.toString(),
-          "nrph_hits": coverage.num_full_nrph,
-          "all": coverage.forward.toString(),
-          "all_hits": coverage.num_full,
-          "false": coverage.reversed.toString(),
-          "false_hits": coverage.num_rev,
+          "nrph": data.nrph.toString(),
+          "nrph_hits": data.num_full_nrph,
+          "all": data.forward.toString(),
+          "all_hits": data.num_full,
+          "false": data.reversed.toString(),
+          "false_hits": data.num_rev,
         }));
       } else {
         reject(Service.rejectResponse("Coverage Not Found", 404));

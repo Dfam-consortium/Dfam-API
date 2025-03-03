@@ -1,36 +1,22 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('curation_state', {
     id: {
-      autoIncrement: true,
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      comment: "Primary key curation statuses"
+      autoIncrement: true
     },
     name: {
       type: DataTypes.STRING(45),
-      allowNull: true,
-      comment: "The name of a curation state"
+      allowNull: true
     },
     description: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "A short description of a curation state\n"
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'curation_state',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "id" },
-        ]
-      },
-    ]
+    tableName: 'curation_state'
   });
 };

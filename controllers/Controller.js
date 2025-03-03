@@ -169,6 +169,18 @@ class Controller {
       logger.error({error: error, url: request.url});
     }
   }
+
+  static async handleStream(request, response, serviceOperation) {
+    try {
+      const start = new Date();
+      await serviceOperation(request, response, this.collectRequestParams(request));
+      const time = new Date() - start;
+      logger.verbose(`${request.method} ${request.url} ${response.statusCode} ${time}ms`);
+    } catch (error) {
+      Controller.sendError(response, error);
+      logger.error(error);
+    }
+  }
 }
 
 module.exports = Controller;

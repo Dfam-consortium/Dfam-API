@@ -11,7 +11,7 @@
     "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
     "test": "ava --no-worker-threads",
-    "build-docs": "redocly build-docs api/openapi.yaml",
+    "build-docs": "./genDocs.sh",
     "artillery": "artillery run ./test/artillery-test.yaml >& ./test/test.artillery.log"
   },
   "keywords": [
@@ -37,9 +37,9 @@
     "rss-parser": "^3.13.0",
     "sequelize": "^6.17.0",
     "swagger-ui-express": "^4.0.2",
+    "tmp": "^0.2.1",
     "winston": "^3.2.1",
-    "word-wrap": "^1.2.3",
-    "tmp": "^0.2.1"
+    "word-wrap": "^1.2.3"
   },
   "devDependencies": {
     "artillery": "^2.0.0-34",

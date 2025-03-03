@@ -1,36 +1,22 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('source_method', {
     id: {
-      autoIncrement: true,
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      comment: "Primary key family source methods"
+      autoIncrement: true
     },
     name: {
       type: DataTypes.STRING(45),
-      allowNull: true,
-      comment: "Name of the source method."
+      allowNull: true
     },
     description: {
       type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "Short description of the source method."
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'source_method',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "id" },
-        ]
-      },
-    ]
+    tableName: 'source_method'
   });
 };

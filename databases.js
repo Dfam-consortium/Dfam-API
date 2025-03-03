@@ -83,42 +83,10 @@ const getModels_User = function () {
   }
   return(_user_models);
 };
-    
-var _assembly_models = {};
-const getModels_Assembly = function(schema_name) {
-  if (!_assembly_models[schema_name]) {
-    
-    const conn = connect({
-      database: schema_name,
-      host: config.schema.AssemblyDB.host,
-      port: config.schema.AssemblyDB.port,
-      user: config.schema.AssemblyDB.user,
-      password: config.schema.AssemblyDB.password,
-    });
-
-    const models = _assembly_models[schema_name] = {};
-
-    models.modelFileModel = require("./models/assembly/model_file.js")(conn, Sequelize);
-    models.karyotypeModel = require("./models/assembly/karyotype.js")(conn, Sequelize);
-    models.coverageDataModel = require("./models/assembly/coverage_data.js")(conn, Sequelize);
-    models.percentageIdModel = require("./models/assembly/percentage_id.js")(conn, Sequelize);
-    models.sequenceModel = require("./models/assembly/sequence.js")(conn, Sequelize);
-    models.hmmFullRegionModel = require("./models/assembly/hmm_full_region.js")(conn, Sequelize);
-    models.hmmFullRegionModel.removeAttribute('id');
-
-    models.hmmFullRegionModel.belongsTo(models.sequenceModel, { foreignKey: 'seq_accession' });
-    models.maskModel = require("./models/assembly/mask.js")(conn, Sequelize);
-    models.maskModel.removeAttribute('id');
-    models.maskModel.belongsTo(models.sequenceModel, { foreignKey: 'seq_accession' });
-  }
-
-  return _assembly_models[schema_name];
-};
 
 module.exports = {
   getConn_Dfam,
   getModels_Dfam,
   getConn_User,
   getModels_User,
-  getModels_Assembly
 };

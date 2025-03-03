@@ -1,10 +1,11 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('db_version', {
     dfam_version: {
       type: DataTypes.STRING(45),
       allowNull: false,
-      primaryKey: true,
+      primaryKey: true
     },
     dfam_release_date: {
       type: DataTypes.DATEONLY,
@@ -27,22 +28,6 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true
     }
   }, {
-    sequelize,
-    tableName: 'db_version',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "dfam_version" },
-          { name: "dfam_release_date" },
-          { name: "total_families" },
-          { name: "curated_families" },
-          { name: "species" }
-        ]
-      },
-    ]
+    tableName: 'db_version'
   });
 };

@@ -1,28 +1,25 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('assembly', {
     id: {
-      autoIncrement: true,
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      comment: "Surrogate identifier - auto indexed"
+      autoIncrement: true
     },
     name: {
       type: DataTypes.STRING(45),
       allowNull: false,
-      comment: "The assembly name",
-      unique: "name"
+      unique: true
     },
     description: {
       type: DataTypes.STRING(100),
-      allowNull: true,
-      comment: "A short description of the assembly"
+      allowNull: true
     },
     dfam_taxdb_tax_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
-      comment: "The taxa for the assembly species",
       references: {
         model: 'dfam_taxdb',
         key: 'tax_id'
@@ -30,74 +27,39 @@ module.exports = function(sequelize, DataTypes) {
     },
     source: {
       type: DataTypes.STRING(20),
-      allowNull: true,
-      comment: "Where the assembly originated"
+      allowNull: true
     },
     release_date: {
       type: DataTypes.DATE,
-      allowNull: true,
-      comment: "The release date for the assembly"
+      allowNull: true
     },
     version: {
       type: DataTypes.STRING(45),
-      allowNull: true,
-      comment: "The version of the assembly"
+      allowNull: true
     },
     uri: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "A publicly accessible URI for detailed information on the assembly and\/or a download"
+      allowNull: true
     },
     schema_name: {
       type: DataTypes.STRING(45),
-      allowNull: true,
-      comment: "If there is Dfam annotation data stored, this contains the schema name for the dataset"
+      allowNull: true
     },
     visible: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER(11),
       allowNull: true,
-      defaultValue: 0,
-      comment: "Should this assembly be made visible on the website"
+      defaultValue: '0'
     },
     display_order: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER(11),
       allowNull: true,
-      defaultValue: 0,
-      comment: "Display order for the assemblies - used by UI"
+      defaultValue: '0'
     },
     z_size: {
       type: DataTypes.BIGINT,
-      allowNull: true,
-      comment: "The size of the annotated assembly in bp.  This includes only the sequences which Dfam uses in it’s analysis and may exclude alternate\/artificial assembly sequences. This value is used by nhmmer to generate e-values ( e.g -Z )."
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'assembly',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "id" },
-        ]
-      },
-      {
-        name: "name",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "name" },
-        ]
-      },
-      {
-        name: "fk_assembly_dfam_taxdb1_idx",
-        using: "BTREE",
-        fields: [
-          { name: "dfam_taxdb_tax_id" },
-        ]
-      },
-    ]
+    tableName: 'assembly'
   });
 };

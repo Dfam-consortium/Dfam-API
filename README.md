@@ -105,7 +105,7 @@ npm install @redocly/cli -g
 
 Then invoke redocly on the OpenAPI 2.0 file:
 ```
-redocly build-docs openapi.yaml
+npm run build-docs
 ```
 
 And to deploy them:

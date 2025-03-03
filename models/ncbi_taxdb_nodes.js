@@ -1,11 +1,12 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('ncbi_taxdb_nodes', {
     tax_id: {
-      autoIncrement: true,
       type: DataTypes.BIGINT,
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     parent_id: {
       type: DataTypes.BIGINT,
@@ -24,7 +25,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     inherited_div: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER(1),
       allowNull: true
     },
     genetic_code_id: {
@@ -32,7 +33,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     inherited_GC: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER(1),
       allowNull: true
     },
     mitochondrial_genetic_code_id: {
@@ -40,49 +41,22 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true
     },
     inherited_MGC_flag: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER(1),
       allowNull: true
     },
     GenBank_hidden_flag: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER(1),
       allowNull: true
     },
     hidden_subtree_root_flag: {
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER(1),
       allowNull: true
     },
     comments: {
-      type: DataTypes.BLOB,
+      type: "BLOB",
       allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'ncbi_taxdb_nodes',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "tax_id" },
-        ]
-      },
-      {
-        name: "tax_id",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "tax_id" },
-        ]
-      },
-      {
-        name: "ix_ncbi_taxdb_nodes_new_parent_id",
-        using: "BTREE",
-        fields: [
-          { name: "parent_id" },
-        ]
-      },
-    ]
+    tableName: 'ncbi_taxdb_nodes'
   });
 };

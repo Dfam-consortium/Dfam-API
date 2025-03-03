@@ -1,21 +1,20 @@
-const Sequelize = require('sequelize');
+/* jshint indent: 2 */
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('family_has_citation', {
     family_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
-      comment: "A Dfam family identifier",
       references: {
         model: 'family',
         key: 'id'
       }
     },
     citation_pmid: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.INTEGER(10).UNSIGNED,
       allowNull: false,
       primaryKey: true,
-      comment: "Pubmed Identifier — details cached in Citation table.",
       references: {
         model: 'citation',
         key: 'pmid'
@@ -23,35 +22,13 @@ module.exports = function(sequelize, DataTypes) {
     },
     comment: {
       type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "Not used currently"
+      allowNull: true
     },
     order_added: {
-      type: DataTypes.TINYINT,
-      allowNull: true,
-      comment: "Order that a citation was added to a family starting from 1.  Used to preserve display order."
+      type: DataTypes.INTEGER(4),
+      allowNull: true
     }
   }, {
-    sequelize,
-    tableName: 'family_has_citation',
-    timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "family_id" },
-          { name: "citation_pmid" },
-        ]
-      },
-      {
-        name: "fk_family_has_citation_citation1_idx",
-        using: "BTREE",
-        fields: [
-          { name: "citation_pmid" },
-        ]
-      },
-    ]
+    tableName: 'family_has_citation'
   });
 };

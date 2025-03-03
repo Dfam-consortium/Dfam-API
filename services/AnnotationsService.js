@@ -1,13 +1,12 @@
 /* eslint-disable no-unused-vars */
 const Service = require('./Service');
-const winston = require('winston');
-const getModels_Assembly = require("../databases.js").getModels_Assembly;
 const dfam = require("../databases").getModels_Dfam();
 const Sequelize = require("sequelize");
-const mapFields = require("../utils/mapFields.js");
-
+const {te_idx_dir} = require('../config');
+const fs = require("fs");
+const te_idx = require("../utils/te_idx.js");
+const logger = require('../logger');
 /**
-* Retrieve annotations for a given genome assembly in a given range.
 * Retrieve annotations for a given genome assembly in a given range.
 *
 * assembly String Genome assembly to search. A list of assemblies is available at `/assemblies`.
@@ -21,7 +20,12 @@ const mapFields = require("../utils/mapFields.js");
 const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new Promise(
   async (resolve, reject) => {
     try {
-      family_accession = family;
+      //Useful for tagging related log messages together
+      //let rtoken = Math.random();
+      //logger.info(`readAnnotations(${rtoken}): assembly=${assembly}, chrom=${chrom}, start=${start}, end=${end}, family=${family}, nrph=${nrph}`);
+      
+      // Fixed: This was defined as implicitly global (e.g. not 'let', 'const' or 'var').  
+      let family_accession = family;
       if (start > end) {
         const swap = start;
         start = end;
@@ -31,141 +35,91 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       if (Math.abs(end-start) > 1000000) {
           reject(Service.rejectResponse({ message: "Requested range is too long." }, 400));
       }
-
-      const assembly_model = await dfam.assemblyModel.findOne({
-        attributes: ["schema_name"],
-        where: { "name": assembly },
+      let full_assembly = await dfam.assemblyModel.findOne({
+        where: {"name": assembly},
+        attributes:["schema_name"]
       })
-      if (!assembly_model) {
-        reject(Service.rejectResponse("Assembly Model Not Found", 404));
+
+      if (! full_assembly) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+      } else {
+        full_assembly = full_assembly.schema_name
       }
 
-      const models = await getModels_Assembly(assembly_model.schema_name);
-
-      let query_hmm = {
-        attributes: ["family_accession", "seq_start", "seq_end", "strand", "ali_start", "ali_end", "model_start", "model_end", "hit_bit_score", "hit_evalue_score", "nrph_hit"],
-        include: {
-          model: models.sequenceModel,
-          attributes: ["id"],
-          where: {
-            [Sequelize.Op.or]: [
-              { "id": chrom },
-              { "id": "chr" + chrom },
-            ]
-          },
-        },
-        where: [
-               // We want to find all annotations where either the start or end point
-               // is in between the 'start' and 'end' of the window.
-                 { [Sequelize.Op.or]: [
-                     { seq_start: { [Sequelize.Op.between]: [start, end] } },
-                     { seq_end: { [Sequelize.Op.between]: [start, end] } },
-                     ] 
-                 },
-               ],
-      };
-
-      if ( family_accession ) { 
-        query_hmm.where.push({ '$family_accession$': family_accession });
+      let assembly_dir = `${te_idx_dir}/${full_assembly}/`
+      if (!fs.existsSync(assembly_dir)) {
+        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       }
 
-      if (nrph === true) {
-        query_hmm.where.push({ nrph_hit: 1 });
+      let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom)
+      if (! chrom_in_assem) {
+        reject(Service.rejectResponse(`Sequence ${chrom} Not Found In Assembly ${assembly}`, 404));
       }
 
-   
-      // nhmmerResults
-      const regions = await models.hmmFullRegionModel.findAll(query_hmm)
-      var family_name_mappings = {};
-      var nhmmerResults = regions.map((region) => {
-        var hit = mapFields(region, {}, {
-          "family_accession": "accession",
-          "hit_bit_score": "bit_score",
-          "hit_evalue_score": "e_value",
-          "model_start": "model_start",
-          "model_end": "model_end",
-          "strand": "strand",
-          "ali_start": "ali_start",
-          "ali_end": "ali_end",
-          "seq_start": "seq_start",
-          "seq_end": "seq_end",
-        });
-        hit.sequence = region.sequence.id;
+      // Obtain simple/tandem annotations from the TE_Idx
+      let teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "masks", "--chrom", chrom, "--start", start, "--end", end]
+      const tandem_annots = await te_idx.query(teidx_args)
 
-        // Accumulate accessions whose names and types we need to retrieve
-        if (!family_name_mappings[hit.accession]) {
-          family_name_mappings[hit.accession] = [];
-        }
-        family_name_mappings[hit.accession].push(hit);
+      // Obtain the TE annotations from the TE_Idx
+      teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end]
 
-        return hit;
-      });
+      if (family_accession) { 
+        teidx_args.push("--family");
+        teidx_args.push(family_accession);
+      }
 
+      if (nrph) {
+        teidx_args.push("--nrph");
+      }
+
+      const teResults = await te_idx.query(teidx_args)
+
+      // Collect all accessions found, as well as thier positions in the list of results
+      // Fixed: This was defined as implicitly global (e.g. not 'let', 'const' or 'var').  
+      let accession_idxs = {}
+      teResults.forEach((hit, i) => {
+        if (!accession_idxs[hit.accession]) {accession_idxs[hit.accession] = []}
+        accession_idxs[hit.accession].push(i)
+      })
+  
       // Retrieve the names and types of all matched families
       const families = await dfam.familyModel.findAll({
-        where: { accession: { [Sequelize.Op.in]: Object.keys(family_name_mappings) } },
+        where: { accession: { [Sequelize.Op.in]: Object.keys(accession_idxs) } },
         attributes: ["name", "accession"],
         include: [ { model: dfam.classificationModel, as: 'classification', include: [
           { model: dfam.rmTypeModel, as: 'rm_type', attributes: ["name"] }
         ] } ],
       })
+      if (Object.keys(accession_idxs).length != families.length ){
+        logger.error(`token=${rtoken}: ${Object.keys(accession_idxs).length} != ${families.length}`)
+      }
+
+      // Add names and types to list of hits
       families.forEach(function(family) {
-        family_name_mappings[family.accession].forEach((hit) => {
-          hit.query = family.name;
-          hit.type = null;
-          if (family.classification) {
-            if (family.classification.rm_type) {
-              hit.type = family.classification.rm_type.name;
+        accession_idxs[family.accession].forEach((i) => {
+            teResults[i].query = family.name;
+            teResults[i].type = null;
+            if (family.classification) {
+              if (family.classification.rm_type) {
+                teResults[i].type = family.classification.rm_type.name;
+              }
             }
-          }
         });
-
-        return nhmmerResults;
       });
 
-      const query_trf = {
-        include: {
-          model: models.sequenceModel,
-          attributes: ["id"],
-          where: {
-            [Sequelize.Op.or]: [
-              { "id": chrom },
-              { "id": "chr" + chrom },
-            ]
-          },
-        },
-        where: {
-          [Sequelize.Op.or]: [
-            { seq_start: { [Sequelize.Op.between]: [start, end] } },
-            { seq_end: { [Sequelize.Op.between]: [start, end] } },
-          ],
-        }
-      };
- 
-      const mask_regions = await models.maskModel.findAll(query_trf)
-      var trfResults = mask_regions.map((region) => {
-        var hit = mapFields(region, {}, {
-          "seq_start": "start",
-          "seq_end": "end",
-          "repeat_str": "type",
-          "repeat_length": "repeat_length",
-        });
-        hit.sequence = region.sequence.id;
-  
-        return hit;
-      });
-       
+      //logger.info(`readAnnotations(${rtoken}): complete`);
       resolve(Service.successResponse({
         offset: start,
         length: Math.abs(end - start),
         query: `${chrom}:${start}-${end}`,
-        hits: nhmmerResults,
-        tandem_repeats: trfResults,
+        hits: teResults,
+        tandem_repeats: tandem_annots,
       }, 200 ));
+
       
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
+        e.message || `Invalid Input - ${e} - ${e.message}`,
         e.status || 405,
       ));
     }
