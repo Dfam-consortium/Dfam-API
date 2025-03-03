@@ -161,8 +161,8 @@ test.serial('search families', async t => {
 });
 
 test.serial('search families query limit', async t => {
-  const response = await request.get('/families?clade=1&clade_relatives=descendants').expect(400);
-  t.regex(response.body.message, /per-query limit/);
+  const response = await request.get('/families?clade=1&clade_relatives=descendants').expect(405);
+  t.regex(response.text, /per-query limit/);
 });
 
 test.serial('search families with consensi', async t => {

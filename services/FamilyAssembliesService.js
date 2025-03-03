@@ -134,7 +134,7 @@ const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
       })
 
       if (!family_assembly) {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Family Assembly Not Found", 404));
       } 
 
       resolve(Service.successResponse(familyAssemblyStatsObject(family_assembly)));
@@ -165,6 +165,7 @@ const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, downlo
         where: {"name": assembly_id},
         attributes:["schema_name"]
       })
+
       if (! full_assembly) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       } else {
@@ -229,7 +230,7 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
       if (data && data.coverage_karyotype) {
         resolve(Service.successResponse(JSON.parse(data.coverage_karyotype.toString()), 200))
       } else {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Karyotype Not Found", 404));
       }
 
     } catch (e) {
@@ -327,7 +328,7 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
           "false_hits": data.num_rev,
         }));
       } else {
-        reject(Service.rejectResponse({}, 404));
+        reject(Service.rejectResponse("Coverage Not Found", 404));
       }
     } catch (e) {
       reject(Service.rejectResponse(

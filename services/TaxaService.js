@@ -97,7 +97,7 @@ const readTaxaById = async function({ id }) {
       where: { tax_id: id, name_class: "scientific name" },
     })
     if (!taxon) {
-      return Service.successResponse({}, 404);
+      return Service.successResponse("Taxon Not Found", 404);
     }
     return Service.successResponse({ "id": taxon.tax_id, "name": taxon.name_txt });
     

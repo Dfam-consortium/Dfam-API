@@ -1,16 +1,6 @@
 # Dfam API
-
-
-## PLANS
-- In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
-option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
-- I would like to rename /families/{id}/sequence to /families/{id}/consensus
-- We should consider using a paging interface for any endpoint returning more than a specific number of records.  This would allow us to support full downloads of species libraries.
-
-## Current Changes
-- As a transition towards model masking, I made the FASTA format uppercase by default. EMBL format doesn't explicitly
-  state it can handle uppercase and lowercase in the same sequence.  Perhaps this will have to be an option so that
-  the default EMBL output remains lowercase.
+## User Documentation 
+The API documentation can be found [Here](https://www.dfam.org/releases/current/apidocs/)
 
 ## Overview
 This server provides a RESTful API supporting public access to the Dfam database of Transposable Element (TE) families, hidden Markov Models (HMMs), consensus sequences, and genome annotations.  The API is based on the [OpenAPI 3.0 Specfication](https://swagger.io/specification/v3/).  
@@ -174,3 +164,17 @@ This is where the API Gateway ends, and the unique business-logic of your applic
 
 ## Download File Caching
 Large download requests are cached in `/u2/webresults/browse-cache`. The filenames are `<hash of query parameters>.cache`. The `/home/dfweb/cache_cleanup.py` script is periodically run as a cron job to remove old cache files.
+```
+0 0 */10 * * python3 /webresults/cache-cleanup.py
+```
+
+## PLANS
+- In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
+option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
+- I would like to rename /families/{id}/sequence to /families/{id}/consensus
+- We should consider using a paging interface for any endpoint returning more than a specific number of records.  This would allow us to support full downloads of species libraries.
+
+## Current Changes
+- As a transition towards model masking, I made the FASTA format uppercase by default. EMBL format doesn't explicitly
+  state it can handle uppercase and lowercase in the same sequence.  Perhaps this will have to be an option so that
+  the default EMBL output remains lowercase.

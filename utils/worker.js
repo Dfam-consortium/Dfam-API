@@ -15,7 +15,8 @@ const hmm = require("./hmm");
 const fasta = require("./fasta");
 const stockholm = require("./stockholm");
 const embl = require("./embl");
-const { appendFileSync } = require("fs");
+const { appendFile } = require("fs/promises");
+const { promisify } = require("util");
 
 const familyModel = require("../models/family")(conn, Sequelize);
 const hmmModelDataModel = require("../models/hmm_model_data")(conn, Sequelize);
@@ -36,7 +37,7 @@ const hmm_command = async function ({accessions, include_copyright = 0, write_fi
     const fam = await family.getFamilyForAnnotation(acc);
 
     if (!fam) {
-      logger.error(`Missing family for accession: ${acc}`);
+      logger.error({error: {error: `Missing family for accession: ${acc}`, code: 404}});
       return;
     }
 
@@ -46,13 +47,14 @@ const hmm_command = async function ({accessions, include_copyright = 0, write_fi
     });
 
     if (!hmm_data) {
-      logger.error(`Missing HMM for family: ${acc}`);
+      logger.error({error: {error: `Missing HMM for family: ${acc}`, code: 404}});
       return;
     }
-    let write_data = hmm.annotateHmm(fam, zlib.gunzipSync(hmm_data.hmm).toString())
+    let hdh = await promisify(zlib.gunzip)(hmm_data.hmm)
+    let write_data = hmm.annotateHmm(fam, hdh.toString())
 
     if (write_file) {
-      appendFileSync(write_file, write_data)
+      await appendFile(write_file, write_data)
     } else {
       ret_val = ret_val + write_data
     }
@@ -77,12 +79,12 @@ const embl_command = async function ({accessions, include_copyright = 0, write_f
     const fam = await family.getFamilyForAnnotation(acc);
 
     if (!fam) {
-      logger.error(`Missing family for accession: ${acc}`);
+      logger.error({error: {error: `Missing family for accession: ${acc}`, code: 404}});
       return;
     }
     let write_data = embl.exportEmbl(fam)
     if (write_file){
-      appendFileSync(write_file, write_data)
+      appendFile(write_file, write_data)
     } else {
       ret_val = ret_val + write_data;
     }
@@ -103,12 +105,12 @@ const fasta_command = async function ({accessions, write_file=null}) {
     const fam = await family.getFamilyForAnnotation(acc);
 
     if (!fam) {
-      logger.error(`Missing family for accession: ${acc}`);
+      logger.error({error: {error: `Missing family for accession: ${acc}`, code: 404}});
       return;
     }
     let write_data = fasta.exportFasta(fam)
     if (write_file){
-      appendFileSync(write_file, write_data)
+      appendFile(write_file, write_data)
     } else {
       ret_val = ret_val + write_data;
     }
@@ -127,7 +129,7 @@ const stockholm_command = async function ({accessions}) {
   for (const acc of accessions) {
     const fam = await family.getFamilyForAnnotation(acc);
     if (!fam) {
-      logger.error(`Missing family for accession: ${acc}`);
+      logger.error({error: {error: `Missing family for accession: ${acc}`, code: 404}});
       return;
     }
 

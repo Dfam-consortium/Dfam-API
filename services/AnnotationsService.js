@@ -39,6 +39,7 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         where: {"name": assembly},
         attributes:["schema_name"]
       })
+
       if (! full_assembly) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       } else {

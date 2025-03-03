@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
 const camelCase = require('camelcase');
 const config = require('../config');
@@ -79,7 +79,7 @@ class Controller {
   * @param fieldName
   * @returns {string}
   */
-  static collectFile(request, fieldName) {
+  static async collectFile(request, fieldName) {
     let uploadedFileName = '';
     if (request.files && request.files.length > 0) {
       const fileObject = request.files.find(file => file.fieldname === fieldName);
@@ -88,7 +88,7 @@ class Controller {
         const extension = fileArray.pop();
         fileArray.push(`_${Date.now()}`);
         uploadedFileName = `${fileArray.join('')}.${extension}`;
-        fs.renameSync(path.join(config.FILE_UPLOAD_PATH, fileObject.filename),
+        await fs.rename(path.join(config.FILE_UPLOAD_PATH, fileObject.filename),
           path.join(config.FILE_UPLOAD_PATH, uploadedFileName));
       }
     }
@@ -153,13 +153,20 @@ class Controller {
     try {
       const start = new Date();
       //console.log(JSON.stringify(request.query));
+      let client_ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress
       const serviceResponse = await serviceOperation(this.collectRequestParams(request));
       Controller.sendResponse(response, serviceResponse);
       const time = new Date() - start;
-      logger.verbose(`${request.method} ${request.url} ${response.statusCode} ${time}ms`);
+      let urls = request.url.split("?")
+      let endpoint = urls[0]
+      let params = ""
+      if (urls.length > 1) {
+        params = urls[1]
+      }
+      logger.verbose({"method": request.method, "endpoint": endpoint, "params": params, "code": response.statusCode, "res_time": time, "client_ip": client_ip });
     } catch (error) {
       Controller.sendError(response, error);
-      logger.error(error);
+      logger.error({error: error, url: request.url});
     }
   }
 
