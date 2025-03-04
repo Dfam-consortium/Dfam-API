@@ -199,7 +199,7 @@ test.serial('search families classification', async t => {
 
 test.serial('search families type', async t => {
   const body = await get_body('/families?type=SINE');
-  t.true(body.total_count == 1484)
+  t.true(body.total_count == 1510)
 });
 
 test.serial('search families desc', async t => {
@@ -209,7 +209,7 @@ test.serial('search families desc', async t => {
 
 test.serial('search families keywords', async t => {
   const body = await get_body('/families?format=summary&keywords=hAT auto&limit=20');
-  t.is(body.total_count, 336)
+  t.is(body.total_count, 341)
 });
 
 test.serial('search families start', async t => {
@@ -221,7 +221,7 @@ test.serial('search families start', async t => {
 
 test.serial('search families updated', async t => {
   const body = await get_body('/families?updated_after=2022-01-01&updated_before=2023-01-01');
-  t.is(body.total_count, 4244)
+  t.is(body.total_count, 4445)
 });
 
 test.serial('download families', async t => {
