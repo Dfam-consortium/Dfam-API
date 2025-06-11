@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 5.0.1 - 2025-06-11
+- Fixed a bug where downloaded files would often not include the last few families from the search
+
+## 5.0.0 - 2025-03-10
+- Added the TE_idx subsystem for faster annotation retrieval
+
 ## 0.4.0  -
 - 
 
