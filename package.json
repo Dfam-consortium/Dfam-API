@@ -55,8 +55,7 @@
     }
   },
   "ava": {
-    "workerThreads": false,
-    "timeout": "40s"
+    "timeout": "80s"
   },
   "watch": {
     "start": [

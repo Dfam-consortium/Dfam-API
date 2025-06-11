@@ -84,7 +84,7 @@ const embl_command = async function ({accessions, include_copyright = 0, write_f
     }
     let write_data = embl.exportEmbl(fam)
     if (write_file){
-      appendFile(write_file, write_data)
+      await appendFile(write_file, write_data)
     } else {
       ret_val = ret_val + write_data;
     }
@@ -110,7 +110,7 @@ const fasta_command = async function ({accessions, write_file=null}) {
     }
     let write_data = fasta.exportFasta(fam)
     if (write_file){
-      appendFile(write_file, write_data)
+      await appendFile(write_file, write_data)
     } else {
       ret_val = ret_val + write_data;
     }

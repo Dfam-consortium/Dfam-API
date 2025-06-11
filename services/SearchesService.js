@@ -504,7 +504,7 @@ async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
   ]);
 
   // Save HMM data to file
-  const writeHmmFile = promisify(fs.writeFile)(hmmFile.fd, hmmData, null).then(function() {
+  const writeHmmFile = await promisify(fs.writeFile)(hmmFile.fd, hmmData, null).then(function() {
     return promisify(fs.close)(hmmFile.fd);
   }).catch(function(err) {
     throw new Error('Error saving hmm data to a temporary file.' + err);
