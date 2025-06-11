@@ -1,13 +1,14 @@
 const { transports, createLogger, format } = require('winston');
-const {combine, json, splat, printf, label} = format;
+const {combine, printf} = format;
 const moment = require('moment-timezone');
 
 const appendTimestamp = format((info, opts) => {
-  if(opts.tz)
-    time = moment().tz(opts.tz).format();
-    times = time.split("T")
-    info.date = times[0]
-    info.time = times[1]
+  if(opts.tz) {
+    let time = moment().tz(opts.tz).format();
+    let times = time.split("T");
+    info.date = times[0];
+    info.time = times[1];
+  }
   return info;
 });
 
@@ -24,28 +25,28 @@ const myFormat = combine(
       let code;
       let err_message;
       if (typeof(message) === "string") {
-        err_message = message
-        code = 405
+        err_message = message;
+        code = 405;
       }
       else if (typeof(message) === "object"){
-        code = message.error.code
+        code = message.error.code;
         if (typeof(message.error.error) === "string") {
-          err_message = message.error.error
+          err_message = message.error.error;
         }
         else if (typeof(message.error.error) == "object") {
-          err_message = message.error.error.message
+          err_message = message.error.error.message;
         }
         else {
-          err_message = ""
+          err_message = "";
         }
       }
       return `{"type": "${level}", "message": "${err_message}", "url": "${message.url}", "code": "${code}", "date": "${date}", "time": "${time}"}`;
     }
     else {
-      return `{"type": "${level}", "message": "${message}", "date": "${date}", "time": "${time}"}`
+      return `{"type": "${level}", "message": "${message}", "date": "${date}", "time": "${time}"}`;
     }
   }),
-)
+);
 
 const logger = createLogger({
   // TODO: Set this in the user environment

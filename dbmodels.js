@@ -68,8 +68,8 @@ exports.getDfamModels = function(conn) {
   models.familyAssemblyDataModel.belongsTo(models.assemblyModel, { foreignKey: 'assembly_id' });
   models.assemblyModel.belongsTo(models.dfamTaxdbModel, { foreignKey: 'dfam_taxdb_tax_id' });
 
-  models.percentageIDModel.belongsTo(models.familyModel, {foreignKey: "family_id"})
-  models.percentageIDModel.belongsTo(models.assemblyModel, {foreignKey: "assembly_id"})
+  models.percentageIDModel.belongsTo(models.familyModel, {foreignKey: "family_id"});
+  models.percentageIDModel.belongsTo(models.assemblyModel, {foreignKey: "assembly_id"});
 
   return models;
 };

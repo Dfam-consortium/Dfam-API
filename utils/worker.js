@@ -50,13 +50,13 @@ const hmm_command = async function ({accessions, include_copyright = 0, write_fi
       logger.error({error: {error: `Missing HMM for family: ${acc}`, code: 404}});
       return;
     }
-    let hdh = await promisify(zlib.gunzip)(hmm_data.hmm)
-    let write_data = hmm.annotateHmm(fam, hdh.toString())
+    let hdh = await promisify(zlib.gunzip)(hmm_data.hmm);
+    let write_data = hmm.annotateHmm(fam, hdh.toString());
 
     if (write_file) {
-      await appendFile(write_file, write_data)
+      await appendFile(write_file, write_data);
     } else {
-      ret_val = ret_val + write_data
+      ret_val = ret_val + write_data;
     }
   }
   
@@ -82,9 +82,9 @@ const embl_command = async function ({accessions, include_copyright = 0, write_f
       logger.error({error: {error: `Missing family for accession: ${acc}`, code: 404}});
       return;
     }
-    let write_data = embl.exportEmbl(fam)
+    let write_data = embl.exportEmbl(fam);
     if (write_file){
-      await appendFile(write_file, write_data)
+      await appendFile(write_file, write_data);
     } else {
       ret_val = ret_val + write_data;
     }
@@ -108,9 +108,9 @@ const fasta_command = async function ({accessions, write_file=null}) {
       logger.error({error: {error: `Missing family for accession: ${acc}`, code: 404}});
       return;
     }
-    let write_data = fasta.exportFasta(fam)
+    let write_data = fasta.exportFasta(fam);
     if (write_file){
-      await appendFile(write_file, write_data)
+      await appendFile(write_file, write_data);
     } else {
       ret_val = ret_val + write_data;
     }

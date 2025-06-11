@@ -1,7 +1,6 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const swaggerUI = require('swagger-ui-express');
 const jsYaml = require('js-yaml');
 const express = require('express');
 const cors = require('cors');

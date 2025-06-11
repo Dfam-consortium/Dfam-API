@@ -5,41 +5,41 @@ async function query(args) {
   let res = await new Promise((resolve, reject) => {
     let runner = child_process.spawn(te_idx_bin, args);
     let data='';
-    runner.on('error', err => { reject(err) });
-    runner.stdout.on('data', d => { data += d });
+    runner.on('error', err => { reject(err); });
+    runner.stdout.on('data', d => { data += d; });
     runner.on('close', (code) => {
-      if (code !== 0) { reject(code) }
+      if (code !== 0) { reject(code); }
       else { 
-        resolve(JSON.parse(data)) 
+        resolve(JSON.parse(data));
       }
-    })
-  })
-  return res
+    });
+  });
+  return res;
 }
 
 async function chromInAssembly(full_assembly, chrom) {
   let res = await new Promise((resolve, reject) => {
-    let args = ["--assembly", full_assembly, "json-query", "--data-type", "sequences", "--key", chrom]
-    let data = 0
+    let args = ["--assembly", full_assembly, "json-query", "--data-type", "sequences", "--key", chrom];
+    let data = 0;
     let runner = child_process.spawn(te_idx_bin, args);
-    runner.on('error', err => { reject(err)});
-    runner.stdout.on('data', d => {data = parseInt(d.toString()) });
+    runner.on('error', err => { reject(err);});
+    runner.stdout.on('data', d => {data = parseInt(d.toString()); });
     runner.on('close', (code) => {
-      if (code !== 0) { reject(code) }
+      if (code !== 0) { reject(code); }
       else {
         if (data > 0) {
-          resolve(true)
+          resolve(true);
         }
         else {
-          resolve(false)
+          resolve(false);
         }
       }
-    })
-  })
-  return res
+    });
+  });
+  return res;
 }
 
 module.exports = {
   query,
   chromInAssembly
-}
+};

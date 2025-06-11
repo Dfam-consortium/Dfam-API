@@ -16,8 +16,8 @@ const getVersion = () => new Promise(
       // it will ignore them.
       const query = "SELECT dfam_version, dfam_release_date, total_families, curated_families, species FROM db_version";
 
-      let data = await conn.query( query, { type: "SELECT" })
-      data = data[0]
+      let data = await conn.query( query, { type: "SELECT" });
+      data = data[0];
       resolve(Service.successResponse(
         {
           payload: { 

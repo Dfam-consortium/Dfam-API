@@ -34,7 +34,7 @@ const readBlogPosts = () => new Promise(
 
       winston.debug("Making request to '" + BLOG_URL + "' for blog posts");
 
-      const feed = await parser.parseURL(BLOG_URL)
+      const feed = await parser.parseURL(BLOG_URL);
       const articles = feed.items.map(function(item) {
         const pubDate = new Date(item.pubDate);
         return {
