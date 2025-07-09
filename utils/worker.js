@@ -137,8 +137,36 @@ const stockholm_command = async function ({accessions}) {
       attributes: ["comsa_data"],
       where: { family_id: fam.id },
     });
-
+    
     ret_val += await stockholm.seedAlignToStockholm(fam);
+  }
+  return ret_val;
+};
+
+// RMH: Should only be used for single accession requests
+//      Need to revisit this in the future
+const sam_command = async function ({accessions}) {
+  logger.info("Worker: " + threadId + " , command = sam_command");
+
+  let ret_val = "";
+  for (const acc of accessions) {
+    const fam = await family.getFamilyWithConsensus(acc);
+    //const fam = await family.getFamilyForAnnotation(acc);
+    if (!fam) {
+      logger.error({error: {error: `Missing family for accession: ${acc}`, code: 404}});
+      return;
+    }
+    logger.info(`sam_command fam.id=${fam.id}`);
+
+    let align_model = await dfam.seedAlignDataModel.findOne({
+      attributes: ["comsa_data"],
+      where: { family_id: fam.id },
+    });
+
+    const label = fam.accession + "." + fam.version
+    ret_val += await stockholm.comsaToSam(label, align_model.comsa_data);
+    logger.info("after sam_command");
+    break; // RMH: This request-type should only work on a single accession
   }
   return ret_val;
 };
@@ -148,6 +176,7 @@ module.exports = {
   hmm_command,
   embl_command,
   fasta_command,
-  stockholm_command
+  stockholm_command,
+  sam_command
 };
 

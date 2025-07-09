@@ -9,7 +9,7 @@ const conf = JSON.parse(fs.readFileSync(conf_file));
 
 const config = {
   ROOT_DIR: __dirname,
-  URL_PORT: 10011,
+  URL_PORT: 10012,
   URL_PATH: 'https://dfam.org',
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),

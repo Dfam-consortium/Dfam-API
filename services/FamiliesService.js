@@ -732,7 +732,7 @@ const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
 const readFamilySeed = ({ id, format, download }) => new Promise(
   async (resolve, reject) => {
     try {
-      const extensions = { 'stockholm': '.stk', 'alignment_summary': '.json' };
+      const extensions = { 'stockholm': '.stk', 'alignment_summary': '.json', 'sam': '.sam' };
       if ( ! (format in extensions) ) {
         resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
       }
@@ -746,6 +746,11 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
         obj.payload = await workerPool.piscina.run({accessions: [id]}, { name: 'stockholm_command' });
         obj.content_type = "text/plain";
         obj.encoding = "identity";
+      } else if (format == "sam" ) {
+        obj.payload = await workerPool.piscina.run({accessions: [id]}, { name: 'sam_command' });
+        obj.content_type = "text/plain";
+        obj.encoding = "identity";
+        logger.info(`payload = ${obj.payload}`);
       } else if (format == "alignment_summary") {
         const family = await dfam.familyModel.findOne({
           attributes: [ "id", "name" ],
