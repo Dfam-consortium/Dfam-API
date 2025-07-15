@@ -178,3 +178,6 @@ option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fast
 - As a transition towards model masking, I made the FASTA format uppercase by default. EMBL format doesn't explicitly
   state it can handle uppercase and lowercase in the same sequence.  Perhaps this will have to be an option so that
   the default EMBL output remains lowercase.
+
+
+===> NOTE: for debugging the middleware be - sure to log to the console caught errors in expressServer.js

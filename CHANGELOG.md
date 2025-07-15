@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+ - Upgraded from express-openapi-validator 5.0.4 to 5.5.7
+ - Added new endpoints
+ - Added new format for family seed (SAM)
+
 ## 0.4.0  -
 - 
 

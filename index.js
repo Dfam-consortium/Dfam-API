@@ -30,10 +30,11 @@ function removeExamplesKeys(obj) {
 }
 
 
+// 7/14/2025: RMH - Perhaps fixed in express-openapi-validator 5.5.7 (removing for now)
 // Open API OAS 3.0 file and strip out example data.
-let doc = yaml.load(fs.readFileSync(config.OPENAPI_YAML, 'utf-8'));
-removeExamplesKeys(doc);
-fs.writeFileSync(config.OPENAPI_YAML + ".sans_example", yaml.dump(doc));
+//let doc = yaml.load(fs.readFileSync(config.OPENAPI_YAML, 'utf-8'));
+//removeExamplesKeys(doc);
+//fs.writeFileSync(config.OPENAPI_YAML + ".sans_example", yaml.dump(doc));
 
 // Launch the Express server
 const launchServer = async () => {

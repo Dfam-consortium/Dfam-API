@@ -8,7 +8,10 @@
 
 const Controller = require('./Controller');
 const service = require('../services/FamiliesService');
-
+const logger = require('../logger');
+const readDfamRelationships = async (request, response) => {
+  await Controller.handleRequest(request, response, service.readDfamRelationships);
+};
 
 const readFamilies = async (request, response) => {
   await Controller.handleRequest(request, response, service.readFamilies);
@@ -34,12 +37,29 @@ const readFamilySequence = async (request, response) => {
   await Controller.handleRequest(request, response, service.readFamilySequence);
 };
 
+const readProteinAlignments = async (request, response) => {
+  await Controller.handleRequest(request, response, service.readProteinAlignments);
+};
+
+const readSelfAlignments = async (request, response) => {
+  logger.info("Reading self alignments");
+  await Controller.handleRequest(request, response, service.readSelfAlignments);
+};
+
+const readTandemRepeats = async (request, response) => {
+  await Controller.handleRequest(request, response, service.readTandemRepeats);
+};
+
 
 module.exports = {
+  readDfamRelationships,
   readFamilies,
   readFamilyById,
   readFamilyHmm,
   readFamilyRelationships,
   readFamilySeed,
   readFamilySequence,
+  readProteinAlignments,
+  readSelfAlignments,
+  readTandemRepeats,
 };

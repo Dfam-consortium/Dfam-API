@@ -3,8 +3,9 @@ const config = require('../config');
 const fs = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');
-const getFamilyWithConsensus = require('./family'); 
-const exportFasta = require('./fasta'); 
+const family = require('./family'); 
+const fasta = require('./fasta'); 
+const logger = require('../logger');
 
 // config.rmblast_bin_dir
 // TODO: create new config.ultra_bin 
@@ -31,13 +32,13 @@ const DISTINCT_COLORS = [
 
 
 async function generate_temp_family_fasta(accession) {
-  const family = await getFamilyWithConsensus(accession);
-  if (!family) {
+  const fam = await family.getFamilyWithConsensus(accession);
+  if (!fam) {
     throw new Error(`No family found with accession ${accession}`);
   }
 
-  family.accessionAndVersion = `${family.accession}.${family.version || 0}`;
-  const fastaContent = exportFasta(family);
+  fam.accessionAndVersion = `${fam.accession}.${fam.version || 0}`;
+  const fastaContent = fasta.exportFasta(fam);
 
   const uniq_req_id = crypto.randomUUID();
   const fastaFile = path.join(config.tmp_search_dir, `${accession}-${uniq_req_id}.fasta`);
@@ -81,7 +82,7 @@ function filter_by_depth(records, depthField = 'ref_start', endField = 'ref_end'
  * @param {number} expectedFields - Number of expected tab-separated fields per line
  * @returns {Promise<Array<string[]>>} - A list of parsed lines, each a list of fields
  */
-async function rmblastn_query(args, expectedFields = 11) {
+async function rmblastn_query(args, expectedFields = 10) {
   // Set environment to include BLASTMAT if needed
   const env = {
     ...process.env,
@@ -116,6 +117,7 @@ async function rmblastn_query(args, expectedFields = 11) {
       const parsed = [];
 
       for (const line of lines) {
+        if (!line.trim()) continue; // Skip empty lines
         const fields = line.trim().split('\t');
         if (fields.length !== expectedFields) {
           return reject(new Error(`Invalid line (expected ${expectedFields} fields):\n${line}`));
@@ -175,7 +177,7 @@ async function dfam_relationship_search(accession) {
   ];
 
   // Step 3: Run rmblastn query
-  const raw = await rmblastn_query(args);
+  const raw = await rmblastn_query(args, 10);
   const assign_color = color_assigner_factory();
 
   // Step 4: Parse output lines
@@ -219,8 +221,17 @@ async function dfam_relationship_search(accession) {
 
   // Step 8: Assign deterministic color by subject ID (sseqid)
   const final = chained.map(hit => ({
-    ...hit,
-    color: assign_color(hit.cons_seq)
+    start: hit.ref_start,
+    end: hit.ref_end,
+    name: hit.name,
+    color: assign_color(hit.cons_seq),
+    strand: hit.orient,
+    ostart: hit.cons_start,
+    oend: hit.cons_end,
+    osize: hit.cons_len,
+    seq: hit.qseq,
+    oseq: hit.sseq,
+    cigar: "TODO"
   }));
 
   // Step 9: Cleanup temp FASTA
@@ -387,7 +398,7 @@ async function self_search(accession) {
     '-gapextend', '5',
     '-complexity_adjust',
     '-mask_level', '101',
-    '-word_size', '14',
+    '-word_size', '7',
     '-xdrop_ungap', '400',
     '-xdrop_gap_final', '200',
     '-xdrop_gap', '100',
@@ -398,7 +409,8 @@ async function self_search(accession) {
   ];
 
   // Step 3: Run rmblastn
-  const raw = await rmblastn_query(args);
+  const raw = await rmblastn_query(args, 10);
+  //logger.info("raw: " + JSON.stringify(raw));
   const assign_color = color_assigner_factory();
 
   // Step 4: Parse output lines into alignment records
@@ -436,22 +448,34 @@ async function self_search(accession) {
              hit.ref_end === hit.cons_end &&
              hit.orient === '+');
   });
+  //logger.info("filtered: " + JSON.stringify(filtered));
 
   // Step 6: Cluster tandem/redundant self-alignments
   const clustered = clusterSelfAlignments(filtered);
+  //logger.info("clustered: " + JSON.stringify(clustered));
 
   // Step 7: Sort by decreasing score
   clustered.sort((a, b) => b.score - a.score);
 
   // Step 8: Filter by depth (max 10 hits covering any position)
   const deduped = filter_by_depth(clustered, 'ref_start', 'ref_end', 10);
+  //logger.info("deduped: " + JSON.stringify(deduped));
 
-  // Step 9: Assign deterministic color per alignment pair
+  // Step 9: Assign deterministic color per alignment pair and remap names
+  // TODO: There seems to be some confusion over 1/0-based ranges....clear this up and
+  // fix examples in openAPI.yaml as well
   const final = deduped.map(hit => ({
-    ...hit,
+    start: hit.ref_start,
+    end: hit.ref_end,
+    pstart: hit.ref_start,
+    pend: hit.ref_end,
+    sstart: hit.cons_start,
+    send: hit.cons_end,
+    strand: hit.orient,
     color: assign_color(hit.name)
   }));
 
+  //logger.info("final: " + JSON.stringify(final));
   // Step 10: Cleanup temporary FASTA
   try { await fs.unlink(fastaFile); } catch (_) {}
 
@@ -466,7 +490,7 @@ async function self_search(accession) {
  * @param {number} expectedFields - Expected number of tab-separated fields per line
  * @returns {Promise<Array<string[]>>} - A list of field arrays parsed from stdout
  */
-async function blastx_query(args, expectedFields = 11) {
+async function blastx_query(args, expectedFields = 10) {
   const env = {
     ...process.env,
     BLASTMAT: config.rmblast_matrix_dir
@@ -500,6 +524,7 @@ async function blastx_query(args, expectedFields = 11) {
       const parsed = [];
 
       for (const line of lines) {
+        if (!line.trim()) continue; // Skip empty lines
         const fields = line.trim().split('\t');
         if (fields.length !== expectedFields) {
           return reject(new Error(`Invalid line (expected ${expectedFields} fields):\n${line}`));
@@ -551,21 +576,20 @@ function color_assigner_factory() {
 async function protein_search(accession) {
   const fastaFile = await generate_temp_family_fasta(accession);
 
-  const outfmt = '6 evalue qseqid qstart qend qlen sseqid sstart send slen sseq';
   const args = [
     '-db', config.repeat_peps_db,
     '-query', fastaFile,
     '-word_size', '2',
-    '-outfmt', outfmt,
+    '-outfmt', '6 evalue qseqid qstart qend qlen sseqid sstart send slen sseq',
     '-evalue', '0.001',
     '-num_threads', '8',
   ];
 
   let raw;
   try {
-    raw = await rmblastn_query(args);
+    raw = await blastx_query(args, 10);
   } catch (err) {
-    throw new Error(`rmblastn_query failed: ${err.message}`);
+    throw new Error(`blastx_query failed: ${err.message}`);
   }
 
   const parsed = raw.map(fields => {
@@ -600,8 +624,16 @@ async function protein_search(accession) {
   const assign_color = color_assigner_factory();
 
   const final = filtered.map(hit => ({
-    ...hit,
-    color: assign_color(hit.name)
+    start: hit.ref_start,
+    end: hit.ref_end,
+    name: hit.name,
+    score: hit.score,
+    color: assign_color(hit.name),
+    oChromStart: hit.cons_start,
+    oChromEnd: hit.cons_end,
+    oStrand: hit.orient,
+    oChromSize: hit.cons_len,
+    oSequence: hit.oseq
   }));
 
   try { await fs.unlink(fastaFile); } catch (_) {}
@@ -612,7 +644,8 @@ async function protein_search(accession) {
 
 async function ultra_query(args) {
   const res = await new Promise((resolve, reject) => {
-    const runner = child_process.spawn(config.ultra_bin, args);
+    const ultraPath = config.ultra_bin_dir + "/ultra";
+    const runner = child_process.spawn(ultraPath, args);
     let data = '';
     let errorData = '';
 
@@ -632,18 +665,21 @@ async function ultra_query(args) {
       if (code !== 0) {
         reject(new Error(`ultra exited with code ${code}: ${errorData}`));
       } else {
-        const results = data
-          .trim()
-          .split('\n')
-          .map(line => {
-            const fields = line.trim().split('\t');
-            if (fields.length < 4) {
-              throw new Error(`Malformed line from ultra: "${line}"`);
-            }
-            // [0]=name, [1]=start, [2]=end, [3]=name (or annotation label)
-            return [fields[0], parseInt(fields[1], 10), parseInt(fields[2], 10), fields[3]];
-          });
-        resolve(results);
+       const results = data
+      .trim()
+      .split('\n')
+      .map(line => line.trim())
+      .map(line => {
+        const regex = /^\S+\t(\d+)\t(\d+)\t\d+\t[\.\d]+\t(\S+)/; // Match start, end, and label
+        const match = line.match(regex);
+
+        if (!match) return null;
+
+        const [, startStr, endStr, label] = match;
+        return [parseInt(startStr, 10), parseInt(endStr, 10), label];
+      })
+      .filter(entry => entry !== null);  // remove non-matching lines
+    resolve(results);
       }
     });
   });
@@ -667,9 +703,9 @@ async function ultra_query(args) {
 async function ultra_search(accession) {
   const fastaFile = await generate_temp_family_fasta(accession);
 
-  let results = await ultra_query([fastaFile]);
+  let results = await ultra_query([fastaFile, '--hs', '-t', '4']);
 
-  const records = results.map(([name, start, end, label]) => ({
+  const records = results.map(([start, end, label]) => ({
     ref_start: start,
     ref_end: end,
     name: label,
@@ -679,7 +715,18 @@ async function ultra_search(accession) {
 
   try { await fs.unlink(fastaFile); } catch (_) {}
 
-  return filter_by_depth(records, 'ref_start', 'ref_end');
+  const filtered = filter_by_depth(records, 'ref_start', 'ref_end');
+
+  const final = filtered.map(hit => ({
+    start: hit.ref_start,
+    end: hit.ref_end,
+    name: hit.name,
+    color: hit.color,
+    strand: hit.strand
+  }));
+
+  return final;
+
 }
 
 module.exports = {
