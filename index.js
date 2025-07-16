@@ -5,6 +5,9 @@ const logger = require('./logger');
 const ExpressServer = require('./expressServer');
 require('./workerPool');
 
+//
+// DEPRECATED -- newer releases of express-openapi-validator fix this issue
+//
 // Generate config.OPENAPI_YAML + ".sans_example" file for OpenAPIValidator 
 //   This is a workaround for a bug in OpenAPIValidator 5.0.4 which
 //   incorrectly reports duplicate 'id:' keys in a OAS 3.0 'example'
@@ -28,24 +31,36 @@ function removeExamplesKeys(obj) {
     }
   }
 }
-
-
-// 7/14/2025: RMH - Perhaps fixed in express-openapi-validator 5.5.7 (removing for now)
+//
+// 7/14/2025: RMH - Fixed in express-openapi-validator 5.5.7 (removing for now)
 // Open API OAS 3.0 file and strip out example data.
+// 
 //let doc = yaml.load(fs.readFileSync(config.OPENAPI_YAML, 'utf-8'));
 //removeExamplesKeys(doc);
 //fs.writeFileSync(config.OPENAPI_YAML + ".sans_example", yaml.dump(doc));
 
 // Launch the Express server
+let expressServer = null;
 const launchServer = async () => {
   try {
-    this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
-    this.expressServer.launch();
+    expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
+    await expressServer.launch();
     logger.info('Express server running');
+    return expressServer;
   } catch (error) {
     logger.error('Express Server failure', error.message);
-    await this.close();
+    if (expressServer && expressServer.close) await expressServer.close();
+    throw error;
   }
 };
 
-launchServer().catch(e => logger.error(e));
+// Only auto-start the server if run directly, not when imported by tests
+//launchServer().catch(e => logger.error(e));
+if (require.main === module) {
+  launchServer().catch(e => logger.error(e));
+}
+
+module.exports = {
+  expressServer,
+  launchServer
+};

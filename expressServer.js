@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 const OpenApiValidator = require('express-openapi-validator');
 const logger = require('./logger');
 const config = require('./config');
+const workerPool = require('./workerPool');
 
 
 class ExpressServer {
@@ -82,7 +83,7 @@ class ExpressServer {
     // Setup error handler
     this.app.use((err, req, res, next) => {
       // IMPORTANT...this is where the runtime errors often show up
-      console.error(err); // dump error to console for debug
+      //console.error(err); // dump error to console for debug
       res.status(err.status || 500).json({
         message: err.message,
         errors: err.errors,
@@ -90,7 +91,7 @@ class ExpressServer {
     });
   }
 
-  launch() {
+  async launch() {
     http.createServer(this.app).listen(this.port);
     logger.info(`Listening on port ${this.port}`);
   }

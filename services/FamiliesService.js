@@ -302,6 +302,7 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
 
   // TODO: new Date(...) is full of surprises.
 
+  /*
   if (updated_after) {
     query.where.push({ [Sequelize.Op.or]: [
       { date_modified: { [Sequelize.Op.gt]: new Date(updated_after) } },
@@ -315,6 +316,40 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
       { date_created: { [Sequelize.Op.lt]: new Date(updated_before) } },
     ] });
   }
+  */
+if (updated_after && updated_before) {
+  query.where.push({
+    [Sequelize.Op.or]: [
+      {
+        date_modified: {
+          [Sequelize.Op.gte]: new Date(updated_after),
+          [Sequelize.Op.lte]: new Date(updated_before)
+        }
+      },
+      {
+        date_created: {
+          [Sequelize.Op.gte]: new Date(updated_after),
+          [Sequelize.Op.lte]: new Date(updated_before)
+        }
+      }
+    ]
+  });
+} else if (updated_after) {
+  query.where.push({
+    [Sequelize.Op.or]: [
+      { date_modified: { [Sequelize.Op.gte]: new Date(updated_after) } },
+      { date_created: { [Sequelize.Op.gte]: new Date(updated_after) } }
+    ]
+  });
+} else if (updated_before) {
+  query.where.push({
+    [Sequelize.Op.or]: [
+      { date_modified: { [Sequelize.Op.lte]: new Date(updated_before) } },
+      { date_created: { [Sequelize.Op.lte]: new Date(updated_before) } }
+    ]
+  });
+}
+
 
   if (keywords) {
     keywords.split(" ").forEach(function(word) {
@@ -405,9 +440,9 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
 const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
     const args_hash = md5(JSON.stringify(args));
-    const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
+    const cache_dir = config.apiserver.cache_dir
     const cache_name = args_hash + ".cache" 
-    const cache_file = cache_dir + cache_name
+    const cache_file = path.join(cache_dir, cache_name)
     const working_file = cache_file + '.working'
     const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
 

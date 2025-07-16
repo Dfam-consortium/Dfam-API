@@ -17,6 +17,9 @@
  */
 const test = require('ava');
 const supertest = require('supertest');
+const fs = require('fs');
+const process = require('process');
+const { launchServer } = require('../index');
 
 const winston = require('winston');
 const format = winston.format;
@@ -33,14 +36,24 @@ winston.configure({
 });
 
 //load example sequence
-const fs = require('fs');
 const example_seq = fs.readFileSync('./test/example_sequence.fasta').toString()
 
-// Start up the API server and grab the "express" object
-const app = require('../index').expressServer.app;
-// Hand the express object to supertest to wrap
-const request = supertest(app);
+// Setup global members to hold server
+let request;
+let serverInstance;
 
+test.before(async () => {
+  serverInstance = await launchServer();  // now under your control
+  request = supertest(serverInstance.app); // assuming .app is exposed
+});
+
+test.after.always(async () => {
+  if (serverInstance && serverInstance.close) {
+    await serverInstance.close(); // shuts down cleanly
+  }
+  console.log("Purposefully exiting process after tests -- ignore warning");
+  process.exit(0); // Ensure process exits cleanly after tests
+});
 
 // Convenience functions for obtaining responses from the body
 // or the text fields.
@@ -197,9 +210,11 @@ test.serial('search families classification', async t => {
   t.true(body.total_count == 2)
 });
 
+// NOTE: This number changes per release.  In Dfam 3.9 it's 1510 ( LINE-dependent_Retroposon;SINE + ERV1;SINE-like )
 test.serial('search families type', async t => {
   const body = await get_body('/families?type=SINE');
-  t.true(body.total_count == 1484)
+  console.log("search families type returned: " + body.total_count);
+  t.true(body.total_count == 1510)
 });
 
 test.serial('search families desc', async t => {
@@ -207,9 +222,10 @@ test.serial('search families desc', async t => {
   t.true(body.total_count == 11)
 });
 
+// NOTE: This number changes per release. In Dfam 3.9 it's 341.
 test.serial('search families keywords', async t => {
   const body = await get_body('/families?format=summary&keywords=hAT auto&limit=20');
-  t.is(body.total_count, 336)
+  t.is(body.total_count, 341)
 });
 
 test.serial('search families start', async t => {
@@ -219,9 +235,10 @@ test.serial('search families start', async t => {
   t.true(body2.results[0].accession == "DF000001020")
 });
 
+// NOTE: This number may change in a release.  In Dfam 3.9 it should be 4241.
 test.serial('search families updated', async t => {
   const body = await get_body('/families?updated_after=2022-01-01&updated_before=2023-01-01');
-  t.is(body.total_count, 4244)
+  t.is(body.total_count, 4241)
 });
 
 test.serial('download families', async t => {

@@ -1,12 +1,12 @@
 const path = require('path');
-const fs = require("fs");
+const fs = require('fs');
 
-let conf_file = "../Conf/dfam.conf";
-if (process.env.DFAM_CONF) {
-  conf_file = process.env.DFAM_CONF;
-}
+let conf_file = process.env.DFAM_CONF || '../Conf/dfam.conf';
 const conf = JSON.parse(fs.readFileSync(conf_file));
 
+// All these values could potentially be overriden by the conf_file
+// however the expectation is only the lowercase fields will be
+// overriden.
 const config = {
   ROOT_DIR: __dirname,
   URL_PORT: 10011,
@@ -18,32 +18,101 @@ const config = {
   VERSION_MINOR: '4',
   VERSION_BUGFIX: '0',
   CACHE_CUTOFF: 100,
+  apiserver: { 
+      db_timezone: 'America/Los_Angeles',
+      cache_dir: '' 
+             },
+  hmm_logos_dir: '',
+  te_idx_bin: '',
+  te_idx_dir: '',
+  ucsc_utils_bin: '',
+  hmmer_bin_dir: '',
+  comsa_bin_dir: '',
+  tmp_search_dir: '',
+  rmblast_bin_dir: '',
+  repeat_peps_db: '',
+  dfam_curated_db: '',
+  ultra_bin_dir: '',
+  rmblast_matrix_dir: '',
+  ...conf
 };
-
-for(var key in conf)
-{
-  config[key] = conf[key];
-}
 
 config.OPENAPI_YAML = path.join(config.ROOT_DIR, 'api', 'openapi.yaml');
 config.FULL_PATH = `${config.URL_PATH}:${config.URL_PORT}/${config.BASE_VERSION}`;
 config.FILE_UPLOAD_PATH = path.join(config.PROJECT_DIR, 'uploaded_files');
 
 //
-// VALIDATE THE CONFIG BEFORE STARTING UP
+// VALIDATE CONFIGURATION
 //
-
-// Validate that tmp_search_dir is set and writable
-if (!config.tmp_search_dir) {
-  throw new Error("Missing required configuration: tmp_search_dir");
+function assertDefined(key, obj = config) {
+  if (!obj[key]) throw new Error(`Missing required configuration: ${key}`);
 }
-try {
-  const stat = fs.statSync(config.tmp_search_dir);
-  if (!stat.isDirectory()) {
-    throw new Error(`tmp_search_dir exists but is not a directory: ${config.tmp_search_dir}`);
-  }
 
-  // Try writing a temporary file to test writability
+function assertIsDir(dirPath, label = dirPath) {
+  const stat = fs.statSync(dirPath);
+  if (!stat.isDirectory()) throw new Error(`${label} is not a directory`);
+}
+
+function assertIsFile(filePath, label = filePath) {
+  const stat = fs.statSync(filePath);
+  if (!stat.isFile()) throw new Error(`${label} is not a file`);
+}
+
+function assertExecutable(filePath) {
+  fs.accessSync(filePath, fs.constants.X_OK);
+}
+
+function assertReadable(filePath) {
+  fs.accessSync(filePath, fs.constants.R_OK);
+}
+
+function assertExecutableInDir(dir, exeList) {
+  assertIsDir(dir);
+  for (const exe of exeList) {
+    const fullPath = path.join(dir, exe);
+    try {
+      assertExecutable(fullPath);
+    } catch {
+      throw new Error(`Executable '${exe}' missing or not executable in: ${dir}`);
+    }
+  }
+}
+
+// === BASIC FIELDS ===
+assertDefined('apiserver');
+assertDefined('db_timezone', config.apiserver);
+
+// === hmm_logos_dir ===
+try {
+  assertIsDir(config.hmm_logos_dir);
+  assertExecutable(path.join(config.hmm_logos_dir, 'webGenLogoImage.pl'));
+} catch (err) {
+  throw new Error(`hmm_logos_dir validation failed: ${err.message}`);
+}
+
+// === te_idx_bin / te_idx_dir ===
+assertDefined('te_idx_bin');
+assertDefined('te_idx_dir');
+assertIsFile(config.te_idx_bin);
+assertExecutable(config.te_idx_bin);
+assertIsDir(config.te_idx_dir);
+
+// === ucsc_utils_bin ===
+assertDefined('ucsc_utils_bin');
+assertExecutableInDir(config.ucsc_utils_bin, ['twoBitToFa', 'faSize', 'faOneRecord', 'faFrag']);
+
+// === hmmer_bin_dir ===
+assertDefined('hmmer_bin_dir');
+assertExecutableInDir(config.hmmer_bin_dir, ['nhmmer']);
+
+// === comsa_bin_dir ===
+assertDefined('comsa_bin_dir');
+assertExecutableInDir(config.comsa_bin_dir, ['CoMSA']);
+
+// === tmp_search_dir ===
+assertDefined('tmp_search_dir');
+try {
+  assertIsDir(config.tmp_search_dir);
   const testFile = path.join(config.tmp_search_dir, `.writetest-${Date.now()}`);
   fs.writeFileSync(testFile, 'test');
   fs.unlinkSync(testFile);
@@ -51,102 +120,44 @@ try {
   throw new Error(`tmp_search_dir validation failed: ${err.message}`);
 }
 
-// Validate that rmblast_bin_dir is set, is a directory, and contains required executables
-if (!config.rmblast_bin_dir) {
-  throw new Error("Missing required configuration: rmblast_bin_dir");
-}
+// === rmblast_bin_dir ===
+assertDefined('rmblast_bin_dir');
+assertExecutableInDir(config.rmblast_bin_dir, ['rmblastn', 'blastx']);
 
+// === repeat_peps_db ===
+assertDefined('repeat_peps_db');
 try {
-  const stat = fs.statSync(config.rmblast_bin_dir);
-  if (!stat.isDirectory()) {
-    throw new Error(`rmblast_bin_dir exists but is not a directory: ${config.rmblast_bin_dir}`);
-  }
-
-  const requiredExecutables = ['rmblastn', 'blastx'];
-
-  for (const exe of requiredExecutables) {
-    const exePath = path.join(config.rmblast_bin_dir, exe);
-
-    try {
-      fs.accessSync(exePath, fs.constants.X_OK);
-    } catch (err) {
-      throw new Error(`Executable '${exe}' not found or not executable in rmblast_bin_dir: ${exePath}`);
-    }
-  }
-} catch (err) {
-  throw new Error(`rmblast_bin_dir validation failed: ${err.message}`);
-}
-
-// Validate that repeat_peps_db is set and has corresponding .psq file
-if (!config.repeat_peps_db) {
-  throw new Error("Missing required configuration: repeat_peps_db");
-}
-
-try {
-  const mainFile = config.repeat_peps_db;
-  const psqFile = `${mainFile}.psq`;
-
-  const stat = fs.statSync(mainFile);
-  if (!stat.isFile()) {
-    throw new Error(`repeat_peps_db is not a valid file: ${mainFile}`);
-  }
-
-  fs.accessSync(psqFile, fs.constants.R_OK);
+  assertIsFile(config.repeat_peps_db);
+  assertReadable(`${config.repeat_peps_db}.psq`);
 } catch (err) {
   throw new Error(`repeat_peps_db validation failed: ${err.message}`);
 }
 
-// Validate that dfam_curated_db is set and has corresponding .nsq file
-if (!config.dfam_curated_db) {
-  throw new Error("Missing required configuration: dfam_curated_db");
-}
-
+// === dfam_curated_db ===
+assertDefined('dfam_curated_db');
 try {
-  const mainFile = config.dfam_curated_db;
-  const nsqFile = `${mainFile}.nsq`;
-
-  const stat = fs.statSync(mainFile);
-  if (!stat.isFile()) {
-    throw new Error(`dfam_curated_db is not a valid file: ${mainFile}`);
-  }
-
-  fs.accessSync(nsqFile, fs.constants.R_OK);
+  assertIsFile(config.dfam_curated_db);
+  assertReadable(`${config.dfam_curated_db}.nsq`);
 } catch (err) {
   throw new Error(`dfam_curated_db validation failed: ${err.message}`);
 }
 
-// Validate that ultra_bin_dir is set, is a directory, and contains the 'ultra' executable
-if (!config.ultra_bin_dir) {
-  throw new Error("Missing required configuration: ultra_bin_dir");
-}
+// === ultra_bin_dir ===
+assertDefined('ultra_bin_dir');
+assertExecutableInDir(config.ultra_bin_dir, ['ultra']);
 
+// === rmblast_matrix_dir (with subfile check) ===
+assertDefined('rmblast_matrix_dir');
 try {
-  const stat = fs.statSync(config.ultra_bin_dir);
-  if (!stat.isDirectory()) {
-    throw new Error(`ultra_bin_dir exists but is not a directory: ${config.ultra_bin_dir}`);
-  }
-
-  const ultraPath = path.join(config.ultra_bin_dir, 'ultra');
-  fs.accessSync(ultraPath, fs.constants.X_OK);
-} catch (err) {
-  throw new Error(`ultra_bin_dir validation failed: ${err.message}`);
-}
-
-// Validate that rmblast_matrix_dir is set, is a directory, and contains nt/comparison.matrix
-if (!config.rmblast_matrix_dir) {
-  throw new Error("Missing required configuration: rmblast_matrix_dir");
-}
-
-try {
-  const stat = fs.statSync(config.rmblast_matrix_dir);
-  if (!stat.isDirectory()) {
-    throw new Error(`rmblast_matrix_dir is not a valid directory: ${config.rmblast_matrix_dir}`);
-  }
-
-  const matrixPath = path.join(config.rmblast_matrix_dir, 'nt', 'comparison.matrix');
-  fs.accessSync(matrixPath, fs.constants.R_OK);
+  assertIsDir(config.rmblast_matrix_dir);
+  assertReadable(path.join(config.rmblast_matrix_dir, 'nt', 'comparison.matrix'));
 } catch (err) {
   throw new Error(`rmblast_matrix_dir validation failed: ${err.message}`);
 }
 
+// === cache_dir ===
+assertDefined('cache_dir', config.apiserver);
+assertIsDir(config.apiserver.cache_dir);
+
 module.exports = config;
+
