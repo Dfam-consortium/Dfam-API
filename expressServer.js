@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 const OpenApiValidator = require('express-openapi-validator');
 const logger = require('./logger');
 const config = require('./config');
+const workerPool = require('./workerPool');
 
 
 class ExpressServer {
@@ -50,9 +51,16 @@ class ExpressServer {
     //      and it returns the above error.  To get around this I strip out all
     //      the example data from the YAML file in index.js and generate a 
     //      "openapi.yaml.sans_example" file to use here.
+    // 7/14/2025: RMH - I have upgraded to express-openapi-validator 5.5.7 and
+    //            switched back to using the original openAPI.yaml file rather
+    //            than the one with example(s) removed.  I suspect this fixed
+    //            the issue we were seeing before
+    //
+    //apiSpec: this.openApiPath + ".sans_example",
+    //
     this.app.use(
       OpenApiValidator.middleware({
-        apiSpec: this.openApiPath + ".sans_example",
+        apiSpec: this.openApiPath,
         operationHandlers: path.join(__dirname),
         validateResponses: false, // this causes "reference \"id1a\" resolves to more than one schema"
         validateApiSpec: true,
@@ -83,7 +91,7 @@ class ExpressServer {
     });
   }
 
-  launch() {
+  async launch() {
     http.createServer(this.app).listen(this.port);
     logger.info(`Listening on port ${this.port}`);
   }

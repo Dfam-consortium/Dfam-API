@@ -8,8 +8,8 @@ This server provides a RESTful API supporting public access to the Dfam database
 This server was scaffolded using the [OpenAPI Generator](https://openapi-generator.tech) tool and relies heavily on the Sequelize, Piscina, and Swagger open source projects.
 
 ### Prerequisites
-- NodeJS >= 20.3.1
-- NPM >= 9.6.7
+- NodeJS >= 22.17.0
+- NPM >= 10.9.2
 
 The core functionality of the API depends on:
 
@@ -21,6 +21,10 @@ Some functionality requires these additional tools:
 * `twoBitToFa`, `faSize` from the UCSC Genome Browser tools suite
 * `nhmmer` from the HMMER suite
 * `HMM_Logos`, specifically webGenLogoImage.pl
+* `CoMSA` MSA decompression tool
+* `te_idx` TE Annotation indexing tool
+* `rmblast` RMBlast alignment tool
+* `ultra` Tandem repeat identification tool
 * A running instance of `dfamdequeuer`, and its own dependencies
 
 Connection URLs and paths are specified in the configuration.
@@ -178,3 +182,6 @@ option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fast
 - As a transition towards model masking, I made the FASTA format uppercase by default. EMBL format doesn't explicitly
   state it can handle uppercase and lowercase in the same sequence.  Perhaps this will have to be an option so that
   the default EMBL output remains lowercase.
+
+
+===> NOTE: for debugging the middleware be - sure to log to the console caught errors in expressServer.js

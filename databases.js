@@ -13,9 +13,9 @@ var Sequelize = require('sequelize');
 
 function connect(dbinfo) {
   if ( isMainThread ) {
-    logger.info(`Main thread connecting to ${dbinfo.database}`);
+    logger.info(`Main thread connecting to ${dbinfo.database} @ ${dbinfo.host}:${dbinfo.port} as ${dbinfo.user}`);
   }else {
-    logger.info(`Worker thread ` + threadId + ` connecting to ${dbinfo.database}`);
+    logger.info(`Worker thread ` + threadId + ` connecting to ${dbinfo.database} @ ${dbinfo.host}:${dbinfo.port} as ${dbinfo.user}`);
   }
   const dbconn =  new Sequelize(
     dbinfo.database,

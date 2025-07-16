@@ -16,34 +16,110 @@ const logger = require('../logger');
 const fs = require('fs/promises');
 
 /**
-* Retrieve a list of families in Dfam, optionally filtered and sorted.
-* Retrieve a list of families in Dfam, optionally filtered and sorted.
-*
-* format String Desired output format. Supported formats include \"summary\", \"full\", \"embl\", \"fasta\", and \"hmm\". Defaults to \"summary\". (optional)
-* sort String A string containing sort columns, for example \"name:asc,length:desc\". Sorting by any of \"accession\", \"name\", \"length\", \"type\", \"subtype\", \"date_created\", and \"date_modified\" are supported. If unspecified, \"accession:asc\" will be used. (optional)
-* name String Search term for any part of the family name. Takes precedence over \"name_prefix\" if both are specified. (optional)
-* name_prefix String Search term for a prefix of the family name. (optional)
-* name_accession String Search term for any part of the family name or accession (optional)
-* classification String Search term for family classification. Sub-classifications are included. A full classification lineage is expected for this search term; such as \"root;Interspersed_Repeat\". (optional)
-* clade String Search term for family clade. Can be either an NCBI Taxonomy ID or scientific name. If the scientific name is ambiguous (e.g. \"Drosophila\"), the taxonomy ID should be used instead. (optional)
-* clade_relatives String Relatives of the requested clade to include: 'ancestors', 'descendants', or 'both' (optional)
-* type String Search term for TE type, as understood by RepeatMasker. (optional)
-* subtype String Search term for TE subtype, as understood by RepeatMasker. (optional)
-* updated_after date Filter by \"updated on or after\" date. (optional)
-* updated_before date Filter by \"updated on or before\" date. (optional)
-* desc String Search term for family description. (optional)
-* keywords String Keywords to search in text fields (currently name, title, description, accession, author). (optional)
-* include_raw Boolean Whether to include raw (\"DR\") families in the results. Default is false. (optional)
-* start Integer Index of first record to return. Commonly used along with `limit` to implement paging. (optional)
-* limit Integer Maxium number of records to return. (optional)
-* download Boolean If true, adds headers to trigger a browser download. (optional)
-* returns familiesResponse
-* */
+ * Retrieve related Dfam families based on sequence similarity or overlap.
+ *
+ * @param {Object} params - The input parameters.
+ * @param {string} params.id - The Dfam family accession.
+ * @returns {Promise<ServiceResponse>} - A service response with related families.
+ */
+const readDfamRelationships = ({ id }) => new Promise(async (resolve, reject) => {
+  try {
+    const result = await workerPool.piscina.run({ accession: id }, { name: 'dfam_relationships_command' });
+    resolve(Service.successResponse({
+      payload: result,
+      content_type: "application/json",
+      encoding: "identity"
+    }, 200));
+  } catch (e) {
+    reject(Service.rejectResponse(e.message || 'Unable to retrieve Dfam relationships.', e.status || 500));
+  }
+});
 
-const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
 
- // TODO Move these functions to utils/family.js
- async function familyRowsToObjects(total_count, rows, format, copyright, download) {
+/**
+ * Retrieve protein alignments to the family consensus sequence.
+ *
+ * @param {Object} params
+ * @param {string} params.id - Dfam family accession.
+ * @returns {Promise<ServiceResponse>} - A response with protein alignments.
+ */
+const readProteinAlignments = ({ id }) => new Promise(async (resolve, reject) => {
+  try {
+    const result = await workerPool.piscina.run({ accession: id }, { name: 'protein_alignment_command' });
+    resolve(Service.successResponse({
+      payload: result,
+      content_type: "application/json",
+      encoding: "identity"
+    }, 200));
+  } catch (e) {
+    reject(Service.rejectResponse(e.message || 'Unable to retrieve protein alignments.', e.status || 500));
+  }
+});
+
+
+/**
+ * Retrieve self-alignment results (internal alignments) of the family's consensus sequence.
+ *
+ * @param {Object} params
+ * @param {string} params.id - Dfam family accession.
+ * @returns {Promise<ServiceResponse>} - A response with self-alignment data.
+ */
+const readSelfAlignments = ({ id }) => new Promise(async (resolve, reject) => {
+  try {
+    const result = await workerPool.piscina.run({ accession: id }, { name: 'self_alignment_command' });
+    resolve(Service.successResponse({
+      payload: result,
+      content_type: "application/json",
+      encoding: "identity"
+    }, 200));
+  } catch (e) {
+    reject(Service.rejectResponse(e.message || 'Unable to retrieve self-alignments.', e.status || 500));
+  }
+});
+
+
+/**
+ * Retrieve tandem repeat annotations (ULTRA) for this family.
+ *
+ * @param {Object} params
+ * @param {string} params.id - The Dfam family accession.
+ * @returns {Promise<ServiceResponse>} - JSON payload of ULTRA tandem repeats.
+ */
+const readTandemRepeats = ({ id }) => new Promise(async (resolve, reject) => {
+  try {
+    const result = await workerPool.piscina.run({ accession: id }, { name: 'tandem_repeats_command' });
+    resolve(Service.successResponse({
+      payload: result,
+      content_type: "application/json",
+      encoding: "identity"
+    }, 200));
+  } catch (e) {
+    reject(Service.rejectResponse(e.message || 'Unable to retrieve tandem repeats.', e.status || 500));
+  }
+});
+
+
+
+
+/**
+ * Converts raw Sequelize family rows into a standardized payload format.
+ *
+ * Intended for use with export formats like `"summary"` or `"full"` that return
+ * structured metadata (JSON objects) rather than text-based representations.
+ *
+ * @param {number} total_count - Total number of families matching the query (may exceed page size).
+ * @param {Object[]} rows - Array of Sequelize family model instances.
+ * @param {string} format - Export format: "summary" or "full".
+ * @param {boolean} copyright - Whether copyright information should be included (currently unused).
+ * @param {boolean} download - Whether this is a download request (currently unused).
+ *
+ * @returns {Object} An object containing:
+ *   @property {Object} payload
+ *   @property {number} payload.total_count - Total matching rows across all pages.
+ *   @property {Object[]} payload.results - Array of mapped family objects.
+ */
+// TODO Move these functions to utils/family.js
+async function familyRowsToObjects(total_count, rows, format, copyright, download) {
   // Download isn't applicable here yet?
   // Copyright isn't applicable on these formats
   const objs = rows.map(row => family.familyQueryRowToObject(row, format));
@@ -53,8 +129,20 @@ const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
   };
 }
 
+
+/**
+ * Export a set of families in HMM, FASTA, or EMBL format using worker threads.
+ *
+ * @param {number} total_count - Number of families.
+ * @param {Object[]} rows - Family rows.
+ * @param {string} format - Format type ("hmm", "fasta", or "embl").
+ * @param {boolean} download - If true, prepares for browser download.
+ * @param {string|null} write_file - Optional file to write output to.
+ * @returns {Promise<Object>} - The export object with payload or written file reference.
+ */
 async function workerFormatAccessions(total_count, rows, format, copyright, download, write_file=null) {
 
+  const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
   if ( ! (format in extensions) ) {
     resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
   }
@@ -85,6 +173,47 @@ async function workerFormatAccessions(total_count, rows, format, copyright, down
   return obj;
 }
 
+
+/**
+ * Constructs a Sequelize query object to retrieve Dfam families
+ * with optional filtering, sorting, and metadata configuration.
+ *
+ * Used by the `/families` endpoint to support flexible querying of the
+ * family dataset, including format-specific attributes, classification
+ * metadata, clade constraints, and more.
+ *
+ * @param {Object} format_rules - Rules controlling metadata level.
+ * @param {number} format_rules.metadata - Level of metadata to include (0, 1, 2).
+ *
+ * @param {string} [name] - Exact or prefix match on family name.
+ * @param {string} [name_accession] - Match on name or accession (partial match).
+ * @param {string} [name_prefix] - Match on name prefix (mutually exclusive with `name`).
+ * @param {string} [classification] - Classification lineage string (e.g. "root;LTR").
+ * @param {Object|null} [clade_info] - Clade search context returned from `collectClades()`.
+ * @param {string} [clade_info.lineage] - Lineage string of target clade.
+ * @param {number[]} [clade_info.ids] - Array of tax IDs for clade + ancestors.
+ * @param {string} [clade_relatives] - "ancestors", "descendants", or "both".
+ *
+ * @param {string} [desc] - Substring to match in the description field.
+ * @param {string} [type] - RepeatMasker type name (e.g. "DNA", "SINE").
+ * @param {string} [subtype] - RepeatMasker subtype name (e.g. "Tc1", "Alu").
+ *
+ * @param {string} [updated_after] - Minimum date_created or date_modified (ISO format).
+ * @param {string} [updated_before] - Maximum date_created or date_modified (ISO format).
+ * @param {string} [keywords] - Space-separated keywords to search in text fields.
+ *
+ * @param {boolean} [include_raw=false] - If false, restricts to accessions starting with "DF".
+ *
+ * @param {string} [sort] - Sort instructions like "name:asc,length:desc".
+ *                          Supported keys: "accession", "name", "length", "type", "subtype",
+ *                          "date_created", "date_modified".
+ *
+ * @param {number} [limit] - Max number of records to return.
+ * @param {number} [start] - Offset of first record to return (pagination).
+ *
+ * @returns {Object} Sequelize-compatible query object with `where`, `include`,
+ *                   `order`, `attributes`, and `distinct` fields.
+ */
 function buildFamQuery (format_rules, name, name_accession, name_prefix, classification, clade_info, clade_relatives, desc, type, subtype, updated_after, updated_before, keywords, include_raw, sort, limit, start) {
   const query = { };
   query.attributes = ["id", "accession"];
@@ -173,6 +302,7 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
 
   // TODO: new Date(...) is full of surprises.
 
+  /*
   if (updated_after) {
     query.where.push({ [Sequelize.Op.or]: [
       { date_modified: { [Sequelize.Op.gt]: new Date(updated_after) } },
@@ -186,6 +316,40 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
       { date_created: { [Sequelize.Op.lt]: new Date(updated_before) } },
     ] });
   }
+  */
+if (updated_after && updated_before) {
+  query.where.push({
+    [Sequelize.Op.or]: [
+      {
+        date_modified: {
+          [Sequelize.Op.gte]: new Date(updated_after),
+          [Sequelize.Op.lte]: new Date(updated_before)
+        }
+      },
+      {
+        date_created: {
+          [Sequelize.Op.gte]: new Date(updated_after),
+          [Sequelize.Op.lte]: new Date(updated_before)
+        }
+      }
+    ]
+  });
+} else if (updated_after) {
+  query.where.push({
+    [Sequelize.Op.or]: [
+      { date_modified: { [Sequelize.Op.gte]: new Date(updated_after) } },
+      { date_created: { [Sequelize.Op.gte]: new Date(updated_after) } }
+    ]
+  });
+} else if (updated_before) {
+  query.where.push({
+    [Sequelize.Op.or]: [
+      { date_modified: { [Sequelize.Op.lte]: new Date(updated_before) } },
+      { date_created: { [Sequelize.Op.lte]: new Date(updated_before) } }
+    ]
+  });
+}
+
 
   if (keywords) {
     keywords.split(" ").forEach(function(word) {
@@ -245,13 +409,42 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
   return query
 }
 
+
+/**
+ * Retrieve a list of families in Dfam, optionally filtered and sorted.
+ *
+ * Supports multiple export formats and advanced search filters including classification,
+ * clade membership, update time, and keyword searches.
+ *
+ * @param {Object} args - Parameters from the request body.
+ * @param {string} args.format - Output format: "summary", "full", "embl", "fasta", or "hmm".
+ * @param {string} args.sort - Sorting key (e.g. "accession:asc").
+ * @param {string} args.name - Exact match or partial match on family name.
+ * @param {string} args.name_prefix - Prefix match on family name.
+ * @param {string} args.name_accession - Match on family name or accession.
+ * @param {string} args.classification - Full lineage string to match.
+ * @param {string} args.clade - NCBI taxonomic ID or name.
+ * @param {string} args.clade_relatives - "ancestors", "descendants", or "both".
+ * @param {string} args.type - RepeatMasker type filter.
+ * @param {string} args.subtype - RepeatMasker subtype filter.
+ * @param {string} args.updated_after - Minimum date_created or date_modified.
+ * @param {string} args.updated_before - Maximum date_created or date_modified.
+ * @param {string} args.desc - Substring match on description.
+ * @param {string} args.keywords - Space-separated keyword search.
+ * @param {boolean} args.include_raw - Whether to include raw ("DR") families.
+ * @param {number} args.start - Offset into results (for pagination).
+ * @param {number} args.limit - Max number of results to return.
+ * @param {boolean} args.download - If true, prepares content for download.
+ * @returns {Promise<ServiceResponse>} - A paginated and/or formatted response.
+ */
 const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
     const args_hash = md5(JSON.stringify(args));
-    const cache_dir = config.dfamdequeuer.result_store + "/browse-cache/"
+    const cache_dir = config.apiserver.cache_dir
     const cache_name = args_hash + ".cache" 
-    const cache_file = cache_dir + cache_name
+    const cache_file = path.join(cache_dir, cache_name)
     const working_file = cache_file + '.working'
+    const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
 
     try {
 
@@ -425,23 +618,25 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       }
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
-        e.status || 405,
+        e.status || 500,
       ));
     }
   },
 );
 
+
 /**
-* Retrieve full details of an individual Dfam family.
-* Retrieve full details of an individual Dfam family.
-*
-* id String The Dfam family accession.
-* returns familyResponse
-* */
+ * Retrieve full details of a single Dfam family by accession.
+ *
+ * TODO: Describe what is meant by "full details" here
+ *
+ * @param {Object} params
+ * @param {string} params.id - The Dfam family accession.
+ * @returns {Promise<ServiceResponse>} - The complete metadata of the family or 404.
+ */
 const readFamilyById = ({ id }) => new Promise(
   async (resolve, reject) => {
     try {
-
       const row = await dfam.familyModel.findOne({
         where: { accession: id },
         include: [
@@ -461,22 +656,22 @@ const readFamilyById = ({ id }) => new Promise(
 
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+        e.message || 'Unable to retrieve family by ID.',
+        e.status || 500,
       ));
     }
   },
 );
 
 /**
-* Retrieve an individual Dfam family's annotated HMM.
-* Retrieve an individual Dfam family's annotated HMM.
-*
-* id String The Dfam family accession.
-* format String The desired output format: \"hmm\", \"logo\", or \"image\".
-* download Boolean If true, adds headers to trigger a browser download. (optional)
-* returns String
-* */
+ * Retrieve the annotated HMM for a Dfam family in one of several formats.
+ *
+ * @param {Object} params
+ * @param {string} params.id - The Dfam family accession.
+ * @param {string} params.format - One of "hmm", "logo", or "image".
+ * @param {boolean} params.download - If true, prepares content as a file to trigger a browser download.
+ * @returns {Promise<ServiceResponse>} - The HMM content or visualization.
+ */
 const readFamilyHmm = ({ id, format, download }) => new Promise(
   async (resolve, reject) => {
     try {
@@ -485,7 +680,7 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
         resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
       }
 
-      var obj = {};
+      const obj = {};
       if (download) {
         obj.attachment = id + extensions[format];
       }
@@ -558,21 +753,22 @@ const readFamilyHmm = ({ id, format, download }) => new Promise(
     } catch (e) {
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
-        e.status || 405,
+        e.status || 500,
       ));
     }
   },
 );
 
+
 /**
-* Retrieve an individual Dfam family's relationship information.
-* Retrieve an individual Dfam family's relationship information.
-*
-* id String The Dfam family accession.
-* include String Which families to include. \"all\" searches all of Dfam, and \"related\" searches only families that are found in ancestor or descendant clades of the one this family belongs to. Default is \"all\". (optional)
-* include_raw Boolean Whether to include matches to raw (\"DR\") families. Default is false. (optional)
-* returns List
-* */
+ * Retrieve similarity relationships between a Dfam family and others.
+ *
+ * @param {Object} params
+ * @param {string} params.id - The Dfam family accession.
+ * @param {string} [params.include="all"] - "all" or "related" (limits scope to related clades).
+ * @param {boolean} [params.include_raw=false] - Whether to include matches to raw (DR) families.
+ * @returns {Promise<ServiceResponse>} - JSON array of overlap segment annotations.
+ */
 const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
   async (resolve, reject) => {
     try {
@@ -581,7 +777,7 @@ const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
 
       // Retrieve lineage + IDs for all clades associated to the family
       if (include === "related") {
-        const family = await dfam.familyModel.findOne({
+        const fam = await dfam.familyModel.findOne({
           where: { accession: id },
           include: [{
             model: dfam.dfamTaxdbModel,
@@ -590,7 +786,7 @@ const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
           }],
         });
 
-        for (const cl of family.clades) {
+        for (const cl of fam?.clades || []) {
           clade_infos.push(await collectClades(cl.tax_id, "both"));
         }
       }
@@ -713,22 +909,22 @@ const readFamilyRelationships = ({ id, include, include_raw }) => new Promise(
       resolve(Service.successResponse({ payload: all_overlaps }));
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+        e.message || 'Unable to retrieve family relationships.',
+        e.status || 500,
       ));
     }
   },
 );
 
 /**
-* Retrieve an individual Dfam family's seed alignment data.
-* Retrieve an individual Dfam family's seed alignment data.
-*
-* id String The Dfam family accession.
-* format String The format to return, one of 'stockholm' or 'alignment_summary'.
-* download Boolean If true, adds headers to trigger a browser download. (optional)
-* returns String
-* */
+ * Retrieve seed alignment for a Dfam family in various formats.
+ *
+ * @param {Object} params
+ * @param {string} params.id - The Dfam family accession.
+ * @param {string} params.format - One of "stockholm", "alignment_summary", or "sam".
+ * @param {boolean} params.download - Whether to prepare the file for browser download.
+ * @returns {Promise<ServiceResponse>}
+ */
 const readFamilySeed = ({ id, format, download }) => new Promise(
   async (resolve, reject) => {
     try {
@@ -747,10 +943,12 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
         obj.content_type = "text/plain";
         obj.encoding = "identity";
       } else if (format == "sam" ) {
-        obj.payload = await workerPool.piscina.run({accessions: [id]}, { name: 'sam_command' });
+        // RMH: This is a somewhat special case, as it does not honor the download flag and
+        // the function call only expects a single accession.
+        obj.payload = await workerPool.piscina.run({accession: id}, { name: 'sam_command' });
         obj.content_type = "text/plain";
         obj.encoding = "identity";
-        // logger.info(`payload = ${obj.payload}`);
+        //logger.info(`payload = ${obj.payload}`);
       } else if (format == "alignment_summary") {
         const family = await dfam.familyModel.findOne({
           attributes: [ "id", "name" ],
@@ -785,22 +983,26 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
       }
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+        e.message || 'Unable to retrieve seed alignment.',
+        e.status || 500,
       ));
     }
   },
 );
 
+
 /**
-* Retrieve an individual Dfam family's annotated consensus sequence.
-* Retrieve an individual Dfam family's annotated consensus sequence. If only the raw sequence is needed, use the `consensus_sequence` property from the `/families/{id}` endpoint instead.
-*
-* id String The Dfam family accession.
-* format String The desired output format. \"embl\" and \"fasta\" are the currently supported formats.
-* download Boolean If true, adds headers to trigger a browser download. (optional)
-* returns String
-* */
+ * Retrieve the annotated consensus sequence for a Dfam family.
+ *
+ * NOTE: If only the raw sequence is needed, use the 'consensus_sequence' property
+ * from the `/families/{id}` endpoint instead.
+ *
+ * @param {Object} params
+ * @param {string} params.id - The Dfam family accession.
+ * @param {string} params.format - "embl" or "fasta".
+ * @param {boolean} params.download - Whether to trigger a browser download.
+ * @returns {Promise<ServiceResponse>}
+ */
 const readFamilySequence = ({ id, format, download }) => new Promise(
   async (resolve, reject) => {
     try {
@@ -825,20 +1027,23 @@ const readFamilySequence = ({ id, format, download }) => new Promise(
       resolve(Service.successResponse(obj));
     } catch (e) {
       reject(Service.rejectResponse(
-        e.message || 'Invalid input',
-        e.status || 405,
+        e.message || 'Unable to retrieve consensus sequence.',
+        e.status || 500,
       ));
     }
   },
 
 );
 
-// Helper function for collecting ancestor/descendant clade information
-// Returns a promise.
-// If the specified clade is not present, the result is null.
-// Otherwise, result.ids is a list of IDs (self + ancestors) and
-// result.lineage is a lineage string (useful for searching descendants).
-// result.ids will contain ancestors only if clade_relatives is "ancestors" or "both"
+/**
+ * Recursively collect taxonomic clade information by tax ID or name.
+ *
+ * NOTE: If the clade is not found, this function returns null.
+ *
+ * @param {string|number} clade - Taxonomic ID or scientific name.
+ * @param {string} clade_relatives - "ancestors", "descendants", or "both".
+ * @returns {Promise<{ ids: number[], lineage: string } | null>} - Clade info for filtering.
+ */
 async function collectClades(clade, clade_relatives) {
   if (!clade) {
     return null;
@@ -917,6 +1122,10 @@ async function collectClades(clade, clade_relatives) {
 }
 
 module.exports = {
+  readDfamRelationships,
+  readProteinAlignments,
+  readSelfAlignments,
+  readTandemRepeats,
   readFamilies,
   readFamilyById,
   readFamilyHmm,
