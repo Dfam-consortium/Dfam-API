@@ -750,7 +750,7 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
         obj.payload = await workerPool.piscina.run({accessions: [id]}, { name: 'sam_command' });
         obj.content_type = "text/plain";
         obj.encoding = "identity";
-        logger.info(`payload = ${obj.payload}`);
+        // logger.info(`payload = ${obj.payload}`);
       } else if (format == "alignment_summary") {
         const family = await dfam.familyModel.findOne({
           attributes: [ "id", "name" ],
