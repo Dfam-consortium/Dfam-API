@@ -8,8 +8,8 @@ This server provides a RESTful API supporting public access to the Dfam database
 This server was scaffolded using the [OpenAPI Generator](https://openapi-generator.tech) tool and relies heavily on the Sequelize, Piscina, and Swagger open source projects.
 
 ### Prerequisites
-- NodeJS >= 20.3.1
-- NPM >= 9.6.7
+- NodeJS >= 22.17.0
+- NPM >= 10.9.2
 
 The core functionality of the API depends on:
 
@@ -21,6 +21,10 @@ Some functionality requires these additional tools:
 * `twoBitToFa`, `faSize` from the UCSC Genome Browser tools suite
 * `nhmmer` from the HMMER suite
 * `HMM_Logos`, specifically webGenLogoImage.pl
+* `CoMSA` MSA decompression tool
+* `te_idx` TE Annotation indexing tool
+* `rmblast` RMBlast alignment tool
+* `ultra` Tandem repeat identification tool
 * A running instance of `dfamdequeuer`, and its own dependencies
 
 Connection URLs and paths are specified in the configuration.
