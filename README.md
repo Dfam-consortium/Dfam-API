@@ -119,7 +119,7 @@ npm run build-docs
 
 And to deploy them:
 ```
-cp redoc-static.html /usr/local/Dfam-warehouse/releases/Dfam_3.8/apidocs/index.html
+cp redoc-static.html /usr/local/Dfam-warehouse/releases/Dfam_x.x/apidocs/index.html
          
 ```
 
@@ -178,15 +178,8 @@ Large download requests are cached in `/u2/webresults/browse-cache`. The filenam
 ```
 
 ## PLANS
+- Migrate to ES from commonjs
 - In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
 option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
 - I would like to rename /families/{id}/sequence to /families/{id}/consensus
 - We should consider using a paging interface for any endpoint returning more than a specific number of records.  This would allow us to support full downloads of species libraries.
-
-## Current Changes
-- As a transition towards model masking, I made the FASTA format uppercase by default. EMBL format doesn't explicitly
-  state it can handle uppercase and lowercase in the same sequence.  Perhaps this will have to be an option so that
-  the default EMBL output remains lowercase.
-
-
-===> NOTE: for debugging the middleware be - sure to log to the console caught errors in expressServer.js
