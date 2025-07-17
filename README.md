@@ -13,8 +13,9 @@ This server was scaffolded using the [OpenAPI Generator](https://openapi-generat
 
 The core functionality of the API depends on:
 
-* A mysql database server with Dfam databases
-* Dfam-warehouse directory containing reference genomes and other caches
+* A mysql database server with Dfam databases.
+* Dfam-warehouse directories containing reference genomes, te_idx annotation sets, 
+  temporary result caches, and temporary files.
 
 Some functionality requires these additional tools:
 
@@ -81,6 +82,10 @@ The tests are stored in the test/artillery folder and can be run using:
 ```
   artillery run test.yml
 ```
+
+There are several places in the code that may be changed to produce more verbose levels of debugging output
+- expressServer.js - uncomment 'console.error(err);' near the bottom of the setupMiddleware function
+- Set query.logging on any Sequelize instance to `console.log` or a custom function to log SQL queries
 
 ### npm-watch
 

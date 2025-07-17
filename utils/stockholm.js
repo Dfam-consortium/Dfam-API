@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
 const wrap = require('word-wrap');
-const logger = require("../logger");
+//const logger = require("../logger");
 
 
 const { tmpFileAsync, execFileAsync } = require('./async');
@@ -147,104 +147,104 @@ async function seedAlignToStockholm(family) {
 
 // Parses a Stockholm MSA block into RF and sequence alignments
 function parseStockholmMSA(msaLines) {
-    const sequences = [];
-    let rfLine = "";
-    for (const line of msaLines) {
-        //logger.info(`line: ${line}`)
-        if (line.startsWith("#=GC RF")) {
-            rfLine += line.split(/\s+/).slice(2).join(""); // Append multi-line RF
-        } else if (/^\S+\s+\S+/.test(line) && !line.startsWith("#")) {
-            const [id, seq] = line.trim().split(/\s+/, 2);
-            let entry = sequences.find(e => e.id === id);
-            if (entry) {
-                entry.aln += seq;
-            } else {
-                sequences.push({ id, aln: seq });
-            }
-        }
+  const sequences = [];
+  let rfLine = "";
+  for (const line of msaLines) {
+    //logger.info(`line: ${line}`)
+    if (line.startsWith("#=GC RF")) {
+      rfLine += line.split(/\s+/).slice(2).join(""); // Append multi-line RF
+    } else if (/^\S+\s+\S+/.test(line) && !line.startsWith("#")) {
+      const [id, seq] = line.trim().split(/\s+/, 2);
+      let entry = sequences.find(e => e.id === id);
+      if (entry) {
+        entry.aln += seq;
+      } else {
+        sequences.push({ id, aln: seq });
+      }
     }
-    return { rf: rfLine, sequences };
+  }
+  return { rf: rfLine, sequences };
 }
 
 
 
 function collapseOps(ops) {
-    const result = [];
-    let currOp = null;
-    let currLen = 0;
+  const result = [];
+  let currOp = null;
+  let currLen = 0;
 
-    for (const op of ops) {
-        if (op === currOp) {
-            currLen++;
-        } else {
-            if (currOp !== null) result.push([currOp, currLen]);
-            currOp = op;
-            currLen = 1;
-        }
+  for (const op of ops) {
+    if (op === currOp) {
+      currLen++;
+    } else {
+      if (currOp !== null) result.push([currOp, currLen]);
+      currOp = op;
+      currLen = 1;
     }
+  }
 
-    if (currOp !== null) {
-        result.push([currOp, currLen]);
-    }
+  if (currOp !== null) {
+    result.push([currOp, currLen]);
+  }
 
-    return result;
+  return result;
 }
 
 
 async function msaToSam(seqEntry, rfLine, accession) {
-    const qname = seqEntry.id;
-    const flag = 0;
-    const mapq = 0;
+  const qname = seqEntry.id;
+  const flag = 0;
+  const mapq = 0;
 
-    const ops = [];
-    let refCoord = 0;
-    let started = false;
-    let pos = null;
+  const ops = [];
+  let refCoord = 0;
+  let started = false;
+  let pos = null;
 
-    const rf = rfLine;
-    const aln = seqEntry.aln;
-    const seq = [];
+  const rf = rfLine;
+  const aln = seqEntry.aln;
+  const seq = [];
 
-    for (let i = 0; i < rf.length; i++) {
-        const r = rf[i];
-        const q = aln[i];
+  for (let i = 0; i < rf.length; i++) {
+    const r = rf[i];
+    const q = aln[i];
 
-        const refHas = r !== "." && r !== "-";
-        const seqHas = q !== "." && q !== "-";
+    const refHas = r !== "." && r !== "-";
+    const seqHas = q !== "." && q !== "-";
 
-        if (refHas) refCoord++;
+    if (refHas) refCoord++;
 
-        if (!started) {
-            if (!seqHas) continue;
-            started = true;
-            pos = refHas ? refCoord : refCoord + 1;
-        }
-
-        if (refHas && seqHas) {
-            ops.push("M");
-            seq.push(q);
-        } else if (refHas && !seqHas) {
-            ops.push("D");
-        } else if (!refHas && seqHas) {
-            ops.push("I");
-            seq.push(q);
-        }
+    if (!started) {
+      if (!seqHas) continue;
+      started = true;
+      pos = refHas ? refCoord : refCoord + 1;
     }
 
-    if (ops.length === 0) return null; // entire sequence is gaps
-
-    let cigarTuples = collapseOps(ops);
-
-    // remove trailing deletions
-    while (cigarTuples.length > 0 && cigarTuples[cigarTuples.length - 1][0] === "D") {
-        cigarTuples.pop();
+    if (refHas && seqHas) {
+      ops.push("M");
+      seq.push(q);
+    } else if (refHas && !seqHas) {
+      ops.push("D");
+    } else if (!refHas && seqHas) {
+      ops.push("I");
+      seq.push(q);
     }
+  }
 
-    const cigar = cigarTuples.map(([op, len]) => `${len}${op}`).join("");
-    const seqStr = seq.join("");
-    const qual = "*";
+  if (ops.length === 0) return null; // entire sequence is gaps
 
-    return [qname, flag, accession, pos, mapq, cigar, "*", 0, 0, seqStr, qual].join("\t");
+  let cigarTuples = collapseOps(ops);
+
+  // remove trailing deletions
+  while (cigarTuples.length > 0 && cigarTuples[cigarTuples.length - 1][0] === "D") {
+    cigarTuples.pop();
+  }
+
+  const cigar = cigarTuples.map(([op, len]) => `${len}${op}`).join("");
+  const seqStr = seq.join("");
+  const qual = "*";
+
+  return [qname, flag, accession, pos, mapq, cigar, "*", 0, 0, seqStr, qual].join("\t");
 }
 
 
@@ -252,17 +252,17 @@ async function msaToSam(seqEntry, rfLine, accession) {
 
 // Converts a full stockholm seed alignment into a list of SAM lines
 async function comsaToSam(accession, comsa_data) {
-    const seed_stk = await decompressCoMSA(comsa_data);
-    const seed_stk_lines = seed_stk.split(/\r?\n/); // handles Unix & Windows newlines
-    //logger.info(`comsaToSam seed_stk=${seed_stk}`);
-    let { rf, sequences } = parseStockholmMSA(seed_stk_lines);
-    rf = rf.replace(/-/g,'.');
-    //logger.info(`rf=${rf}`);
-    const samLines = await Promise.all(
-        sequences.map(seq => msaToSam(seq, rf, accession))
-    );
+  const seed_stk = await decompressCoMSA(comsa_data);
+  const seed_stk_lines = seed_stk.split(/\r?\n/); // handles Unix & Windows newlines
+  //logger.info(`comsaToSam seed_stk=${seed_stk}`);
+  let { rf, sequences } = parseStockholmMSA(seed_stk_lines);
+  rf = rf.replace(/-/g,'.');
+  //logger.info(`rf=${rf}`);
+  const samLines = await Promise.all(
+    sequences.map(seq => msaToSam(seq, rf, accession))
+  );
     //console.log(`comsaToSam sam=${samLines}`);
-    return samLines.join("\n");
+  return samLines.join("\n");
 }
 
 module.exports={

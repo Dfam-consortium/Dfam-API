@@ -37,7 +37,7 @@ const familyAssemblyStatsObject = (family_assembly) => {
   }
 
   return obj;
-}
+};
 
 /**
 * Retrieve a family's annotation statistics for all assemblies it is annotated in.
@@ -131,7 +131,7 @@ const readFamilyAssemblyAnnotationStats = ({ id, assembly_id }) => new Promise(
           { model: dfam.familyModel, where: { 'accession': id }, attributes: [] },
           { model: dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
         ],
-      })
+      });
 
       if (!family_assembly) {
         reject(Service.rejectResponse("Family Assembly Not Found", 404));
@@ -164,16 +164,16 @@ const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, downlo
       let full_assembly = await dfam.assemblyModel.findOne({
         where: {"name": assembly_id},
         attributes:["schema_name"]
-      })
+      });
 
       if (! full_assembly) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       } else {
-        full_assembly = full_assembly.schema_name
+        full_assembly = full_assembly.schema_name;
       }
       
-      let assembly_dir = `${te_idx_dir}/${full_assembly}/assembly_alignments`
-      let target_file = `${assembly_dir}/${id}.bed.bgz`
+      let assembly_dir = `${te_idx_dir}/${full_assembly}/assembly_alignments`;
+      let target_file = `${assembly_dir}/${id}.bed.bgz`;
 
       if (!fs.existsSync(assembly_dir)) {
         reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
@@ -184,20 +184,20 @@ const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, downlo
       }
 
       if (download) {
-        res.attachment = `${id}.${assembly_id}${nrph ? ".nr-hits" : ""}.tsv.gz`
+        res.attachment = `${id}.${assembly_id}${nrph ? ".nr-hits" : ""}.tsv.gz`;
       }
       
-      let proc_args = ["--assembly", full_assembly, "read-family-assembly-annotations", "--id", id]
-      if (nrph) {proc_args.push("--nrph")}
+      let proc_args = ["--assembly", full_assembly, "read-family-assembly-annotations", "--id", id];
+      if (nrph) {proc_args.push("--nrph");}
 
       // 2.3-2.7secs
       let runner = child_process.spawn(te_idx_bin, proc_args);
-      runner.on('error', err => { reject(err) });
+      runner.on('error', err => { reject(err); });
       runner.stdout.on('data', chunk => res.write(chunk));
       runner.on('close', (code) => {
-        if (code !== 0) { reject(code) }
-        else { resolve(res.end()) }
-      })
+        if (code !== 0) { reject(code); }
+        else { resolve(res.end()); }
+      });
 
     } catch (e) {
       reject(Service.rejectResponse(
@@ -225,10 +225,10 @@ const readFamilyAssemblyKaryotype = ({ id, assembly_id }) => new Promise(
           { model: dfam.familyModel, where: { 'accession': id }, attributes: [] },
           { model: dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
         ],
-      })
+      });
 
       if (data && data.coverage_karyotype) {
-        resolve(Service.successResponse(JSON.parse(data.coverage_karyotype.toString()), 200))
+        resolve(Service.successResponse(JSON.parse(data.coverage_karyotype.toString()), 200));
       } else {
         reject(Service.rejectResponse("Karyotype Not Found", 404));
       }
@@ -263,7 +263,7 @@ const readFamilyAssemblyModelConservation = ({ id, assembly_id, model }) => new 
           { "model": dfam.familyModel, where: { 'accession': id }, attributes: [] },
           { "model": dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
         ]
-      })
+      });
       const objs = conservations.map((cons) => {
         const obj = mapFields(cons, {}, {
           "threshold": "threshold",
@@ -315,10 +315,10 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
           { "model": dfam.familyModel, where: { 'accession': id }, attributes: [] },
           { "model": dfam.assemblyModel, where: { 'name': assembly_id }, attributes: [] },
         ]
-      })
+      });
       
       if (coverage) {
-        data = coverage.dataValues
+        data = coverage.dataValues;
         resolve(Service.successResponse({
           "nrph": data.nrph.toString(),
           "nrph_hits": data.num_full_nrph,

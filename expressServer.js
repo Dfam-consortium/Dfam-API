@@ -18,8 +18,11 @@ class ExpressServer {
     this.port = port;
     this.app = express();
     this.openApiPath = openApiYaml;
+
     try {
-      this.schema = jsYaml.safeLoad(fs.readFileSync(openApiYaml));
+      //this.schema = jsYaml.safeLoad(fs.readFileSync(openApiYaml));
+      // yaml.safeLoad is removed in js-yaml 4.x, it's now just 'load'
+      this.schema = jsYaml.load(fs.readFileSync(openApiYaml, 'utf8'));
     } catch (e) {
       logger.error('failed to start Express Server', e.message);
     }
@@ -40,31 +43,13 @@ class ExpressServer {
     //View the openapi document in a visual interface. Should be able to test from this page
     //this.app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(this.schema));
  
-    // Install OpenAPIValidator middleware
-    //   NOTES version 5.0.4:
-    //      There is a bug in this version that causes the validation error:
-    //         "reference \"id\" resolves to more than one schema"
-    //      This is caused by the "example" definitions where the id field
-    //      is only populated with example values e.g 'id1' and *should not*
-    //      be expecte to be unique in the file.  Whereas, the current version
-    //      of the OpenApiValidator sends the entire dataset to AJV to validate
-    //      and it returns the above error.  To get around this I strip out all
-    //      the example data from the YAML file in index.js and generate a 
-    //      "openapi.yaml.sans_example" file to use here.
-    // 7/14/2025: RMH - I have upgraded to express-openapi-validator 5.5.7 and
-    //            switched back to using the original openAPI.yaml file rather
-    //            than the one with example(s) removed.  I suspect this fixed
-    //            the issue we were seeing before
-    //
-    //apiSpec: this.openApiPath + ".sans_example",
-    //
     this.app.use(
       OpenApiValidator.middleware({
         apiSpec: this.openApiPath,
         operationHandlers: path.join(__dirname),
-        validateResponses: false, // this causes "reference \"id1a\" resolves to more than one schema"
+        validateResponses: false,
         validateApiSpec: true,
-        validateRequests: true, // this causes "reference \"id1a\" resolves to more than one schema"
+        validateRequests: true, 
         validateSecurity: true,
         validateFormats: true,
         fileUploader: { dest: config.FILE_UPLOAD_PATH },
@@ -82,7 +67,9 @@ class ExpressServer {
 
     // Setup error handler
     this.app.use((err, req, res, next) => {
+      //
       // IMPORTANT...this is where the runtime errors often show up
+      // 
       //console.error(err); // dump error to console for debug
       res.status(err.status || 500).json({
         message: err.message,

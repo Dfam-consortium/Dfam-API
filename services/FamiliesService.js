@@ -257,7 +257,7 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
   }
 
   if (classification) {
-    let class_decode = decodeURIComponent(classification)
+    let class_decode = decodeURIComponent(classification);
     query.where.push({ [Sequelize.Op.or]: [
       { "$classification.lineage$": class_decode },
       { "$classification.lineage$": { [Sequelize.Op.like]: escape.escape_sql_like(class_decode, '\\') + ";%" } },
@@ -317,38 +317,39 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
     ] });
   }
   */
-if (updated_after && updated_before) {
-  query.where.push({
-    [Sequelize.Op.or]: [
-      {
-        date_modified: {
-          [Sequelize.Op.gte]: new Date(updated_after),
-          [Sequelize.Op.lte]: new Date(updated_before)
+  // RMH: 8/2025 - Fixed a bug with querying date ranges
+  if (updated_after && updated_before) {
+    query.where.push({
+      [Sequelize.Op.or]: [
+        {
+          date_modified: {
+            [Sequelize.Op.gte]: new Date(updated_after),
+            [Sequelize.Op.lte]: new Date(updated_before)
+          }
+        },
+        {
+          date_created: {
+            [Sequelize.Op.gte]: new Date(updated_after),
+            [Sequelize.Op.lte]: new Date(updated_before)
+          }
         }
-      },
-      {
-        date_created: {
-          [Sequelize.Op.gte]: new Date(updated_after),
-          [Sequelize.Op.lte]: new Date(updated_before)
-        }
-      }
-    ]
-  });
-} else if (updated_after) {
-  query.where.push({
-    [Sequelize.Op.or]: [
-      { date_modified: { [Sequelize.Op.gte]: new Date(updated_after) } },
-      { date_created: { [Sequelize.Op.gte]: new Date(updated_after) } }
-    ]
-  });
-} else if (updated_before) {
-  query.where.push({
-    [Sequelize.Op.or]: [
-      { date_modified: { [Sequelize.Op.lte]: new Date(updated_before) } },
-      { date_created: { [Sequelize.Op.lte]: new Date(updated_before) } }
-    ]
-  });
-}
+      ]
+    });
+  } else if (updated_after) {
+    query.where.push({
+      [Sequelize.Op.or]: [
+        { date_modified: { [Sequelize.Op.gte]: new Date(updated_after) } },
+        { date_created: { [Sequelize.Op.gte]: new Date(updated_after) } }
+      ]
+    });
+  } else if (updated_before) {
+    query.where.push({
+      [Sequelize.Op.or]: [
+        { date_modified: { [Sequelize.Op.lte]: new Date(updated_before) } },
+        { date_created: { [Sequelize.Op.lte]: new Date(updated_before) } }
+      ]
+    });
+  }
 
 
   if (keywords) {
@@ -406,7 +407,7 @@ if (updated_after && updated_before) {
   // the problem. 6/27/23
   query.distinct = true;
 
-  return query
+  return query;
 }
 
 
@@ -440,10 +441,10 @@ if (updated_after && updated_before) {
 const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_accession, classification, clade, clade_relatives, type, subtype, updated_after, updated_before, desc, keywords, include_raw, start, limit, download } = args) => new Promise(
   async (resolve, reject) => {
     const args_hash = md5(JSON.stringify(args));
-    const cache_dir = config.apiserver.cache_dir
-    const cache_name = args_hash + ".cache" 
-    const cache_file = path.join(cache_dir, cache_name)
-    const working_file = cache_file + '.working'
+    const cache_dir = config.apiserver.cache_dir;
+    const cache_name = args_hash + ".cache"; 
+    const cache_file = path.join(cache_dir, cache_name);
+    const working_file = cache_file + '.working';
     const extensions = { 'embl': '.embl', 'fasta': '.fa', 'hmm': '.hmm' };
 
     try {
@@ -454,27 +455,27 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
       // If cache is being built, return message
       if ( download && await fs.access(working_file).then(()=> true).catch(()=> false)) {
-        logger.info(`Waiting on ${args_hash}`)
+        logger.info(`Waiting on ${args_hash}`);
         resolve(Service.successResponse({body: "Working..."}, 202));
-        return
+        return;
       } 
       // If cache exists, return cache file
       else if ( download && await fs.access(cache_file).then(()=> true).catch(()=> false)) {
         // update access time for cache
-        await fs.utimes(cache_file, new Date(), new Date())
+        await fs.utimes(cache_file, new Date(), new Date());
         
         // read base64 file, parse into object and return
-        const file = await fs.readFile(cache_file, {encoding: 'utf8', flag: 'r'})
-        const res = JSON.parse(file)
-        logger.info(`Using Cached File ${cache_file}`)
+        const file = await fs.readFile(cache_file, {encoding: 'utf8', flag: 'r'});
+        const res = JSON.parse(file);
+        logger.info(`Using Cached File ${cache_file}`);
         resolve(Service.successResponse(res, 200));
-        return
+        return;
 
       // Write blank working file so client knows it's in process before query is returned
       } else if (download) {
-        logger.info(`Download Request ${args_hash} Recieved - ${JSON.stringify(args).replaceAll('"', "'")}`)
-        await fs.writeFile(working_file, "")
-        logger.info(`Created Working file ${working_file}`)
+        logger.info(`Download Request ${args_hash} Recieved - ${JSON.stringify(args).replaceAll('"', "'")}`);
+        await fs.writeFile(working_file, "");
+        logger.info(`Created Working file ${working_file}`);
       }
 
       // TODO: Consider making these configurable in Dfam.conf
@@ -503,7 +504,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       const total_count = count_result.count;
 
       if (download) {
-        logger.info(`Retrieved ${total_count} Families for ${args_hash}`)
+        logger.info(`Retrieved ${total_count} Families for ${args_hash}`);
       }
 
       // Return message if query is too large to be sent
@@ -515,22 +516,22 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
         resolve(Service.rejectResponse( message, 405 ));
         if (download && await fs.access(working_file).then(()=> true).catch(()=> false)) {
           // cleanup working file
-          await fs.unlink(working_file)
-          logger.info(`Removed Working File ${working_file}`)
+          await fs.unlink(working_file);
+          logger.info(`Removed Working File ${working_file}`);
         }
-        return
+        return;
       }
-      let caching = download && total_count > config.CACHE_CUTOFF
+      let caching = download && total_count > config.CACHE_CUTOFF;
 
       // process rows into file
       let rows = count_result.rows;
       rows = await family.familySubqueries(rows, format);
       if (download) {
-        logger.info(`Retrieved subqueries completed for ${args_hash}`)
+        logger.info(`Retrieved subqueries completed for ${args_hash}`);
       }
       
       // if caching, a working file will be written to instead of formatted.body 
-      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file : null)
+      let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file : null);
 
       if (download && !formatted) {
         let message = `Formatting Failed for ${args_hash}`;
@@ -541,7 +542,7 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
           await fs.unlink(working_file);
           logger.info(`Removed Working File ${working_file}`);
         }
-        return
+        return;
       } 
       else if (
         download && (
@@ -557,47 +558,47 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
           await fs.unlink(working_file);
           logger.info(`Removed Working File ${working_file}`);
         }
-        return
+        return;
       }
       else if (download){
-        logger.info(`Successfully Formatted ${args_hash}`)
+        logger.info(`Successfully Formatted ${args_hash}`);
       }
 
       if (download) {
         if (!caching) {
-          logger.info(`Returning ${args_hash} Without Caching`)
+          logger.info(`Returning ${args_hash} Without Caching`);
           // compress response body
           let compressed = await promisify(zlib.gzip)(formatted.body);
           // base64 encode body
-          let b64 = Buffer.from(compressed).toString('base64')
-          formatted.body = b64
+          let b64 = Buffer.from(compressed).toString('base64');
+          formatted.body = b64;
           // cleanup working file
-          await fs.unlink(working_file)
-          logger.info(`Removed Working File ${working_file}`)
+          await fs.unlink(working_file);
+          logger.info(`Removed Working File ${working_file}`);
           // return data directly
           resolve(Service.successResponse(formatted, 200));
-          return
+          return;
         }
         // If large file,  compress, encode, and wrap saved working file in JSON to complete cache file
         if (caching && await fs.access(working_file).then(()=> true).catch(()=> false)) {
-          logger.info(`Caching ${args_hash}`)
+          logger.info(`Caching ${args_hash}`);
           // build JSON header
-          await fs.writeFile(cache_file, `{"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`)
+          await fs.writeFile(cache_file, `{"attachment": "families${extensions[format]}", "content_type": "text/plain", "encoding": "identity", "body": "`);
           // compress and encode working data into cache file
-          const zip = await new Promise((resolve, reject) => {
+          await new Promise((resolve, reject) => {
             let zipper = child_process.spawn("sh", ["-c", `cat ${working_file} | gzip | base64 -w 0 >> ${cache_file}`]);
             zipper.on('error', err => reject(err));
             zipper.on('close', (code) => {
-              if (code == 0) {resolve(code)}
-              else {reject(code)}
-            })
-          })
+              if (code == 0) {resolve(code);}
+              else {reject(code);}
+            });
+          });
           // finish JSON
-          await fs.appendFile(cache_file, '"}')
+          await fs.appendFile(cache_file, '"}');
           // Log and remove working file
-          logger.info(`Wrote Cache File ${cache_file}`)
-          await fs.unlink(working_file)
-          logger.info(`Removed Working File ${working_file}`)
+          logger.info(`Wrote Cache File ${cache_file}`);
+          await fs.unlink(working_file);
+          logger.info(`Removed Working File ${working_file}`);
           // delay returning to allow caching system to open file and return data
           resolve(Service.successResponse({body: "Working..."}, 202));
         } 
@@ -608,13 +609,13 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
 
     } catch (e) {
       if (download){
-        logger.error(`Caching Request Failed: ${args_hash} - ${e}`)
+        logger.error(`Caching Request Failed: ${args_hash} - ${e}`);
         if (await fs.access(working_file).then(()=> true).catch(()=> false)){
-          await fs.unlink(working_file)
-          logger.info(`Removed Working File ${working_file}`)
+          await fs.unlink(working_file);
+          logger.info(`Removed Working File ${working_file}`);
         }
       } else {
-        logger.error(`Error - ${e}`)
+        logger.error(`Error - ${e}`);
       }
       reject(Service.rejectResponse(
         e.message || 'Invalid input',
@@ -964,7 +965,7 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
         if (seedAlignData && seedAlignData.graph_json && seedAlignData.graph_json.length > 0) {
           graphData = JSON.parse(await promisify(zlib.gunzip)(seedAlignData.graph_json));
         } else {
-          reject(Service.rejectResponse(`Family with accession ${id} has no seed alignment graph data.`, 404))
+          reject(Service.rejectResponse(`Family with accession ${id} has no seed alignment graph data.`, 404));
         }
 
         // low_priority TODO: Include values for graphData.publicSequences and
@@ -979,7 +980,7 @@ const readFamilySeed = ({ id, format, download }) => new Promise(
       if (obj.payload) {
         resolve(Service.successResponse(obj));
       } else {
-        reject(Service.rejectResponse(`Error Recovering Seed For ${id}`, 404))
+        reject(Service.rejectResponse(`Error Recovering Seed For ${id}`, 404));
       }
     } catch (e) {
       reject(Service.rejectResponse(

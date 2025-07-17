@@ -4,7 +4,6 @@
 const logger = require('../logger');
 const controllers = require('../controllers');
 const Services = require('../services');
-const logger = require("../logger");
 
 function handleError(err, request, response, next) {
   logger.error(err);

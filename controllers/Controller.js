@@ -115,11 +115,11 @@ class Controller {
         const requestBodyName = camelCase(this.getRequestBodyName(request));
         requestParams[requestBodyName] = request.body;
       } else if (content['multipart/form-data'] !== undefined || content['application/x-www-form-urlencoded'] !== undefined) {
-        let prop = ''
+        let prop = '';
         if (content['multipart/form-data'] !== undefined) {
-          prop = 'multipart/form-data'
+          prop = 'multipart/form-data';
         } else if (content['application/x-www-form-urlencoded'] !== undefined) {
-          prop = 'application/x-www-form-urlencoded'
+          prop = 'application/x-www-form-urlencoded';
         }
         Object.keys(content[prop].schema.properties).forEach(
           (property) => {
@@ -153,15 +153,15 @@ class Controller {
     try {
       const start = new Date();
       //console.log(JSON.stringify(request.query));
-      let client_ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress
+      let client_ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
       const serviceResponse = await serviceOperation(this.collectRequestParams(request));
       Controller.sendResponse(response, serviceResponse);
       const time = new Date() - start;
-      let urls = request.url.split("?")
-      let endpoint = urls[0]
-      let params = ""
+      let urls = request.url.split("?");
+      let endpoint = urls[0];
+      let params = "";
       if (urls.length > 1) {
-        params = urls[1]
+        params = urls[1];
       }
       logger.verbose({"method": request.method, "endpoint": endpoint, "params": params, "code": response.statusCode, "res_time": time, "client_ip": client_ip });
     } catch (error) {

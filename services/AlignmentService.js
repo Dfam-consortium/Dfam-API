@@ -93,9 +93,9 @@ const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
     };
     return alignRec;
   } catch (err) {
-    err
+    err;
   }
-}
+};
 
 async function reAlignAnnotationHMM(twoBitFile, seqName, startPos, endPos, hmmData) {
 
@@ -167,18 +167,18 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
     try {
 
       if (Math.abs(end-start) > 30000) {
-        reject(Service.rejectResponse("Requested range is too long.", 400))
+        reject(Service.rejectResponse("Requested range is too long.", 400));
       }
 
       let full_assembly = await dfam.assemblyModel.findOne({
         where: {"name": assembly},
         attributes:["schema_name"]
-      })
+      });
 
       if (! full_assembly) {
         reject(Service.rejectResponse(`Assembly Record ${assembly} Not Found`, 404));
       } else {
-        full_assembly = full_assembly.schema_name
+        full_assembly = full_assembly.schema_name;
       }
 
       const model = await dfam.hmmModelDataModel.findOne({
@@ -187,8 +187,8 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
       });
 
       if (!model){
-        reject(Service.rejectResponse("Model Not Found",404))
-        return
+        reject(Service.rejectResponse("Model Not Found",404));
+        return;
       }
       
       const twoBitFile = path.join(dfam_warehouse_dir, "ref-genomes", assembly, "dfamseq.mask.2bit");
@@ -197,29 +197,29 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
         reject(Service.rejectResponse(`Assembly File ${assembly} Not Found`, 404));
       }
 
-      let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom)
+      let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom);
       if (! chrom_in_assem) {
         reject(Service.rejectResponse(`Sequence ${chrom} Not Found In Assembly ${assembly}`, 404));
       }
 
       const hmm_data = await promisify(zlib.gunzip)(model.hmm);
 
-      let reAligned = await reAlignAnnotationHMM(twoBitFile, chrom, start, end, hmm_data)
+      let reAligned = await reAlignAnnotationHMM(twoBitFile, chrom, start, end, hmm_data);
 
       if (!reAligned){
-        reject(Service.rejectResponse("Realignment failed",404))
-        return
+        reject(Service.rejectResponse("Realignment failed",404));
+        return;
       }
       
       resolve(Service.successResponse(reAligned));
 
-  } catch (e) {
-    reject(Service.rejectResponse(
-      e.message || `Invalid Input - ${e} - ${e.message}`,
-      e.status || 405,
-    ));
-  }
-});
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || `Invalid Input - ${e} - ${e.message}`,
+        e.status || 405,
+      ));
+    }
+  });
 
 module.exports = {
   readAlignment,

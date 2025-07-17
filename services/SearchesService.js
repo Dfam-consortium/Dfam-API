@@ -16,7 +16,7 @@ const fsp = require('fs/promises');
 const fs = require('fs');
 const child_process = require('child_process');
 const { Op } = require("sequelize");
-const formatAlignment = require("./AlignmentService").formatAlignment
+const formatAlignment = require("./AlignmentService").formatAlignment;
 
 const getDateDir = (date, id) => {
   const options = {
@@ -29,11 +29,11 @@ const getDateDir = (date, id) => {
     second: "2-digit",
   };
   let startedDate = new Intl.DateTimeFormat("en-CA", options)
-  .format(new Date(date)).toString()
-  .replaceAll(':', '/').replaceAll('-', '/').replace(', ', '/');
+    .format(new Date(date)).toString()
+    .replaceAll(':', '/').replaceAll('-', '/').replace(', ', '/');
 
   return path.join(resultStore, startedDate, id, "1");
-}
+};
 
 /**
 * Retrieve an alignment from a sequence search result.
@@ -65,7 +65,7 @@ const readSearchResultAlignment = ({ id, sequence, start, end, family }) => new 
             return reAlignSearchHMM(dataDir, sequence, start, end, hmm_data);
           });
         });
-      }, 200)))
+      }, 200)));
 
     } catch (e) {
       reject(Service.rejectResponse(
@@ -97,8 +97,8 @@ const readSearchResults = ({ id }) => new Promise(
       }
 
       let dataDir = getDateDir(searchRec.started, id);
-      let nhmmer_out = dataDir + "/nhmmer.out"
-      let trf_out = dataDir + "/trf.out"
+      let nhmmer_out = dataDir + "/nhmmer.out";
+      let trf_out = dataDir + "/trf.out";
 
       const jobRec = searchRec.job;
 
@@ -143,10 +143,10 @@ const readSearchResults = ({ id }) => new Promise(
       } else if (jobRec.status === "DONE") {
 
         // TODO: exists is deprecated
-          // if (!(await fsp.access(nhmmer_out).then(()=> true).catch(()=> false) && await fs.access(trf_out).then(()=> true).catch(()=> false))){
-          // fs.existsSync())
+        // if (!(await fsp.access(nhmmer_out).then(()=> true).catch(()=> false) && await fs.access(trf_out).then(()=> true).catch(()=> false))){
+        // fs.existsSync())
         if (!(await promisify(fs.exists)(nhmmer_out) && await promisify(fs.exists)(trf_out))){
-          response.message = "Job Complete, Preparing Data"
+          response.message = "Job Complete, Preparing Data";
           resolve(Service.successResponse(response, 202));
         }
         // if file exists, handled below
@@ -176,10 +176,10 @@ const readSearchResults = ({ id }) => new Promise(
       // e.g.
       //      Seq1  13283
       try {
-          const sizeData = await execFileAsync(faSize, [
+        const sizeData = await execFileAsync(faSize, [
           '-detailed',
           dataDir + '/dfamscan.in'
-        ])
+        ]);
         let lines = sizeData.stdout.split(/\r\n|\n/);
         lines.forEach(function(line) {
           let flds = line.split(/\s+/);
@@ -297,7 +297,7 @@ const submitSearch = ({ sequence, cutoff, organism, evalue }) => new Promise(
         status: '',
         opened: now,
         interactive: 1
-      })
+      });
       const searchRec = await dfam_user.searchModel.create({
         algo: 'nhmmer',
         job_id: jobRec.id,
@@ -306,13 +306,13 @@ const submitSearch = ({ sequence, cutoff, organism, evalue }) => new Promise(
         checksum: md5sum,
         options: optStr,
         position: 1
-      })
+      });
       const streamRec = await dfam_user.streamModel.create({
         search_id: searchRec.id,
         raw_stdin: sequence,
         stdin: sanSeq
-      })
-      await jobRec.update({status: "PEND"})
+      });
+      await jobRec.update({status: "PEND"});
       resolve(Service.successResponse({ id: uuid }, 200));
 
     } catch (e) {
@@ -373,14 +373,14 @@ const sanitizeFASTAInput = (sequence) => {
   });
   newSequence = newSequence + ">" + recID + "\n" + recSeq + "\n";
   return newSequence;
-}
+};
 
 // Parse dfamscan.pl generated output from a user-supplied sequence
 // search.
 const parseNhmmscan = async ( filePath ) => {
   try {
 
-    let data = await fsp.readFile(filePath, {encoding: 'utf-8'})
+    let data = await fsp.readFile(filePath, {encoding: 'utf-8'});
     //  L1ME3G_3end           DF0000302.4          Query                  46.4   4.8e-12  16.6     466     612    +       456     597     435     617     924   3' end
     //   of L1 retrotransposon, L1ME3G_3end subfamily
     const nhmmscanData = /^\S+\s+DF\d+\.?\d*\s+\S+\s+[\d.]+\s+/;
@@ -437,7 +437,7 @@ const parseNhmmscan = async ( filePath ) => {
       include: [ { model: dfam.classificationModel, as: 'classification', include: [
         { model: dfam.rmTypeModel, as: 'rm_type', attributes: ["name"] }
       ] } ],
-    })
+    });
 
     families.forEach(function(family) {
       family_acc_mappings[family.accession].forEach(function(hit) {
@@ -455,13 +455,13 @@ const parseNhmmscan = async ( filePath ) => {
   } catch (err) {
     throw new Error("Error reading " + filePath + ": " + err);
   }
-}
+};
 
 // Parse dfamscan.pl generated output from a user-supplied sequence
 // search.
 const  parseTRF = async (filePath) => {
   try {
-    let data = await fsp.readFile(filePath, {encoding: 'utf-8'})
+    let data = await fsp.readFile(filePath, {encoding: 'utf-8'});
 
     //6181 6275 4 23.0 4 72 10 66 51 0 48 0 1.00 AAGG AAGGAAGGAAAGAAAAAAGGAAGGGAGGAGGGAAGGAGGGAAAAAGGGAAGGAGGGAAGGAAAGGAAGGAAGGGAAAGAAGGAAAGGAAGGAAGG
     const trfData = /^\d+\s+\d+\s+\d+\s+[\d.]+\s+/;
@@ -494,7 +494,7 @@ const  parseTRF = async (filePath) => {
   } catch (err) {
     throw new Error("Error reading " + filePath + ": " + err);
   }
-}
+};
 
 // TODO: deduplicate a lot of this code with AlignmentService.
 async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {

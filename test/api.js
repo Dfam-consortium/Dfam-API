@@ -36,7 +36,7 @@ winston.configure({
 });
 
 //load example sequence
-const example_seq = fs.readFileSync('./test/example_sequence.fasta').toString()
+const example_seq = fs.readFileSync('./test/example_sequence.fasta').toString();
 
 // Setup global members to hold server
 let request;
@@ -75,7 +75,7 @@ async function post_body(url) {
     organism: 'Homo sapiens',
     cutoff: 'curated',
     evalue: 0
-  }
+  };
   const response = await request.post(url).type('form').send(data).expect(200);
   return response.body;
 }
@@ -109,7 +109,7 @@ test.serial('get alignment failure', async t => {
   await request.get('/alignment?assembly=hg38&chrom=chr1&start=1&end=40000&family=DF000004191')
     .expect(400);
   t.pass();
- });
+});
 
 // AnnotationsService 
 test.serial('get annotations', async t => {
@@ -202,43 +202,43 @@ test.serial('search families sorted by subtype', async t => {
 
 test.serial('search families name_prefix', async t => {
   const body = await get_body('/families?name_prefix=Alu');
-  t.true(body.total_count == 42)
+  t.true(body.total_count == 42);
 });
 
 test.serial('search families classification', async t => {
   const body = await get_body('/families?classification=root%3BInterspersed_Repeat%3BTransposable_Element%3BClass_II_DNA_Transposition%3BTransposase%3BCACTA%3BCMC%3BMirage');
-  t.true(body.total_count == 2)
+  t.true(body.total_count == 2);
 });
 
 // NOTE: This number changes per release.  In Dfam 3.9 it's 1510 ( LINE-dependent_Retroposon;SINE + ERV1;SINE-like )
 test.serial('search families type', async t => {
   const body = await get_body('/families?type=SINE');
   console.log("search families type returned: " + body.total_count);
-  t.true(body.total_count == 1510)
+  t.true(body.total_count == 1510);
 });
 
 test.serial('search families desc', async t => {
   const body = await get_body('/families?desc=MIR');
-  t.true(body.total_count == 11)
+  t.true(body.total_count == 11);
 });
 
 // NOTE: This number changes per release. In Dfam 3.9 it's 341.
 test.serial('search families keywords', async t => {
   const body = await get_body('/families?format=summary&keywords=hAT auto&limit=20');
-  t.is(body.total_count, 341)
+  t.is(body.total_count, 341);
 });
 
 test.serial('search families start', async t => {
   const body = await get_body('/families?start=1000&limit=1');
   const body2 = await get_body('/families?start=1001&limit=1');
-  t.true(body.results[0].accession == "DF000001019")
-  t.true(body2.results[0].accession == "DF000001020")
+  t.true(body.results[0].accession == "DF000001019");
+  t.true(body2.results[0].accession == "DF000001020");
 });
 
 // NOTE: This number may change in a release.  In Dfam 3.9 it should be 4241.
 test.serial('search families updated', async t => {
   const body = await get_body('/families?updated_after=2022-01-01&updated_before=2023-01-01');
-  t.is(body.total_count, 4241)
+  t.is(body.total_count, 4241);
 });
 
 test.serial('download families', async t => {
@@ -251,12 +251,12 @@ test.serial('download families', async t => {
 });
 
 test.serial('test caching', async t => { // works on dfam
-  let url = '/families?format=fasta&name_accession=DF000000&classification=root%253BInterspersed_Repeat%253BTransposable_Element%253BClass_I_Retrotransposition%253BLINE&clade_relatives=descendants&download=true'
-  await request.get(url).expect(202)
-  let filename = '/u2/webresults/browse-cache/c13cbab7f78a81b80f88386047019aea.cache'
-  let file = fs.existsSync(filename)
-  fs.unlinkSync(filename)
-  t.truthy(file)
+  let url = '/families?format=fasta&name_accession=DF000000&classification=root%253BInterspersed_Repeat%253BTransposable_Element%253BClass_I_Retrotransposition%253BLINE&clade_relatives=descendants&download=true';
+  await request.get(url).expect(202);
+  let filename = '/u2/webresults/browse-cache/c13cbab7f78a81b80f88386047019aea.cache';
+  let file = fs.existsSync(filename);
+  fs.unlinkSync(filename);
+  t.truthy(file);
 });
 
 // /families/{id}
@@ -341,8 +341,8 @@ test.serial('get family relationships include', async t => {
 });
 
 test.serial('get family relationships include_raw', async t => {
-  const body = await get_body('/families/DF000002176/relationships?include_raw=false')
-  const body2 = await get_body('/families/DF000002176/relationships?include_raw=true')
+  const body = await get_body('/families/DF000002176/relationships?include_raw=false');
+  const body2 = await get_body('/families/DF000002176/relationships?include_raw=true');
   t.true(body.length < body2.length);
 });
 
@@ -403,9 +403,9 @@ test.serial('get taxa annotated', async t => {
 
 test.serial('get taxa limited', async t => {
   const body = await get_body('/taxa?name=mouse');
-  t.true(body.taxa.length == 20)
+  t.true(body.taxa.length == 20);
   const body2 = await get_body('/taxa?name=mouse&limit=50');
-  t.true(body2.taxa.length > 20)
+  t.true(body2.taxa.length > 20);
 });
 
 test.serial('get one taxon', async t => {

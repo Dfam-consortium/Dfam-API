@@ -9,7 +9,7 @@ const conf = JSON.parse(fs.readFileSync(conf_file));
 // overriden.
 const config = {
   ROOT_DIR: __dirname,
-  URL_PORT: 10011,
+  URL_PORT: 10012,
   URL_PATH: 'https://dfam.org',
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
@@ -19,10 +19,10 @@ const config = {
   VERSION_BUGFIX: '0',
   CACHE_CUTOFF: 100,
   apiserver: { 
-      db_timezone: 'America/Los_Angeles',
-      cache_dir: '',
-      tmp_search_dir: ''
-             },
+    db_timezone: 'America/Los_Angeles',
+    cache_dir: '',
+    tmp_search_dir: ''
+  },
   hmm_logos_dir: '',
   te_idx_bin: '',
   te_idx_dir: '',
@@ -78,86 +78,89 @@ function assertExecutableInDir(dir, exeList) {
   }
 }
 
-// === BASIC FIELDS ===
-assertDefined('apiserver');
-assertDefined('db_timezone', config.apiserver);
+function validateConfigOnce() {
+  // === BASIC FIELDS ===
+  assertDefined('apiserver');
+  assertDefined('db_timezone', config.apiserver);
 
-// === hmm_logos_dir ===
-try {
-  assertIsDir(config.hmm_logos_dir);
-  assertExecutable(path.join(config.hmm_logos_dir, 'webGenLogoImage.pl'));
-} catch (err) {
-  throw new Error(`hmm_logos_dir validation failed: ${err.message}`);
+  // === hmm_logos_dir ===
+  try {
+    assertIsDir(config.hmm_logos_dir);
+    assertExecutable(path.join(config.hmm_logos_dir, 'webGenLogoImage.pl'));
+  } catch (err) {
+    throw new Error(`hmm_logos_dir validation failed: ${err.message}`);
+  }
+
+  // === te_idx_bin / te_idx_dir ===
+  assertDefined('te_idx_bin');
+  assertDefined('te_idx_dir');
+  assertIsFile(config.te_idx_bin);
+  assertExecutable(config.te_idx_bin);
+  assertIsDir(config.te_idx_dir);
+
+  // === ucsc_utils_bin ===
+  assertDefined('ucsc_utils_bin');
+  assertExecutableInDir(config.ucsc_utils_bin, ['twoBitToFa', 'faSize', 'faOneRecord', 'faFrag']);
+
+  // === hmmer_bin_dir ===
+  assertDefined('hmmer_bin_dir');
+  assertExecutableInDir(config.hmmer_bin_dir, ['nhmmer']);
+
+  // === comsa_bin_dir ===
+  assertDefined('comsa_bin_dir');
+  assertExecutableInDir(config.comsa_bin_dir, ['CoMSA']);
+
+  // === tmp_search_dir ===
+  assertDefined('tmp_search_dir', config.apiserver);
+  try {
+    assertIsDir(config.apiserver.tmp_search_dir);
+    const testFile = path.join(config.apiserver.tmp_search_dir, `.writetest-${Date.now()}`);
+    console.log("testFile="+testFile);
+    fs.writeFileSync(testFile, 'test');
+    fs.unlinkSync(testFile);
+  } catch (err) {
+    throw new Error(`apiserver.tmp_search_dir validation failed: ${err.message}`);
+  }
+
+  // === rmblast_bin_dir ===
+  assertDefined('rmblast_bin_dir');
+  assertExecutableInDir(config.rmblast_bin_dir, ['rmblastn', 'blastx']);
+
+  // === repeat_peps_db ===
+  assertDefined('repeat_peps_db');
+  try {
+    assertIsFile(config.repeat_peps_db);
+    assertReadable(`${config.repeat_peps_db}.psq`);
+  } catch (err) {
+    throw new Error(`repeat_peps_db validation failed: ${err.message}`);
+  }
+
+  // === dfam_curated_db ===
+  assertDefined('dfam_curated_db');
+  try {
+    assertIsFile(config.dfam_curated_db);
+    assertReadable(`${config.dfam_curated_db}.nsq`);
+  } catch (err) {
+    throw new Error(`dfam_curated_db validation failed: ${err.message}`);
+  }
+
+  // === ultra_bin_dir ===
+  assertDefined('ultra_bin_dir');
+  assertExecutableInDir(config.ultra_bin_dir, ['ultra']);
+
+  // === rmblast_matrix_dir (with subfile check) ===
+  assertDefined('rmblast_matrix_dir');
+  try {
+    assertIsDir(config.rmblast_matrix_dir);
+    assertReadable(path.join(config.rmblast_matrix_dir, 'nt', 'comparison.matrix'));
+  } catch (err) {
+    throw new Error(`rmblast_matrix_dir validation failed: ${err.message}`);
+  }
+
+  // === cache_dir ===
+  assertDefined('cache_dir', config.apiserver);
+  assertIsDir(config.apiserver.cache_dir);
 }
 
-// === te_idx_bin / te_idx_dir ===
-assertDefined('te_idx_bin');
-assertDefined('te_idx_dir');
-assertIsFile(config.te_idx_bin);
-assertExecutable(config.te_idx_bin);
-assertIsDir(config.te_idx_dir);
-
-// === ucsc_utils_bin ===
-assertDefined('ucsc_utils_bin');
-assertExecutableInDir(config.ucsc_utils_bin, ['twoBitToFa', 'faSize', 'faOneRecord', 'faFrag']);
-
-// === hmmer_bin_dir ===
-assertDefined('hmmer_bin_dir');
-assertExecutableInDir(config.hmmer_bin_dir, ['nhmmer']);
-
-// === comsa_bin_dir ===
-assertDefined('comsa_bin_dir');
-assertExecutableInDir(config.comsa_bin_dir, ['CoMSA']);
-
-// === tmp_search_dir ===
-assertDefined('tmp_search_dir', config.apiserver);
-try {
-  assertIsDir(config.apiserver.tmp_search_dir);
-  const testFile = path.join(config.apiserver.tmp_search_dir, `.writetest-${Date.now()}`);
-  fs.writeFileSync(testFile, 'test');
-  fs.unlinkSync(testFile);
-} catch (err) {
-  throw new Error(`apiserver.tmp_search_dir validation failed: ${err.message}`);
-}
-
-// === rmblast_bin_dir ===
-assertDefined('rmblast_bin_dir');
-assertExecutableInDir(config.rmblast_bin_dir, ['rmblastn', 'blastx']);
-
-// === repeat_peps_db ===
-assertDefined('repeat_peps_db');
-try {
-  assertIsFile(config.repeat_peps_db);
-  assertReadable(`${config.repeat_peps_db}.psq`);
-} catch (err) {
-  throw new Error(`repeat_peps_db validation failed: ${err.message}`);
-}
-
-// === dfam_curated_db ===
-assertDefined('dfam_curated_db');
-try {
-  assertIsFile(config.dfam_curated_db);
-  assertReadable(`${config.dfam_curated_db}.nsq`);
-} catch (err) {
-  throw new Error(`dfam_curated_db validation failed: ${err.message}`);
-}
-
-// === ultra_bin_dir ===
-assertDefined('ultra_bin_dir');
-assertExecutableInDir(config.ultra_bin_dir, ['ultra']);
-
-// === rmblast_matrix_dir (with subfile check) ===
-assertDefined('rmblast_matrix_dir');
-try {
-  assertIsDir(config.rmblast_matrix_dir);
-  assertReadable(path.join(config.rmblast_matrix_dir, 'nt', 'comparison.matrix'));
-} catch (err) {
-  throw new Error(`rmblast_matrix_dir validation failed: ${err.message}`);
-}
-
-// === cache_dir ===
-assertDefined('cache_dir', config.apiserver);
-assertIsDir(config.apiserver.cache_dir);
-
-module.exports = config;
+module.exports = { ...config, validateConfigOnce: validateConfigOnce }
 

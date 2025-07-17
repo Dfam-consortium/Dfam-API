@@ -5,7 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 const family = require('./family'); 
 const fasta = require('./fasta'); 
-const logger = require('../logger');
+//const logger = require('../logger');
 
 
 const DISTINCT_COLORS = [
@@ -237,7 +237,7 @@ async function dfam_relationship_search(accession) {
   }));
 
   // Step 9: Cleanup temp FASTA
-  try { await fs.unlink(fastaFile); } catch (_) {}
+  try { await fs.unlink(fastaFile); } catch (err) { throw new Error(`Could not unlink file ${fastaFile}: ${err.message}`); }
 
   return final;
 }
@@ -486,7 +486,7 @@ async function self_search(accession) {
 
   //logger.info("final: " + JSON.stringify(final));
   // Step 10: Cleanup temporary FASTA
-  try { await fs.unlink(fastaFile); } catch (_) {}
+  try { await fs.unlink(fastaFile); } catch (err) { throw new Error(`Could not unlink file ${fastaFile}: ${err.message}`); }
 
   return final;
 }
@@ -645,7 +645,7 @@ async function protein_search(accession) {
     oSequence: hit.oseq
   }));
 
-  try { await fs.unlink(fastaFile); } catch (_) {}
+  try { await fs.unlink(fastaFile); } catch (err) { throw new Error(`Could not unlink file ${fastaFile}: ${err.message}`); }
 
   return final;
 }
@@ -674,21 +674,21 @@ async function ultra_query(args) {
       if (code !== 0) {
         reject(new Error(`ultra exited with code ${code}: ${errorData}`));
       } else {
-       const results = data
-      .trim()
-      .split('\n')
-      .map(line => line.trim())
-      .map(line => {
-        const regex = /^\S+\t(\d+)\t(\d+)\t\d+\t[\.\d]+\t(\S+)/; // Match start, end, and label
-        const match = line.match(regex);
+        const results = data
+          .trim()
+          .split('\n')
+          .map(line => line.trim())
+          .map(line => {
+            const regex = /^\S+\t(\d+)\t(\d+)\t\d+\t[\.\d]+\t(\S+)/; // Match start, end, and label
+            const match = line.match(regex);
 
-        if (!match) return null;
+            if (!match) return null;
 
-        const [, startStr, endStr, label] = match;
-        return [parseInt(startStr, 10), parseInt(endStr, 10), label];
-      })
-      .filter(entry => entry !== null);  // remove non-matching lines
-    resolve(results);
+            const [, startStr, endStr, label] = match;
+            return [parseInt(startStr, 10), parseInt(endStr, 10), label];
+          })
+          .filter(entry => entry !== null);  // remove non-matching lines
+        resolve(results);
       }
     });
   });
@@ -722,7 +722,7 @@ async function ultra_search(accession) {
     strand: '+'
   }));
 
-  try { await fs.unlink(fastaFile); } catch (_) {}
+  try { await fs.unlink(fastaFile); } catch (err) { throw new Error(`Could not unlink file ${fastaFile}: ${err.message}`); }
 
   const filtered = filter_by_depth(records, 'ref_start', 'ref_end');
 
@@ -743,4 +743,4 @@ module.exports = {
   self_search,
   dfam_relationship_search,
   protein_search
-}
+};

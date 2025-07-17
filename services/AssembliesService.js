@@ -18,11 +18,11 @@ const readAssemblies = () => new Promise(
         },
         include: [dfam.dfamTaxdbModel],
         order_by: ["display_order"]
-      })
+      });
 
       resolve(Service.successResponse(assemblies.map(
         (row) => {
-          return { id: row.name, name: row.dfam_taxdb.scientific_name }
+          return { id: row.name, name: row.dfam_taxdb.scientific_name };
         }
       )));
 

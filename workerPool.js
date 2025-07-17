@@ -18,8 +18,6 @@ const piscina = new Piscina({
   minThreads: 5,
   maxThreads: 10 
 });
-//  minThreads: 5,
-//  maxThreads: 10 
 logger.info("Initialized Piscina thread pool");
 
 module.exports = {

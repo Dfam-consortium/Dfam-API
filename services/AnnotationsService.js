@@ -33,35 +33,35 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
       }
 
       if (Math.abs(end-start) > 1000000) {
-          reject(Service.rejectResponse({ message: "Requested range is too long." }, 400));
+        reject(Service.rejectResponse({ message: "Requested range is too long." }, 400));
       }
       let full_assembly = await dfam.assemblyModel.findOne({
         where: {"name": assembly},
         attributes:["schema_name"]
-      })
+      });
 
       if (! full_assembly) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       } else {
-        full_assembly = full_assembly.schema_name
+        full_assembly = full_assembly.schema_name;
       }
 
-      let assembly_dir = `${te_idx_dir}/${full_assembly}/`
+      let assembly_dir = `${te_idx_dir}/${full_assembly}/`;
       if (!fs.existsSync(assembly_dir)) {
         reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
       }
 
-      let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom)
+      let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom);
       if (! chrom_in_assem) {
         reject(Service.rejectResponse(`Sequence ${chrom} Not Found In Assembly ${assembly}`, 404));
       }
 
       // Obtain simple/tandem annotations from the TE_Idx
-      let teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "masks", "--chrom", chrom, "--start", start, "--end", end]
-      const tandem_annots = await te_idx.query(teidx_args)
+      let teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "masks", "--chrom", chrom, "--start", start, "--end", end];
+      const tandem_annots = await te_idx.query(teidx_args);
 
       // Obtain the TE annotations from the TE_Idx
-      teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end]
+      teidx_args = ["--assembly", full_assembly, "idx-query", "--data-type", "assembly_alignments",  "--chrom", chrom, "--start", start, "--end", end];
 
       if (family_accession) { 
         teidx_args.push("--family");
@@ -72,15 +72,15 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         teidx_args.push("--nrph");
       }
 
-      const teResults = await te_idx.query(teidx_args)
+      const teResults = await te_idx.query(teidx_args);
 
       // Collect all accessions found, as well as thier positions in the list of results
       // Fixed: This was defined as implicitly global (e.g. not 'let', 'const' or 'var').  
-      let accession_idxs = {}
+      let accession_idxs = {};
       teResults.forEach((hit, i) => {
-        if (!accession_idxs[hit.accession]) {accession_idxs[hit.accession] = []}
-        accession_idxs[hit.accession].push(i)
-      })
+        if (!accession_idxs[hit.accession]) {accession_idxs[hit.accession] = [];}
+        accession_idxs[hit.accession].push(i);
+      });
   
       // Retrieve the names and types of all matched families
       const families = await dfam.familyModel.findAll({
@@ -89,21 +89,21 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
         include: [ { model: dfam.classificationModel, as: 'classification', include: [
           { model: dfam.rmTypeModel, as: 'rm_type', attributes: ["name"] }
         ] } ],
-      })
+      });
       if (Object.keys(accession_idxs).length != families.length ){
-        logger.error(`token=${rtoken}: ${Object.keys(accession_idxs).length} != ${families.length}`)
+        logger.error(`token=${rtoken}: ${Object.keys(accession_idxs).length} != ${families.length}`);
       }
 
       // Add names and types to list of hits
       families.forEach(function(family) {
         accession_idxs[family.accession].forEach((i) => {
-            teResults[i].query = family.name;
-            teResults[i].type = null;
-            if (family.classification) {
-              if (family.classification.rm_type) {
-                teResults[i].type = family.classification.rm_type.name;
-              }
+          teResults[i].query = family.name;
+          teResults[i].type = null;
+          if (family.classification) {
+            if (family.classification.rm_type) {
+              teResults[i].type = family.classification.rm_type.name;
             }
+          }
         });
       });
 
