@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
    that we might not want to publish in our documentation.  The
    script is api/buildPublicYAML.py and will read the openapi.yaml
    file and create the openapi_cleaned.yaml file.
- - Added new endpoints
+ - Added new endpoints to support new Dfam TE Visualization (IGV)
      o /families/{id}/tandem_repeats
      o /families/{id}/dfam_relationships
      o /families/{id}/protein_alignments

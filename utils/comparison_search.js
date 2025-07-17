@@ -36,9 +36,9 @@ async function generate_temp_family_fasta(accession) {
   const fastaContent = fasta.exportFasta(fam);
 
   const uniq_req_id = crypto.randomUUID();
-  const fastaFile = path.join(config.tmp_search_dir, `${accession}-${uniq_req_id}.fasta`);
+  const fastaFile = path.join(config.apiserver.tmp_search_dir, `${accession}-${uniq_req_id}.fasta`);
 
-  await fs.mkdir(config.tmp_search_dir, { recursive: true });
+  await fs.mkdir(config.apiserver.tmp_search_dir, { recursive: true });
   await fs.writeFile(fastaFile, fastaContent);
 
   return fastaFile;
