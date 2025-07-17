@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      o /families/{id}/self_alignments
  - Added new SAM format for /families/{id}/seed?format=sam 
 
+ TODO: Change tmp_search_dir to apiserver.tmp_search_dir
+
 ## 0.3.11 - 2021-03-18
 - Re-release for dependency updates
 

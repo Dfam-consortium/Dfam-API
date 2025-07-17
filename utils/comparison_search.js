@@ -7,11 +7,6 @@ const family = require('./family');
 const fasta = require('./fasta'); 
 const logger = require('../logger');
 
-// config.rmblast_bin_dir
-// TODO: create new config.ultra_bin 
-// config.repeat_peps_db  (and pre-built makeblastdb files)
-// TODO: create new config.dfam_curated_db to point to RepeatMasker.lib ( and pre-built makeblastdb files)
-
 
 const DISTINCT_COLORS = [
   '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6',
@@ -189,9 +184,16 @@ async function dfam_relationship_search(accession) {
 
     const qstartNum = parseInt(qstart);
     const qendNum = parseInt(qend);
-    const sstartNum = parseInt(sstart);
-    const sendNum = parseInt(send);
     const slenNum = parseInt(slen);
+
+    let sstartNum = parseInt(sstart);
+    let sendNum = parseInt(send);
+    let strand = '+';
+    if ( sstrand === 'minus' ) {
+      // If sstrand is minus, we reverse the start and end
+      [sstartNum, sendNum] = [sendNum, sstartNum];
+      strand = '-';
+    }
 
     return {
       ref_start: Math.min(qstartNum, qendNum),
@@ -199,7 +201,7 @@ async function dfam_relationship_search(accession) {
       cons_start: Math.min(sstartNum, sendNum),
       cons_end: Math.max(sstartNum, sendNum),
       cons_len: slenNum,
-      orient: sstartNum <= sendNum ? '+' : '-',
+      orient: strand,
       name: sseqid,
       score: parseFloat(score),
       ref_seq: accession,
@@ -422,9 +424,16 @@ async function self_search(accession) {
 
     const qstartNum = parseInt(qstart);
     const qendNum = parseInt(qend);
-    const sstartNum = parseInt(sstart);
-    const sendNum = parseInt(send);
     const slenNum = parseInt(slen);
+
+    let sstartNum = parseInt(sstart);  
+    let sendNum = parseInt(send);  
+    let strand = '+';           
+    if ( sstrand === 'minus' ) {                                                                                                                             
+      // If sstrand is minus, we reverse the start and end                                                                                                   
+      [sstartNum, sendNum] = [sendNum, sstartNum];
+      strand = '-'; 
+    }
 
     return {
       ref_start: Math.min(qstartNum, qendNum),
@@ -432,7 +441,7 @@ async function self_search(accession) {
       cons_start: Math.min(sstartNum, sendNum),
       cons_end: Math.max(sstartNum, sendNum),
       cons_len: slenNum,
-      orient: sstartNum <= sendNum ? '+' : '-',
+      orient: strand,
       name: `${qstart}-${qend}_${sstart}-${send}`,
       score: parseFloat(score),
       ref_seq: sseqid,
