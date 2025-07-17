@@ -11,9 +11,10 @@
 
 ### API Log Workflow:
 ```
+# Run on repeatmasker
 # Change Cutoff Date on line 3 of collectLogs.sh
 ./collectLogs.sh
-# Change line 402 of API_Reporter.R to the name of the new CSV
+# Change line 402 of API_Reporter.R to the name of the new CSV (today's date)
 ./runShiny.sh
 # Navigate to http://10.2.9.26:10011 in a browser
 ```

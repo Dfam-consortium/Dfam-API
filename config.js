@@ -14,9 +14,9 @@ const config = {
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,
-  VERSION_MAJOR: '0',
-  VERSION_MINOR: '4',
-  VERSION_BUGFIX: '0',
+  VERSION_MAJOR: '5',
+  VERSION_MINOR: '0',
+  VERSION_BUGFIX: '1',
   CACHE_CUTOFF: 100,
   apiserver: { 
       db_timezone: 'America/Los_Angeles',
