@@ -1,6 +1,6 @@
 #!/bin/bash
 servers=("dfweb@dfweb1" "dfweb@dfweb2");
-cutoffDate='2024-10-24'; # TODO cli this
+cutoffDate='2022-03-01'; # TODO cli this
 downloadTime=$(date +%Y-%m-%d)-Export
 
 echo Downloading Logs Newer Than $cutoffDate
