@@ -2,8 +2,15 @@ const config = require('./config');
 const logger = require('./logger');
 const ExpressServer = require('./expressServer');
 
-config.validateConfigOnce();
+// Only validate the configuration in the main thread
+// This avoids race conditions and is more efficient
+config.validateConfig();
 
+// Announce ourselves to the logger
+logger.info("DFAM-API Version " + config.VERSION_MAJOR + "." +
+            config.VERSION_MINOR + "." + config.VERSION_BUGFIX);
+
+// Startup threaded operation (workers)
 require('./workerPool');
 
 // Launch the Express server

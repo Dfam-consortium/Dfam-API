@@ -78,7 +78,7 @@ function assertExecutableInDir(dir, exeList) {
   }
 }
 
-function validateConfigOnce() {
+function validateConfig() {
   // === BASIC FIELDS ===
   assertDefined('apiserver');
   assertDefined('db_timezone', config.apiserver);
@@ -115,7 +115,6 @@ function validateConfigOnce() {
   try {
     assertIsDir(config.apiserver.tmp_search_dir);
     const testFile = path.join(config.apiserver.tmp_search_dir, `.writetest-${Date.now()}`);
-    console.log("testFile="+testFile);
     fs.writeFileSync(testFile, 'test');
     fs.unlinkSync(testFile);
   } catch (err) {
@@ -162,5 +161,5 @@ function validateConfigOnce() {
   assertIsDir(config.apiserver.cache_dir);
 }
 
-module.exports = { ...config, validateConfigOnce: validateConfigOnce }
+module.exports = { ...config, validateConfig: validateConfig };
 
