@@ -14,12 +14,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
    that we might not want to publish in our documentation.  The
    script is api/buildPublicYAML.py and will read the openapi.yaml
    file and create the openapi_cleaned.yaml file.
- - Added new endpoints
+ - Added new endpoints to support new Dfam TE Visualization (IGV)
      o /families/{id}/tandem_repeats
      o /families/{id}/dfam_relationships
      o /families/{id}/protein_alignments
      o /families/{id}/self_alignments
  - Added new SAM format for /families/{id}/seed?format=sam 
+
+ TODO: Change tmp_search_dir to apiserver.tmp_search_dir
 
 ## 0.3.11 - 2021-03-18
 - Re-release for dependency updates

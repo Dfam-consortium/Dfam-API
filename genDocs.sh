@@ -1,6 +1,6 @@
 #!/bin/bash
 
-input_file="api/openapi.yaml"
+input_file="api/openapi_cleaned.yaml"
 output_file="api/openapi-with-prefix.yaml"
 
 old_url="https://dfam.org/"

@@ -20,7 +20,8 @@ const config = {
   CACHE_CUTOFF: 100,
   apiserver: { 
       db_timezone: 'America/Los_Angeles',
-      cache_dir: '' 
+      cache_dir: '',
+      tmp_search_dir: ''
              },
   hmm_logos_dir: '',
   te_idx_bin: '',
@@ -28,7 +29,6 @@ const config = {
   ucsc_utils_bin: '',
   hmmer_bin_dir: '',
   comsa_bin_dir: '',
-  tmp_search_dir: '',
   rmblast_bin_dir: '',
   repeat_peps_db: '',
   dfam_curated_db: '',
@@ -110,14 +110,14 @@ assertDefined('comsa_bin_dir');
 assertExecutableInDir(config.comsa_bin_dir, ['CoMSA']);
 
 // === tmp_search_dir ===
-assertDefined('tmp_search_dir');
+assertDefined('tmp_search_dir', config.apiserver);
 try {
-  assertIsDir(config.tmp_search_dir);
-  const testFile = path.join(config.tmp_search_dir, `.writetest-${Date.now()}`);
+  assertIsDir(config.apiserver.tmp_search_dir);
+  const testFile = path.join(config.apiserver.tmp_search_dir, `.writetest-${Date.now()}`);
   fs.writeFileSync(testFile, 'test');
   fs.unlinkSync(testFile);
 } catch (err) {
-  throw new Error(`tmp_search_dir validation failed: ${err.message}`);
+  throw new Error(`apiserver.tmp_search_dir validation failed: ${err.message}`);
 }
 
 // === rmblast_bin_dir ===
