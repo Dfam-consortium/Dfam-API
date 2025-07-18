@@ -26,6 +26,45 @@ const DISTINCT_COLORS = [
 ];
 
 
+function computeCigar(ref, cons) {
+  let cigar = '';
+  let count = 0;
+  let op = '';
+
+  const length = ref.length;
+
+  for (let i = 0; i < length; i++) {
+    const r = ref[i];
+    const c = cons[i];
+
+    let thisOp;
+    if (r === '-' && c !== '-') {
+      thisOp = 'D';
+    } else if (r !== '-' && c === '-') {
+      thisOp = 'I';
+    } else {
+      thisOp = 'M';
+    }
+
+    if (thisOp === op) {
+      count += 1;
+    } else {
+      if (op) {
+        cigar += `${count}${op}`;
+      }
+      op = thisOp;
+      count = 1;
+    }
+  }
+
+  if (op) {
+    cigar += `${count}${op}`;
+  }
+
+  return cigar;
+}
+
+
 async function generate_temp_family_fasta(accession) {
   const fam = await family.getFamilyWithConsensus(accession);
   if (!fam) {
@@ -41,7 +80,7 @@ async function generate_temp_family_fasta(accession) {
   await fs.mkdir(config.apiserver.tmp_search_dir, { recursive: true });
   await fs.writeFile(fastaFile, fastaContent);
 
-  return fastaFile;
+  return { fastaFile, familyName: fam.name || null };
 }
 
 
@@ -149,7 +188,7 @@ async function rmblastn_query(args, expectedFields = 10) {
  */
 async function dfam_relationship_search(accession) {
   // Step 1: Create FASTA file from Dfam consensus
-  const fastaFile = await generate_temp_family_fasta(accession);
+  const { fastaFile, familyName } = await generate_temp_family_fasta(accession);
 
   // Step 2: Build rmblastn args
   const args = [
@@ -176,7 +215,13 @@ async function dfam_relationship_search(accession) {
   const assign_color = color_assigner_factory();
 
   // Step 4: Parse output lines
-  const parsed = raw.map(fields => {
+  const parsed = raw
+    .filter(fields => {
+      const sseqid = fields[4];
+      const sseqidPrefix = sseqid.split('#')[0];
+      return sseqidPrefix !== familyName;
+    })
+    .map(fields => {
     const [
       score, qstart, qend, sstrand, sseqid,
       sstart, send, slen, qseq, sseq
@@ -194,6 +239,10 @@ async function dfam_relationship_search(accession) {
       [sstartNum, sendNum] = [sendNum, sstartNum];
       strand = '-';
     }
+   
+    const cigar = computeCigar(qseq, sseq);
+    const ungapped_qseq = qseq.replace(/-/g, '')
+    const ungapped_sseq = sseq.replace(/-/g, '')
 
     return {
       ref_start: Math.min(qstartNum, qendNum),
@@ -206,8 +255,9 @@ async function dfam_relationship_search(accession) {
       score: parseFloat(score),
       ref_seq: accession,
       cons_seq: sseqid,
-      qseq,
-      sseq
+      qseq: ungapped_qseq,
+      sseq: ungapped_sseq,
+      cigar
     };
   });
 
@@ -233,7 +283,7 @@ async function dfam_relationship_search(accession) {
     osize: hit.cons_len,
     seq: hit.qseq,
     oseq: hit.sseq,
-    cigar: "TODO"
+    cigar: hit.cigar 
   }));
 
   // Step 9: Cleanup temp FASTA
@@ -389,7 +439,7 @@ function clusterSelfAlignments(alignments) {
  */
 async function self_search(accession) {
   // Step 1: Generate FASTA file and get filename
-  const fastaFile = await generate_temp_family_fasta(accession);
+  const { fastaFile, familyName } = await generate_temp_family_fasta(accession);
 
   // Step 2: Construct rmblastn arguments
   const args = [
@@ -583,7 +633,7 @@ function color_assigner_factory() {
  * }>>} List of blastx hits with filtered and color-coded records.
  */
 async function protein_search(accession) {
-  const fastaFile = await generate_temp_family_fasta(accession);
+  const { fastaFile, familyName } = await generate_temp_family_fasta(accession);
 
   const args = [
     '-db', config.repeat_peps_db,
@@ -710,7 +760,7 @@ async function ultra_query(args) {
  * }>>} List of annotated feature records.
  */
 async function ultra_search(accession) {
-  const fastaFile = await generate_temp_family_fasta(accession);
+  const { fastaFile, familyName } = await generate_temp_family_fasta(accession);
 
   let results = await ultra_query([fastaFile, '--hs', '-t', '4']);
 
