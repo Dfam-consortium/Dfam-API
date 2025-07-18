@@ -155,12 +155,12 @@ async function dfam_relationship_search(accession) {
   const args = [
     '-db', config.dfam_curated_db,
     '-query', fastaFile,
-    '-num_alignments', '9999999',
+    '-num_alignments', '300',  // Currently limited for brevity
     '-gapopen', '20',
     '-gapextend', '5',
     '-complexity_adjust',
-    '-mask_level', '80',
-    '-word_size', '14',
+    '-mask_level', '101',  // All hits up to num_alignments
+    '-word_size', '7', // High sensitivity (if we have the compute resources)
     '-xdrop_ungap', '400',
     '-xdrop_gap_final', '200',
     '-xdrop_gap', '100',
@@ -214,8 +214,8 @@ async function dfam_relationship_search(accession) {
   // Step 5: Sort by decreasing score
   parsed.sort((a, b) => b.score - a.score);
 
-  // Step 6: Filter by max track depth (10)
-  const deduped = filter_by_depth(parsed, 'ref_start', 'ref_end', 10);
+  // Step 6: Filter by max track depth 100
+  const deduped = filter_by_depth(parsed, 'ref_start', 'ref_end', 100);
 
   // Step 7: (Optional) Chain alignments (stub for now)
   // TODO: Implement chaining logic if required
