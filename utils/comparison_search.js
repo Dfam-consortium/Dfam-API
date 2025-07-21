@@ -281,8 +281,8 @@ async function dfam_relationship_search(accession) {
     ostart: hit.cons_start,
     oend: hit.cons_end,
     osize: hit.cons_len,
-    seq: hit.qseq,
-    oseq: hit.sseq,
+    seq: hit.sseq,  // NOTE: For IGV we are using seq to represent the annotation sequence, and oseq to represent the reference sequence
+    oseq: hit.qseq,
     cigar: hit.cigar 
   }));
 
