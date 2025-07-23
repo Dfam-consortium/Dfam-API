@@ -33,13 +33,13 @@ const launchServer = async () => {
 if (require.main === module) {
   launchServer().catch((e) => {
     logger.error({
-      message: 'Express Server failure',
-      error: e.message || e.toString(),
+      message: 'Express Server failure ' + e.message || e.toString(),
+      error: e.error || '',
       stack: e.stack || '',
       url: '',
       code: e.code || '',
     });
-    console.error(e); // Dev-friendly trace
+    console.error(e); 
   });
 }
 

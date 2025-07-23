@@ -16,6 +16,8 @@ The core functionality of the API depends on:
 * A mysql database server with Dfam databases.
 * Dfam-warehouse directories containing reference genomes, te_idx annotation sets, 
   temporary result caches, and temporary files.
+* A subset of resource intensive endpoints have additional hCaptcha controls 
+  implemented using Altcha to deter automated usage.
 
 Some functionality requires these additional tools:
 

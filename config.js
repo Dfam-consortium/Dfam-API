@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const { randomBytes } = require('node:crypto');
 
 let conf_file = process.env.DFAM_CONF || '../Conf/dfam.conf';
 const conf = JSON.parse(fs.readFileSync(conf_file));
@@ -13,6 +14,8 @@ const config = {
   URL_PATH: 'https://dfam.org',
   HTTPS_CERT_PATH: process.env.HTTPS_CERT_PATH || null,
   HTTPS_KEY_PATH: process.env.HTTPS_KEY_PATH || null,
+  REQUIRE_ALTCHA: true,
+  ALTCHA_HMAC_KEY: process.env.ALTCHA_HMAC_KEY || randomBytes(16).toString('hex'),
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,

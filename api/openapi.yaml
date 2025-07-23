@@ -681,35 +681,46 @@ paths:
       - families
       x-eov-operation-handler: controllers/FamiliesController
   /families/{id}/dfam_relationships:
-    get:
+    post:
+      summary: Retrieve related Dfam families based on overlap or sequence similarity
       description: Return relationships between this family and other Dfam families.
       operationId: readDfamRelationships
+      tags:
+        - families
       parameters:
-      - description: Dfam family accession
-        explode: false
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-        style: simple
+        - name: id
+          in: path
+          required: true
+          description: Dfam family accession
+          schema:
+            type: string
+      requestBody:
+        description: Payload containing the Altcha verification token
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - altcha_payload
+              properties:
+                altcha_payload:
+                  type: string
+                  description: Encoded Altcha solution payload
       responses:
         "200":
+          description: Related Dfam family hits
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FamilyRelationshipSearchResponse'
-          description: Related Dfam family hits
         default:
+          description: Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-          description: Error
-      summary: Retrieve related Dfam families based on overlap or sequence similarity
-      tags:
-      - families
       x-eov-operation-handler: controllers/FamiliesController
+    x-swagger-router-controller: Families
   /families/{id}/protein_alignments:
     get:
       description: Return protein hits aligned to the consensus sequence of the given
