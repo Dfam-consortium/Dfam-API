@@ -42,6 +42,21 @@ tags:
 - description: Access to search submission system
   name: searches
 paths:
+  /altcha:
+    get:
+      description: Get an Altcha challenge
+      operationId: getAltchaChallenge
+      tags:
+      - altcha
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/altchaResponse'
+          description: successful operation
+      x-eov-operation-handler: controllers/AltchaController
+    x-swagger-router-controller: Altcha
   /version:
     get:
       description: Return the version of the API.
@@ -2173,6 +2188,21 @@ components:
           type: string
       required:
       - id
+      type: object
+    altchaResponse:
+      properties:
+        algorithm:
+          description: Altcha algorithm
+          type: string
+        maxnumber:
+          description: maxnumber
+          type: integer
+        salt:
+          description: salt
+          type: string
+        signature:
+          description: Altcha signature
+          type: string
       type: object
     versionResponse:
       example:

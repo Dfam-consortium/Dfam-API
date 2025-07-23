@@ -15,6 +15,7 @@ require('./workerPool');
 
 // Launch the Express server
 let expressServer = null;
+
 const launchServer = async () => {
   try {
     expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
@@ -22,17 +23,31 @@ const launchServer = async () => {
     logger.info('Express server running');
     return expressServer;
   } catch (error) {
-    logger.error('Express Server failure', error.message);
-    if (expressServer && expressServer.close) await expressServer.close();
-    throw error;
+    if (expressServer && expressServer.close) {
+      await expressServer.close();
+    }
+    throw error; // Let the outer catch handle logging
   }
 };
 
+if (require.main === module) {
+  launchServer().catch((e) => {
+    logger.error({
+      message: 'Express Server failure',
+      error: e.message || e.toString(),
+      stack: e.stack || '',
+      url: '',
+      code: e.code || '',
+    });
+    console.error(e); // Dev-friendly trace
+  });
+}
+
 // Only auto-start the server if run directly, not when imported by tests
 //launchServer().catch(e => logger.error(e));
-if (require.main === module) {
-  launchServer().catch(e => logger.error(e));
-}
+//if (require.main === module) {
+//  launchServer().catch(e => logger.error(e));
+//}
 
 module.exports = {
   expressServer,

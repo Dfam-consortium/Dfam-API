@@ -9,8 +9,10 @@ const conf = JSON.parse(fs.readFileSync(conf_file));
 // overriden.
 const config = {
   ROOT_DIR: __dirname,
-  URL_PORT: 10012,
+  URL_PORT: 10008,
   URL_PATH: 'https://dfam.org',
+  HTTPS_CERT_PATH: process.env.HTTPS_CERT_PATH || null,
+  HTTPS_KEY_PATH: process.env.HTTPS_KEY_PATH || null,
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,

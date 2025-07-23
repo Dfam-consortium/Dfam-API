@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const swaggerUI = require('swagger-ui-express');
@@ -78,11 +79,26 @@ class ExpressServer {
     });
   }
 
+  //async launch() {
+  //  http.createServer(this.app).listen(this.port);
+  //  logger.info(`Listening on port ${this.port}`);
+  //}
   async launch() {
-    http.createServer(this.app).listen(this.port);
-    logger.info(`Listening on port ${this.port}`);
-  }
+    if (config.HTTPS_CERT_PATH && config.HTTPS_KEY_PATH) {
+      const httpsOptions = {
+        key: fs.readFileSync(config.HTTPS_KEY_PATH),
+        cert: fs.readFileSync(config.HTTPS_CERT_PATH),
+      };
 
+      this.server = https.createServer(httpsOptions, this.app).listen(this.port, () => {
+        logger.info(`HTTPS server listening on port ${this.port}`);
+      });
+    } else {
+      this.server = http.createServer(this.app).listen(this.port, () => {
+        logger.info(`HTTP server listening on port ${this.port}`);
+      });
+    }
+  }
 
   async close() {
     if (this.server !== undefined) {
