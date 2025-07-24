@@ -639,14 +639,14 @@ async function protein_search(accession) {
     '-db', config.repeat_peps_db,
     '-query', fastaFile,
     '-word_size', '2',
-    '-outfmt', '6 evalue qseqid qstart qend qlen sseqid sstart send slen sseq',
+    '-outfmt', '6 evalue qseqid qstart qend qlen sseqid sstart send slen sseq qseq',
     '-evalue', '0.001',
     '-num_threads', '8',
   ];
 
   let raw;
   try {
-    raw = await blastx_query(args, 10);
+    raw = await blastx_query(args, 11);
   } catch (err) {
     throw new Error(`blastx_query failed: ${err.message}`);
   }
@@ -654,7 +654,7 @@ async function protein_search(accession) {
   const parsed = raw.map(fields => {
     const [
       evalue, qseqid, qstart, qend, qlen,
-      sseqid, sstart, send, slen, oseq
+      sseqid, sstart, send, slen, oseq, seq
     ] = fields;
 
     const qstartNum = parseInt(qstart);
@@ -662,6 +662,10 @@ async function protein_search(accession) {
     const sstartNum = parseInt(sstart);
     const sendNum = parseInt(send);
     const slenNum = parseInt(slen);
+
+    let filtered_oseq = [...seq]
+     .map((s, i) => s !== '-' ? oseq[i] : '')
+     .join('');
 
     return {
       ref_start: Math.min(qstartNum, qendNum),
@@ -674,7 +678,7 @@ async function protein_search(accession) {
       score: parseFloat(evalue),
       ref_seq: qseqid,
       cons_seq: sseqid,
-      oseq: oseq
+      oseq: filtered_oseq
     };
   });
 

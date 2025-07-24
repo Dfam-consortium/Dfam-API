@@ -181,6 +181,7 @@ Large download requests are cached in `/u2/webresults/browse-cache`. The filenam
 
 ## PLANS
 - Migrate to ES from commonjs
+- Migrate to express codegen 7.x -- as warranted
 - In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
 option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
 - I would like to rename /families/{id}/sequence to /families/{id}/consensus
