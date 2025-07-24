@@ -10,6 +10,12 @@ config.validateConfig();
 logger.info("DFAM-API Version " + config.VERSION_MAJOR + "." +
             config.VERSION_MINOR + "." + config.VERSION_BUGFIX);
 
+if (config.REQUIRE_ALTCHA) {
+  logger.info("DFAM-API Altcha verification for private endpoints is turned ON");
+}else {
+  logger.info("DFAM-API Altcha verification for private endpoints is turned OFF");
+}
+
 // Startup threaded operation (workers)
 require('./workerPool');
 

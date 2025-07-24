@@ -14,7 +14,7 @@ const config = {
   URL_PATH: 'https://dfam.org',
   HTTPS_CERT_PATH: process.env.HTTPS_CERT_PATH || null,
   HTTPS_KEY_PATH: process.env.HTTPS_KEY_PATH || null,
-  REQUIRE_ALTCHA: true,
+  REQUIRE_ALTCHA: false,
   ALTCHA_HMAC_KEY: process.env.ALTCHA_HMAC_KEY || randomBytes(16).toString('hex'),
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),

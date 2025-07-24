@@ -16,7 +16,7 @@ const logger = require('../logger');
 const fs = require('fs/promises');
 
 /**
- * Retrieve related Dfam families based on sequence similarity or overlap.
+ * Retrieve related Dfam families based on sequence similarity.
  *
  * @param {Object} params - The input parameters.
  * @param {string} params.id - The Dfam family accession.

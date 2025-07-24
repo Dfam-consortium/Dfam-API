@@ -71,7 +71,7 @@ class ExpressServer {
       //
       // IMPORTANT...this is where the runtime errors often show up
       // 
-      //console.error(err); // dump error to console for debug
+      console.error(err); // dump error to console for debug
       res.status(err.status || 500).json({
         message: err.message,
         errors: err.errors,

@@ -6,6 +6,7 @@ with open("openapi.yaml") as f:
 
 # Remove specific endpoints
 paths_to_remove = [
+    "/altcha",
     "/families/{id}/dfam_relationships",
     "/families/{id}/protein_alignments",
     "/families/{id}/self_alignments",
@@ -13,6 +14,7 @@ paths_to_remove = [
 ]
 
 schemas_to_remove = [
+    "altchaResponse",
     "TandemRepeatSearchResponse",
     "TandemRepeatSearchResponse_repeats_inner",
     "SelfAlignmentSearchResponse",
