@@ -15,8 +15,8 @@ const config = require('../config');
 
 async function decompressCoMSA(compressed) {
   const [compressedFile, decompressedFile] = await Promise.all([
-    tmpFileAsync({ detatchDescriptor: true }),
-    tmpFileAsync({ detatchDescriptor: true }),
+    tmpFileAsync({ detachDescriptor: true }),
+    tmpFileAsync({ detachDescriptor: true }),
   ]);
 
   try {
@@ -29,7 +29,6 @@ async function decompressCoMSA(compressed) {
   }finally {
     compressedFile.cleanup();
     decompressedFile.cleanup();
-    //try { await fs.unlink(fastaFile); } catch (err) { throw new Error(`Could not unlink file ${fastaFile}: ${err.message}`); }
   }
   return contents;
 }
