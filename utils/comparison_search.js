@@ -276,6 +276,7 @@ async function dfam_relationship_search(accession) {
     start: hit.ref_start,
     end: hit.ref_end,
     name: hit.name,
+    score: hit.score,
     color: assign_color(hit.cons_seq),
     strand: hit.orient,
     ostart: hit.cons_start,
