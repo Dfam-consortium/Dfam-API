@@ -19,15 +19,18 @@ async function decompressCoMSA(compressed) {
     tmpFileAsync({ detatchDescriptor: true }),
   ]);
 
-  await promisify(fs.writeFile)(compressedFile.path, compressed);
+  try {
+    await promisify(fs.writeFile)(compressedFile.path, compressed);
 
-  const comsa_bin = path.join(config.comsa_bin_dir, 'CoMSA');
-  await execFileAsync(comsa_bin, ["Sd", compressedFile.path, decompressedFile.path]);
-
-  const contents = await promisify(fs.readFile)(decompressedFile.path, {encoding: 'utf-8'});
-  compressedFile.cleanup();
-  decompressedFile.cleanup();
-
+    const comsa_bin = path.join(config.comsa_bin_dir, 'CoMSA');
+    await execFileAsync(comsa_bin, ["Sd", compressedFile.path, decompressedFile.path]);
+  
+    const contents = await promisify(fs.readFile)(decompressedFile.path, {encoding: 'utf-8'});
+  }finally {
+    compressedFile.cleanup();
+    decompressedFile.cleanup();
+    //try { await fs.unlink(fastaFile); } catch (err) { throw new Error(`Could not unlink file ${fastaFile}: ${err.message}`); }
+  }
   return contents;
 }
 
@@ -45,11 +48,6 @@ async function seedAlignToStockholm(family) {
   }
 
   const original_msa = await decompressCoMSA(family.seed_align_data.comsa_data);
-
-  // split by lines
-  // read original eheaders
-  // replace headers
-  // emit new headers + seqs
 
   let stockholmStr = "# STOCKHOLM 1.0\n";
 
@@ -167,7 +165,6 @@ function parseStockholmMSA(msaLines) {
 }
 
 
-
 function collapseOps(ops) {
   const result = [];
   let currOp = null;
@@ -247,21 +244,15 @@ async function msaToSam(seqEntry, rfLine, accession) {
   return [qname, flag, accession, pos, mapq, cigar, "*", 0, 0, seqStr, qual].join("\t");
 }
 
-
-
-
 // Converts a full stockholm seed alignment into a list of SAM lines
 async function comsaToSam(accession, comsa_data) {
   const seed_stk = await decompressCoMSA(comsa_data);
   const seed_stk_lines = seed_stk.split(/\r?\n/); // handles Unix & Windows newlines
-  //logger.info(`comsaToSam seed_stk=${seed_stk}`);
   let { rf, sequences } = parseStockholmMSA(seed_stk_lines);
   rf = rf.replace(/-/g,'.');
-  //logger.info(`rf=${rf}`);
   const samLines = await Promise.all(
     sequences.map(seq => msaToSam(seq, rf, accession))
   );
-    //console.log(`comsaToSam sam=${samLines}`);
   return samLines.join("\n");
 }
 
