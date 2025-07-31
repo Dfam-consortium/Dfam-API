@@ -5,7 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 const family = require('./family'); 
 const fasta = require('./fasta'); 
-//const logger = require('../logger');
+const logger = require('../logger');
 
 
 const DISTINCT_COLORS = [
@@ -525,8 +525,8 @@ async function self_search(accession) {
   // TODO: There seems to be some confusion over 1/0-based ranges....clear this up and
   // fix examples in openAPI.yaml as well
   const final = deduped.map(hit => ({
-    start: hit.ref_start,
-    end: hit.ref_end,
+    start: Math.min(hit.ref_start, hit.cons_start),
+    end: Math.max(hit.ref_end, hit.cons_end),
     pstart: hit.ref_start,
     pend: hit.ref_end,
     sstart: hit.cons_start,
