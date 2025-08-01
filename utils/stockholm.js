@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
 const wrap = require('word-wrap');
-//const logger = require("../logger");
+const logger = require("../logger");
 
 
 const { tmpFileAsync, execFileAsync } = require('./async');
@@ -14,22 +14,18 @@ const config = require('../config');
 
 
 async function decompressCoMSA(compressed) {
-  const [compressedFile, decompressedFile] = await Promise.all([
-    tmpFileAsync({ detachDescriptor: true }),
-    tmpFileAsync({ detachDescriptor: true }),
-  ]);
-
-  try {
+    const [compressedFile, decompressedFile] = await Promise.all([
+      tmpFileAsync({ detachDescriptor: true }),
+      tmpFileAsync({ detachDescriptor: true }),
+    ]);
     await promisify(fs.writeFile)(compressedFile.path, compressed);
 
     const comsa_bin = path.join(config.comsa_bin_dir, 'CoMSA');
     await execFileAsync(comsa_bin, ["Sd", compressedFile.path, decompressedFile.path]);
   
     const contents = await promisify(fs.readFile)(decompressedFile.path, {encoding: 'utf-8'});
-  }finally {
     compressedFile.cleanup();
     decompressedFile.cleanup();
-  }
   return contents;
 }
 
