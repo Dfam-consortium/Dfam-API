@@ -14,6 +14,7 @@ const config = require('../config');
 
 
 async function decompressCoMSA(compressed) {
+    // TODO: This is fragile and needs revisiting
     const [compressedFile, decompressedFile] = await Promise.all([
       tmpFileAsync({ detachDescriptor: true }),
       tmpFileAsync({ detachDescriptor: true }),

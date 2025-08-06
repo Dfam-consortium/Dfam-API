@@ -7,14 +7,18 @@ const conf = JSON.parse(fs.readFileSync(conf_file));
 
 // All these values could potentially be overriden by the conf_file
 // however the expectation is only the lowercase fields will be
-// overriden.
+// overriden. 
+//
+// Please ensure that URL_PORT is set to 10011 prior to creating
+// a release
+//
 const config = {
   ROOT_DIR: __dirname,
-  URL_PORT: 10008,
+  URL_PORT: 10011,
   URL_PATH: 'https://dfam.org',
   HTTPS_CERT_PATH: process.env.HTTPS_CERT_PATH || null,
   HTTPS_KEY_PATH: process.env.HTTPS_KEY_PATH || null,
-  REQUIRE_ALTCHA: false,
+  REQUIRE_ALTCHA: true,
   ALTCHA_HMAC_KEY: process.env.ALTCHA_HMAC_KEY || randomBytes(16).toString('hex'),
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
