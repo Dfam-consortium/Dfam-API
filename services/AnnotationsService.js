@@ -21,8 +21,8 @@ const readAnnotations = ({ assembly, chrom, start, end, family, nrph }) => new P
   async (resolve, reject) => {
     try {
       //Useful for tagging related log messages together
-      //let rtoken = Math.random();
-      //logger.info(`readAnnotations(${rtoken}): assembly=${assembly}, chrom=${chrom}, start=${start}, end=${end}, family=${family}, nrph=${nrph}`);
+      let rtoken = Math.random();
+      logger.info(`readAnnotations(${rtoken}): assembly=${assembly}, chrom=${chrom}, start=${start}, end=${end}, family=${family}, nrph=${nrph}`);
       
       // Fixed: This was defined as implicitly global (e.g. not 'let', 'const' or 'var').  
       let family_accession = family;

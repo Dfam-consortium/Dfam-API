@@ -167,7 +167,7 @@ const readFamilyAssemblyAnnotations = (req, res, { id, assembly_id, nrph, downlo
       });
 
       if (! full_assembly) {
-        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+        reject(Service.rejectResponse(`Assembly ${assembly_id} Not Found`, 404));
       } else {
         full_assembly = full_assembly.schema_name;
       }
@@ -318,7 +318,7 @@ const readFamilyAssemblyModelCoverage = ({ id, assembly_id, model }) => new Prom
       });
       
       if (coverage) {
-        data = coverage.dataValues;
+        let data = coverage.dataValues;
         resolve(Service.successResponse({
           "nrph": data.nrph.toString(),
           "nrph_hits": data.num_full_nrph,

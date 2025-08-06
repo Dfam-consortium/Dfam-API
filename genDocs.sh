@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 input_file="api/openapi_cleaned.yaml"
 output_file="api/openapi-with-prefix.yaml"
 

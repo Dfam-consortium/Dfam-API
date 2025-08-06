@@ -24,8 +24,8 @@ const config = {
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,
   VERSION_MAJOR: '5',
-  VERSION_MINOR: '0',
-  VERSION_BUGFIX: '1',
+  VERSION_MINOR: '1',
+  VERSION_BUGFIX: '0',
   CACHE_CUTOFF: 100,
   apiserver: { 
     db_timezone: 'America/Los_Angeles',
@@ -44,6 +44,7 @@ const config = {
   ultra_bin_dir: '',
   rmblast_matrix_dir: '',
   ...conf
+
 };
 
 config.OPENAPI_YAML = path.join(config.ROOT_DIR, 'api', 'openapi.yaml');

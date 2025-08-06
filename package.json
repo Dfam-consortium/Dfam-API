@@ -1,6 +1,6 @@
 {
   "name": "dfam-rest-api",
-  "version": "0.4.0",
+  "version": "5.0.0",
   "description": "The Dfam REST API provides a means for programs and scripts to access information from the current release of the Dfam database. It provides the core functionality used by the dfam.org website and is offered for use  in community developed applications and workflows.   For more information on getting started with the Dfam API, see the documentation and examples at [https://dfam.org/help/api](https://dfam.org/help/api)  ### Known Consumers https://dfam.org/  ### Authors Robert Hubley, Arian Smit, Travis Wheeler, Jeb Rosen, Anthony Gray  Copyright 2016-2023 Institute for Systems Biology",
   "main": "index.js",
   "scripts": {
@@ -42,6 +42,7 @@
     "tmp": "^0.2.3",
     "winston": "^3.17.0",
     "word-wrap": "^1.2.5"
+
   },
   "devDependencies": {
     "artillery": "^2.0.23",
@@ -55,6 +56,9 @@
     "env": {
       "node": true
     }
+  },
+  "ava": {
+    "timeout": "80s"
   },
   "watch": {
     "start": [

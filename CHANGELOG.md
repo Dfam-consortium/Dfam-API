@@ -4,7 +4,6 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-
 ## 5.1.0 - in prep
  - Upgraded from express-openapi-validator 5.0.4 to 5.5.7
  - Upgraded express from 4.16.4 to 5.1.0
@@ -20,6 +19,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      o /families/{id}/protein_alignments
      o /families/{id}/self_alignments
  - Added new SAM format for /families/{id}/seed?format=sam 
+
+## 5.0.1 - 2025-06-11
+- Fixed a bug where downloaded files would often not include the last few families from the search
+
+## 5.0.0 - 2025-03-10
+- Added the TE_idx subsystem for faster annotation retrieval
+
+## 0.4.0  -
 
 ## 0.3.11 - 2021-03-18
 - Re-release for dependency updates

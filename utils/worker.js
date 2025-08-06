@@ -107,7 +107,6 @@ const fasta_command = async function ({ accessions, write_file = null }) {
       logger.error({ error: { error: `Missing family for accession: ${acc}`, code: 404 } });
       return;
     }
-
     const write_data = fasta.exportFasta(fam);
     if (write_file) {
       await appendFile(write_file, write_data);

@@ -1,13 +1,15 @@
 const { transports, createLogger, format } = require('winston');
-const { combine, printf } = format;
+
+const {combine, printf} = format;
 const moment = require('moment-timezone');
 
 const appendTimestamp = format((info, opts) => {
-  if(opts.tz)
-    time = moment().tz(opts.tz).format();
-  times = time.split("T");
-  info.date = times[0];
-  info.time = times[1];
+  if(opts.tz) {
+    let time = moment().tz(opts.tz).format();
+    let times = time.split("T");
+    info.date = times[0];
+    info.time = times[1];
+  }
   return info;
 });
 

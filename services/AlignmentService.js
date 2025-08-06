@@ -10,7 +10,7 @@ const zlib = require("zlib");
 
 const Service = require('./Service');
 const te_idx = require("../utils/te_idx.js");
-const logger = require('../logger');
+
 
 const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
   try {
@@ -20,14 +20,14 @@ const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
     // winston.debug(`nhmmer_out: ${nhmmer_out}`);
     let lines = nhmmer_out.split(/[\r\n]/);
     let lineIndex = 0;
-    function advanceAndMatch(regex) {
+    const advanceAndMatch = (regex) => {
       let match;
       while (!match && lineIndex < lines.length) {
         match = regex.exec(lines[lineIndex]);
         lineIndex += 1;
       }
       return match;
-    }
+    };
 
     // Pick out the query identifier ( Dfam family ) from the output.  E.g
     //      Query:       ORR1A2  [M=327]

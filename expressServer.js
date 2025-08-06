@@ -2,7 +2,6 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const swaggerUI = require('swagger-ui-express');
 const jsYaml = require('js-yaml');
 const express = require('express');
 const cors = require('cors');
@@ -68,10 +67,12 @@ class ExpressServer {
 
     // Setup error handler
     this.app.use((err, req, res, next) => {
+
       //
       // IMPORTANT...this is where the runtime errors often show up
       // 
       console.error(err); // dump error to console for debug
+
       res.status(err.status || 500).json({
         message: err.message,
         errors: err.errors,

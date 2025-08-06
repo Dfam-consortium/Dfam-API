@@ -301,7 +301,6 @@ test.serial('post self_alignments success', async t => {
   t.truthy(body[0].color);
 });
 
-
 // AlignmentService 
 test.serial('get alignment success', async t => {
   const body = await get_body('/alignment?assembly=hg38&chrom=chr1&start=86228458&end=86238717&family=DF000000001');
@@ -422,7 +421,6 @@ test.serial('search families classification', async t => {
 // NOTE: This number changes per release.  In Dfam 3.9 it's 1510 ( LINE-dependent_Retroposon;SINE + ERV1;SINE-like )
 test.serial('search families type', async t => {
   const body = await get_body('/families?type=SINE');
-  console.log("search families type returned: " + body.total_count);
   t.true(body.total_count == 1510);
 });
 

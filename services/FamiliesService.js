@@ -118,6 +118,7 @@ const readTandemRepeats = ({ id }) => new Promise(async (resolve, reject) => {
  *   @property {number} payload.total_count - Total matching rows across all pages.
  *   @property {Object[]} payload.results - Array of mapped family objects.
  */
+
 // TODO Move these functions to utils/family.js
 async function familyRowsToObjects(total_count, rows, format, copyright, download) {
   // Download isn't applicable here yet?
@@ -452,6 +453,9 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       if (!format) {
         format = "summary";
       }
+      else if ( format !== 'full' && format !== 'summary' && !(format in extensions) ) {
+        resolve(Service.rejectResponse( "Unrecognized format: " + format, 400 ));
+      }
 
       // If cache is being built, return message
       if ( download && await fs.access(working_file).then(()=> true).catch(()=> false)) {
@@ -532,6 +536,8 @@ const readFamilies = ({...args} = {}, { format, sort, name, name_prefix, name_ac
       
       // if caching, a working file will be written to instead of formatted.body 
       let formatted = await format_rules.mapper(total_count, rows, format, copyright=null, download, write_file = caching ? working_file : null);
+      //let write_file = caching ? working_file : null;
+      //let formatted = await format_rules.mapper(total_count, rows, format, null, download, write_file);
 
       if (download && !formatted) {
         let message = `Formatting Failed for ${args_hash}`;

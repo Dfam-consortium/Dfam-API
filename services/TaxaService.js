@@ -105,7 +105,7 @@ const readTaxaById = async function({ id }) {
     return  Service.rejectResponse(
       e.message || 'Invalid input',
       e.status || 405 );
-  };
+  }
 };
 
       
