@@ -7,3 +7,4 @@ combined.log
 error.log
 openapi.yaml.sans_example
 redoc-static.html
+certs/*.pem

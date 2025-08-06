@@ -3,25 +3,10 @@ const path = require('path');
 const camelCase = require('camelcase');
 const config = require('../config');
 const logger = require('../logger');
+const { verifySolution } = require('altcha-lib');
 
 
 class Controller {
-
-  /**
-  * Files have been uploaded to the directory defined by config.js as upload directory
-  * Files have a temporary name, that was saved as 'filename' of the file object that is
-  * referenced in request.files array.
-  * This method finds the file and changes it to the file name that was originally called
-  * when it was uploaded. To prevent files from being overwritten, a timestamp is added between
-  * the filename and its extension
-  * @param request
-  * @param fieldName
-  * @returns {string}
-  *    * Supported properties:
-  *          content_type
-  *          attachment
-  *
-  */
   static sendResponse(response, serviceResponse) {
     /**
     * The default response-code is 200. We want to allow to change that. in That case,
@@ -29,26 +14,21 @@ class Controller {
     * send 200 and the serviceResponse as received in this method.
     */
     response.status(serviceResponse.code || 200);
-    // RMH:
+
+    // Dfam-API customizations
     if ( serviceResponse.attachment !== undefined ) {
-      //console.log("attachment = " + serviceResponse.attachment);
       response.attachment(serviceResponse.attachment);
     }
     if ( serviceResponse.content_type !== undefined ) {
-      //console.log("content type = " + serviceResponse.content_type);
       response.type(serviceResponse.content_type);
     }
-    //if ( serviceResponse.payload !== undefined ) {
-    //   console.log("Outputing serviceResponse");
-    //}else {
-    //  console.log("Outputing serviceResponse.payload");
-    // }
     if ( serviceResponse.encoding !== undefined ) {
-      //console.log("encoding = " + serviceResponse.encoding );
       response.set('Content-Encoding', serviceResponse.encoding);
     }
+
     const responsePayload = serviceResponse.payload !== undefined ? serviceResponse.payload : serviceResponse;
     if (responsePayload instanceof Object) {
+      // Dfam-API customizations
       if ( serviceResponse.encoding !== undefined ) {
         response.send(responsePayload);
       }else {
@@ -95,6 +75,9 @@ class Controller {
     return uploadedFileName;
   }
 
+  // Dfam-API : Note this uses a non-standard vendor extension to the OpenAPI spec.  It
+  //            requires the use of x-codegen-request-body-name to refer to the function that
+  //            will handle the service request.
   static getRequestBodyName(request) {
     const codeGenDefinedBodyName = request.openapi.schema['x-codegen-request-body-name'];
     if (codeGenDefinedBodyName !== undefined) {
@@ -152,10 +135,10 @@ class Controller {
   static async handleRequest(request, response, serviceOperation) {
     try {
       const start = new Date();
-      //console.log(JSON.stringify(request.query));
       let client_ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
       const serviceResponse = await serviceOperation(this.collectRequestParams(request));
       Controller.sendResponse(response, serviceResponse);
+      // Dfam-API Customizations
       const time = new Date() - start;
       let urls = request.url.split("?");
       let endpoint = urls[0];
@@ -170,6 +153,36 @@ class Controller {
     }
   }
 
+  // Dfam-API Custom handler
+  static async handleAltchaRequest(request, response, serviceOperation) {
+    try {
+      const id = request.params.id;
+      if ( config.REQUIRE_ALTCHA ) {
+        const altcha_payload = request.body?.altcha_payload;
+  
+        if (!altcha_payload) {
+          return response.status(400).json({
+                  message: 'Private endpoint (status: 1)',
+          });
+        }
+
+  
+        const verified = await verifySolution(String(altcha_payload), config.ALTCHA_HMAC_KEY)
+
+  
+        if (!verified) {
+          return response.status(403).json({
+                 message: 'Private endpoint (status: 2)', });
+        }
+      }
+      await this.handleRequest(request, response, serviceOperation);
+    } catch (error) {
+      Controller.sendError(response, error);
+      logger.error({error: error, url: request.url});
+    }
+  }
+
+  // Dfam-API Customizations
   static async handleStream(request, response, serviceOperation) {
     try {
       const start = new Date();

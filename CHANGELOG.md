@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 5.1.0 - in prep
+ - Upgraded from express-openapi-validator 5.0.4 to 5.5.7
+ - Upgraded express from 4.16.4 to 5.1.0
+ - Upgraded ava to 6.4.1
+ - Upgraded supertest to 7.1.3
+ - Added new openAPI.yaml utility to remove endpoints and schemas
+   that we might not want to publish in our documentation.  The
+   script is api/buildPublicYAML.py and will read the openapi.yaml
+   file and create the openapi_cleaned.yaml file.
+ - Added new endpoints to support new Dfam TE Visualization (IGV)
+     o /families/{id}/tandem_repeats
+     o /families/{id}/dfam_relationships
+     o /families/{id}/protein_alignments
+     o /families/{id}/self_alignments
+ - Added new SAM format for /families/{id}/seed?format=sam 
+
 ## 5.0.1 - 2025-06-11
 - Fixed a bug where downloaded files would often not include the last few families from the search
 
@@ -11,7 +27,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added the TE_idx subsystem for faster annotation retrieval
 
 ## 0.4.0  -
-- 
 
 ## 0.3.11 - 2021-03-18
 - Re-release for dependency updates

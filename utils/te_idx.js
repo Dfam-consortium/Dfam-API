@@ -10,7 +10,7 @@ async function query(args) {
     runner.on('close', (code) => {
       if (code !== 0) { reject(code); }
       else { 
-        resolve(JSON.parse(data));
+        resolve(JSON.parse(data)); 
       }
     });
   });

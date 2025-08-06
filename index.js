@@ -1,50 +1,61 @@
-const fs = require('fs');
-const yaml = require('js-yaml');
 const config = require('./config');
 const logger = require('./logger');
 const ExpressServer = require('./expressServer');
-require('./workerPool');
 
-// Generate config.OPENAPI_YAML + ".sans_example" file for OpenAPIValidator 
-//   This is a workaround for a bug in OpenAPIValidator 5.0.4 which
-//   incorrectly reports duplicate 'id:' keys in a OAS 3.0 'example'
-//   definition as a problem.  For this reason we need to strip them
-//   out and generating a *.sans_example file. NOTE: In OAS 3.1 the
-//   'example' tag has been renamed 'examples' for future reference.
-function removeExamplesKeys(obj) {
-  if (typeof obj === "object" && obj !== null) {
-    if (Array.isArray(obj)) {
-      obj.forEach(function (item) {
-        removeExamplesKeys(item);
-      });
-    } else {
-      for (var key in obj) {
-        if (key === "example") {
-          delete obj[key];
-        } else {
-          removeExamplesKeys(obj[key]);
-        }
-      }
-    }
-  }
+// Only validate the configuration in the main thread
+// This avoids race conditions and is more efficient
+config.validateConfig();
+
+// Announce ourselves to the logger
+logger.info("DFAM-API Version " + config.VERSION_MAJOR + "." +
+            config.VERSION_MINOR + "." + config.VERSION_BUGFIX);
+
+if (config.REQUIRE_ALTCHA) {
+  logger.info("DFAM-API Altcha verification for private endpoints is turned ON");
+}else {
+  logger.info("DFAM-API Altcha verification for private endpoints is turned OFF");
 }
 
-
-// Open API OAS 3.0 file and strip out example data.
-let doc = yaml.load(fs.readFileSync(config.OPENAPI_YAML, 'utf-8'));
-removeExamplesKeys(doc);
-fs.writeFileSync(config.OPENAPI_YAML + ".sans_example", yaml.dump(doc));
+// Startup threaded operation (workers)
+require('./workerPool');
 
 // Launch the Express server
+let expressServer = null;
+
 const launchServer = async () => {
   try {
-    this.expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
-    this.expressServer.launch();
+    expressServer = new ExpressServer(config.URL_PORT, config.OPENAPI_YAML);
+    await expressServer.launch();
     logger.info('Express server running');
+    return expressServer;
   } catch (error) {
-    logger.error('Express Server failure', error.message);
-    await this.close();
+    if (expressServer && expressServer.close) {
+      await expressServer.close();
+    }
+    throw error; // Let the outer catch handle logging
   }
 };
 
-launchServer().catch(e => logger.error(e));
+if (require.main === module) {
+  launchServer().catch((e) => {
+    logger.error({
+      message: 'Express Server failure ' + e.message || e.toString(),
+      error: e.error || '',
+      stack: e.stack || '',
+      url: '',
+      code: e.code || '',
+    });
+    console.error(e); 
+  });
+}
+
+// Only auto-start the server if run directly, not when imported by tests
+//launchServer().catch(e => logger.error(e));
+//if (require.main === module) {
+//  launchServer().catch(e => logger.error(e));
+//}
+
+module.exports = {
+  expressServer,
+  launchServer
+};

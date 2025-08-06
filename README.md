@@ -8,19 +8,26 @@ This server provides a RESTful API supporting public access to the Dfam database
 This server was scaffolded using the [OpenAPI Generator](https://openapi-generator.tech) tool and relies heavily on the Sequelize, Piscina, and Swagger open source projects.
 
 ### Prerequisites
-- NodeJS >= 20.3.1
-- NPM >= 9.6.7
+- NodeJS >= 22.17.0
+- NPM >= 10.9.2
 
 The core functionality of the API depends on:
 
-* A mysql database server with Dfam databases
-* Dfam-warehouse directory containing reference genomes and other caches
+* A mysql database server with Dfam databases.
+* Dfam-warehouse directories containing reference genomes, te_idx annotation sets, 
+  temporary result caches, and temporary files.
+* A subset of resource intensive endpoints have additional hCaptcha controls 
+  implemented using Altcha to deter automated usage.
 
 Some functionality requires these additional tools:
 
 * `twoBitToFa`, `faSize` from the UCSC Genome Browser tools suite
 * `nhmmer` from the HMMER suite
 * `HMM_Logos`, specifically webGenLogoImage.pl
+* `CoMSA` MSA decompression tool
+* `te_idx` TE Annotation indexing tool
+* `rmblast` RMBlast alignment tool
+* `ultra` Tandem repeat identification tool
 * A running instance of `dfamdequeuer`, and its own dependencies
 
 Connection URLs and paths are specified in the configuration.
@@ -78,6 +85,10 @@ The tests are stored in the test/artillery folder and can be run using:
   artillery run test.yml
 ```
 
+There are several places in the code that may be changed to produce more verbose levels of debugging output
+- expressServer.js - uncomment 'console.error(err);' near the bottom of the setupMiddleware function
+- Set query.logging on any Sequelize instance to `console.log` or a custom function to log SQL queries
+
 ### npm-watch
 
 `npm-watch` can be used to restart the server when changes are made to any
@@ -110,7 +121,7 @@ npm run build-docs
 
 And to deploy them:
 ```
-cp redoc-static.html /usr/local/Dfam-warehouse/releases/Dfam_3.8/apidocs/index.html
+cp redoc-static.html /usr/local/Dfam-warehouse/releases/Dfam_x.x/apidocs/index.html
          
 ```
 
@@ -169,12 +180,9 @@ Large download requests are cached in `/u2/webresults/browse-cache`. The filenam
 ```
 
 ## PLANS
+- Migrate to ES from commonjs
+- Migrate to express codegen 7.x -- as warranted
 - In the future we may be storing a model mask field for each family.  If so we should move towards providing all sequences in uppercase unless an
 option is provided to apply a mask.  E.g families/DF0000001/sequence?format=fasta?mask=soft 
 - I would like to rename /families/{id}/sequence to /families/{id}/consensus
 - We should consider using a paging interface for any endpoint returning more than a specific number of records.  This would allow us to support full downloads of species libraries.
-
-## Current Changes
-- As a transition towards model masking, I made the FASTA format uppercase by default. EMBL format doesn't explicitly
-  state it can handle uppercase and lowercase in the same sequence.  Perhaps this will have to be an option so that
-  the default EMBL output remains lowercase.

@@ -1,4 +1,5 @@
 const { transports, createLogger, format } = require('winston');
+
 const {combine, printf} = format;
 const moment = require('moment-timezone');
 
@@ -40,7 +41,8 @@ const myFormat = combine(
           err_message = "";
         }
       }
-      return `{"type": "${level}", "message": "${err_message}", "url": "${message.url}", "code": "${code}", "date": "${date}", "time": "${time}"}`;
+      const safeUrl = typeof message === 'object' && message.url ? message.url : '';
+      return `{"type": "${level}", "message": "${err_message}", "url": "${safeUrl}", "code": "${code}", "date": "${date}", "time": "${time}"}`;
     }
     else {
       return `{"type": "${level}", "message": "${message}", "date": "${date}", "time": "${time}"}`;

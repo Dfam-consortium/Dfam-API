@@ -17,6 +17,11 @@
  */
 const test = require('ava');
 const supertest = require('supertest');
+const fs = require('fs');
+const process = require('process');
+const { launchServer } = require('../index');
+const config = require('../config.js');
+const { solveChallenge } = require('altcha-lib');
 
 const winston = require('winston');
 const format = winston.format;
@@ -33,14 +38,24 @@ winston.configure({
 });
 
 //load example sequence
-const fs = require('fs');
 const example_seq = fs.readFileSync('./test/example_sequence.fasta').toString();
 
-// Start up the API server and grab the "express" object
-const app = require('../index').expressServer.app;
-// Hand the express object to supertest to wrap
-const request = supertest(app);
+// Setup global members to hold server
+let request;
+let serverInstance;
 
+test.before(async () => {
+  serverInstance = await launchServer();  // now under your control
+  request = supertest(serverInstance.app); // assuming .app is exposed
+});
+
+test.after.always(async () => {
+  if (serverInstance && serverInstance.close) {
+    await serverInstance.close(); // shuts down cleanly
+  }
+  console.log("Purposefully exiting process after tests -- ignore warning");
+  process.exit(0); // Ensure process exits cleanly after tests
+});
 
 // Convenience functions for obtaining responses from the body
 // or the text fields.
@@ -78,6 +93,212 @@ test.serial('get version', async t => {
   t.truthy(body.total_families);
   t.truthy(body.curated_families);
   t.truthy(body.species);
+});
+
+// /altcha 
+test.serial('get altcha success', async t => {
+  // Obtain an Altcha challenge in the form of:
+  // body={"algorithm":"SHA-256","challenge":"437f290acdd143d06b3a5ee6dba7a223cf170000e383187d49c6a543d407207f","maxnumber":50000,"salt":"2c929258cab4de3b0ad60495","signature":"ba108aa0ecff6882afb4bf5a1642fb8e2ac464e9d7cbe9fd78bfea7b7b9d3f1c","code":200}
+  body = await get_body('/altcha');
+  t.truthy(body.algorithm);
+  t.truthy(body.challenge);
+  t.truthy(body.maxnumber);
+  t.truthy(body.salt);
+  t.truthy(body.signature);
+});
+
+
+// /families/{id}/dfam_relationships 
+test.serial('post dfam_relationships success', async t => {
+  config.REQUIRE_ALTCHA = false;
+  let data = {
+  };
+  let response = await request.post('/families/DF000000001/dfam_relationships').type('json').send(data).expect(200);
+  let body = response.body;
+  let cls = body.find(record => record.name === 'MIRb#SINE/MIR');
+  t.is(cls.strand, '+');
+  t.truthy(cls.start);
+  t.truthy(cls.end);
+  t.truthy(cls.seq);
+  t.truthy(cls.cigar);
+
+  // Turn on ALTCHA verification
+  config.REQUIRE_ALTCHA = true;
+
+  // Obtain an Altcha challenge in the form of:
+  // body={"algorithm":"SHA-256","challenge":"437f290acdd143d06b3a5ee6dba7a223cf170000e383187d49c6a543d407207f","maxnumber":50000,"salt":"2c929258cab4de3b0ad60495","signature":"ba108aa0ecff6882afb4bf5a1642fb8e2ac464e9d7cbe9fd78bfea7b7b9d3f1c","code":200}
+  body = await get_body('/altcha');
+
+  // Obtain the solution in the form of: {"number":8864,"took":316}
+  const {promise, controller} = await solveChallenge(body.challenge, body.salt, body.algorithm, body.maxnumber);
+  const solution = await promise;
+
+  // Add solution.number to the challenge dictionary, convert to JSON and Base64 encode it.
+  body.number = solution.number
+  const json_str = JSON.stringify(body);
+  const payload = Buffer.from(json_str).toString('base64');
+  data = {
+    altcha_payload: payload 
+  };
+  response = await request.post('/families/DF000000001/dfam_relationships').type('json').send(data).expect(200);
+  body = response.body;
+  cls = body.find(record => record.name === 'MIRb#SINE/MIR');
+  t.is(cls.strand, '+');
+  t.truthy(cls.start);
+  t.truthy(cls.end);
+  t.truthy(cls.seq);
+  t.truthy(cls.cigar);
+});
+
+// /families/{id}/tandem_repeats
+test.serial('post tandem_repeats success', async t => {
+  config.REQUIRE_ALTCHA = false;
+  let data = {
+  };
+  let response = await request.post('/families/DF000000002/tandem_repeats').type('json').send(data).expect(200);
+  let body = response.body;
+  //console.log("body " + JSON.stringify(body));
+  // NOTE: May change in future releases
+  // [{"start":281,"end":311,"name":"A","color":"blue","strand":"+"}]
+  t.is(body.length, 1);
+  t.is(body[0].start, 281);
+  t.is(body[0].end, 311);
+  t.is(body[0].name, 'A');
+  t.truthy(body[0].color);
+  t.is(body[0].strand, '+');
+  
+  // Turn on ALTCHA verification
+  config.REQUIRE_ALTCHA = true;
+
+  // Obtain an Altcha challenge in the form of:
+  // body={"algorithm":"SHA-256","challenge":"437f290acdd143d06b3a5ee6dba7a223cf170000e383187d49c6a543d407207f","maxnumber":50000,"salt":"2c929258cab4de3b0ad60495","signature":"ba108aa0ecff6882afb4bf5a1642fb8e2ac464e9d7cbe9fd78bfea7b7b9d3f1c","code":200}
+  body = await get_body('/altcha');
+
+  // Obtain the solution in the form of: {"number":8864,"took":316}
+  const {promise, controller} = await solveChallenge(body.challenge, body.salt, body.algorithm, body.maxnumber);
+  const solution = await promise;
+
+  // Add solution.number to the challenge dictionary, convert to JSON and Base64 encode it.
+  body.number = solution.number
+  const json_str = JSON.stringify(body);
+  const payload = Buffer.from(json_str).toString('base64');
+  data = {
+    altcha_payload: payload 
+  };
+
+  response = await request.post('/families/DF000000002/tandem_repeats').type('json').send(data).expect(200);
+  body = response.body;
+  // NOTE: May change in future releases
+  // [{"start":281,"end":311,"name":"A","color":"blue","strand":"+"}]
+  t.is(body.length, 1);
+  t.is(body[0].start, 281);
+  t.is(body[0].end, 311);
+  t.is(body[0].name, 'A');
+  t.truthy(body[0].color);
+  t.is(body[0].strand, '+');
+
+});
+
+// /families/{id}/protein_alignments
+test.serial('post protein_alignments success', async t => {
+  config.REQUIRE_ALTCHA = false;
+  let data = {
+  };
+  let response = await request.post('/families/DF000000006/protein_alignments').type('json').send(data).expect(200);
+  let body = response.body;
+  //console.log("body " + JSON.stringify(body));
+  // body [{"start":708,"end":893,"name":"Helitron-1_HM_hel#RC/Helitron","score":2.29e-25,"color":"#e6194b","oChromStart":1396,"oChromEnd":1457,"oStrand":"+","oChromSize":1497,"oSequence":"VFVPRIQLAPSDSNLPFVLKRRQFPVRLAYSMTINKSQGQTFDRVGVYLKKPCFSHGQLYVA"},
+  //
+  let cls = body.find(record => record.name === 'Helitron-1_HM_hel#RC/Helitron');
+  t.is(cls.oStrand,'+');
+  t.truthy(cls.start);
+  t.truthy(cls.end);
+  t.truthy(cls.score);
+  t.truthy(cls.oChromStart);
+  t.truthy(cls.oChromEnd);
+  t.truthy(cls.oSequence);
+ 
+  // Turn on ALTCHA verification
+  config.REQUIRE_ALTCHA = true;
+
+  // Obtain an Altcha challenge in the form of:
+  // body={"algorithm":"SHA-256","challenge":"437f290acdd143d06b3a5ee6dba7a223cf170000e383187d49c6a543d407207f","maxnumber":50000,"salt":"2c929258cab4de3b0ad60495","signature":"ba108aa0ecff6882afb4bf5a1642fb8e2ac464e9d7cbe9fd78bfea7b7b9d3f1c","code":200}
+  body = await get_body('/altcha');
+
+  // Obtain the solution in the form of: {"number":8864,"took":316}
+  const {promise, controller} = await solveChallenge(body.challenge, body.salt, body.algorithm, body.maxnumber);
+  const solution = await promise;
+
+  // Add solution.number to the challenge dictionary, convert to JSON and Base64 encode it.
+  body.number = solution.number
+  const json_str = JSON.stringify(body);
+  const payload = Buffer.from(json_str).toString('base64');
+  data = {
+    altcha_payload: payload 
+  };
+
+  response = await request.post('/families/DF000000006/protein_alignments').type('json').send(data).expect(200);
+   body = response.body;
+  //console.log("body " + JSON.stringify(body));
+  cls = body.find(record => record.name === 'Helitron-1_HM_hel#RC/Helitron');
+  t.is(cls.oStrand,'+');
+  t.truthy(cls.start);
+  t.truthy(cls.end);
+  t.truthy(cls.score);
+  t.truthy(cls.oChromStart);
+  t.truthy(cls.oChromEnd);
+  t.truthy(cls.oSequence);
+});
+
+// /families/{id}/self_alignments
+test.serial('post self_alignments success', async t => {
+  config.REQUIRE_ALTCHA = false;
+  let data = {
+  };
+  let response = await request.post('/families/DF000000002/self_alignments').type('json').send(data).expect(200);
+  let body = response.body;
+  // body [{"start":2,"end":132,"pstart":2,"pend":132,"sstart":136,"send":297,"strand":"+","color":"#e6194b"}]
+  //console.log("body " + JSON.stringify(body));
+  t.truthy(body[0].start);
+  t.truthy(body[0].end);
+  t.truthy(body[0].pstart);
+  t.truthy(body[0].pend);
+  t.truthy(body[0].sstart);
+  t.truthy(body[0].send);
+  t.truthy(body[0].strand);
+  t.truthy(body[0].color);
+ 
+  // Turn on ALTCHA verification
+  config.REQUIRE_ALTCHA = true;
+
+  // Obtain an Altcha challenge in the form of:
+  // body={"algorithm":"SHA-256","challenge":"437f290acdd143d06b3a5ee6dba7a223cf170000e383187d49c6a543d407207f","maxnumber":50000,"salt":"2c929258cab4de3b0ad60495","signature":"ba108aa0ecff6882afb4bf5a1642fb8e2ac464e9d7cbe9fd78bfea7b7b9d3f1c","code":200}
+  body = await get_body('/altcha');
+
+  // Obtain the solution in the form of: {"number":8864,"took":316}
+  const {promise, controller} = await solveChallenge(body.challenge, body.salt, body.algorithm, body.maxnumber);
+  const solution = await promise;
+
+  // Add solution.number to the challenge dictionary, convert to JSON and Base64 encode it.
+  body.number = solution.number
+  const json_str = JSON.stringify(body);
+  const payload = Buffer.from(json_str).toString('base64');
+  data = {
+    altcha_payload: payload 
+  };
+
+  response = await request.post('/families/DF000000002/self_alignments').type('json').send(data).expect(200);
+  body = response.body;
+  // body [{"start":2,"end":132,"pstart":2,"pend":132,"sstart":136,"send":297,"strand":"+","color":"#e6194b"}]
+  //console.log("body " + JSON.stringify(body));
+  t.truthy(body[0].start);
+  t.truthy(body[0].end);
+  t.truthy(body[0].pstart);
+  t.truthy(body[0].pend);
+  t.truthy(body[0].sstart);
+  t.truthy(body[0].send);
+  t.truthy(body[0].strand);
+  t.truthy(body[0].color);
 });
 
 // AlignmentService 
@@ -197,6 +418,7 @@ test.serial('search families classification', async t => {
   t.true(body.total_count == 2);
 });
 
+// NOTE: This number changes per release.  In Dfam 3.9 it's 1510 ( LINE-dependent_Retroposon;SINE + ERV1;SINE-like )
 test.serial('search families type', async t => {
   const body = await get_body('/families?type=SINE');
   t.true(body.total_count == 1510);
@@ -207,6 +429,7 @@ test.serial('search families desc', async t => {
   t.true(body.total_count == 11);
 });
 
+// NOTE: This number changes per release. In Dfam 3.9 it's 341.
 test.serial('search families keywords', async t => {
   const body = await get_body('/families?format=summary&keywords=hAT auto&limit=20');
   t.is(body.total_count, 341);
@@ -219,9 +442,10 @@ test.serial('search families start', async t => {
   t.true(body2.results[0].accession == "DF000001020");
 });
 
+// NOTE: This number may change in a release.  In Dfam 3.9 it should be 4241.
 test.serial('search families updated', async t => {
   const body = await get_body('/families?updated_after=2022-01-01&updated_before=2023-01-01');
-  t.is(body.total_count, 4445);
+  t.is(body.total_count, 4241);
 });
 
 test.serial('download families', async t => {

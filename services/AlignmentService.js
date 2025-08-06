@@ -11,6 +11,7 @@ const zlib = require("zlib");
 const Service = require('./Service');
 const te_idx = require("../utils/te_idx.js");
 
+
 const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
   try {
   
@@ -175,7 +176,7 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
       });
 
       if (! full_assembly) {
-        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+        reject(Service.rejectResponse(`Assembly Record ${assembly} Not Found`, 404));
       } else {
         full_assembly = full_assembly.schema_name;
       }
@@ -193,7 +194,7 @@ const readAlignment = async ({ assembly, chrom, start, end, family }) => new Pro
       const twoBitFile = path.join(dfam_warehouse_dir, "ref-genomes", assembly, "dfamseq.mask.2bit");
       
       if (!fs.existsSync(twoBitFile)) {
-        reject(Service.rejectResponse(`Assembly ${assembly} Not Found`, 404));
+        reject(Service.rejectResponse(`Assembly File ${assembly} Not Found`, 404));
       }
 
       let chrom_in_assem =  await te_idx.chromInAssembly(full_assembly, chrom);

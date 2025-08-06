@@ -399,7 +399,7 @@ ui <- fluidPage(
 server <- function(input, output) {
   # TODO add input field instead of hard coding url
   # log_csv <- "http://www.repeatmasker.org/~agray/2024-06-24-Export.csv"
-  log_csv <- "http://www.repeatmasker.org/~agray/2024-07-10-Export.csv"
+  log_csv <- "http://www.repeatmasker.org/~agray/2025-05-13-Export.csv"
   
   df <- getLogData(log_csv)
   apiCalls <- getAPICalls(df)
