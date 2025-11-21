@@ -4,7 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 5.1.0 - in prep
+## 5.1.1
+ - Bugfix: /Annotations service was reporting back records with all
+           fields as strings.  The API specifies multiple fields as
+           integers, and one field as a number.
+
+## 5.1.0 - 2025-08-06
  - Upgraded from express-openapi-validator 5.0.4 to 5.5.7
  - Upgraded express from 4.16.4 to 5.1.0
  - Upgraded ava to 6.4.1

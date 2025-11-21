@@ -25,7 +25,7 @@ const config = {
   PROJECT_DIR: __dirname,
   VERSION_MAJOR: '5',
   VERSION_MINOR: '1',
-  VERSION_BUGFIX: '0',
+  VERSION_BUGFIX: '1',
   CACHE_CUTOFF: 100,
   apiserver: { 
     db_timezone: 'America/Los_Angeles',

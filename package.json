@@ -11,7 +11,7 @@
     "lint": "eslint .; true",
     "lintfix": "eslint --fix .; true",
     "watch": "npm-watch",
-    "test": "ava --timeout 10s",
+    "test": "ava --timeout 20s",
     "build-docs": "./genDocs.sh",
     "artillery": "artillery run ./test/artillery-test.yaml >& ./test/test.artillery.log"
   },

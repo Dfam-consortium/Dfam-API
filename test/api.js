@@ -325,6 +325,22 @@ test.serial('get annotations', async t => {
   t.true(body.hits.length > 1);
   t.true(body.tandem_repeats.length > 1);
 
+  // Validate types in hits
+  for (const hit of body.hits) {
+    t.is(typeof hit.ali_start, 'number');
+    t.is(typeof hit.ali_end, 'number');
+    t.is(typeof hit.seq_start, 'number');
+    t.is(typeof hit.seq_end, 'number');
+    t.true(typeof hit.bit_score === 'number'); // may be decimal
+  }
+
+  // Validate types in tandem repeats
+  for (const rep of body.tandem_repeats) {
+    t.is(typeof rep.repeat_length, 'number');
+    t.is(typeof rep.seq_start, 'number');
+    t.is(typeof rep.seq_end, 'number');
+  }
+
   const body2 = await get_body('/annotations?assembly=hg38&chrom=chr1&start=168130000&end=168180000&family=DF000000001');
   t.true(body2.hits.length > 1);
   t.true(body2.tandem_repeats.length > 1);
