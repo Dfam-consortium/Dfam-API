@@ -4,7 +4,10 @@ import json
 import logging
 
 # current_directory = os.path.dirname(os.path.abspath(__file__))
-config_dir = '/local/usrlocal/www/Dfam/Conf/dfam.conf'
+# config_dir = '/local/usrlocal/www/Dfam/Conf/dfam.conf'
+# We currently run this from the NFS servers since this work is
+# on a shared filesystem.
+config_dir = '/home/dfweb/Dfam-umbrella/Conf/dfam.conf'
 
 with open(config_dir) as f:
     config = json.load(f)
@@ -13,7 +16,7 @@ CACHE_DIR = config['dfamdequeuer']['result_store'] + '/browse-cache/'
 NOW = datetime.now()
 DELTA = timedelta(days=10)
 
-logging.basicConfig(filename='/webresults/cache-cleanup.log',
+logging.basicConfig(filename='/home/dfweb/cache-cleanup.log',
         filemode='a',
         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
         datefmt='%H:%M:%S',
@@ -34,6 +37,7 @@ for file in os.listdir(CACHE_DIR):
     # If file is expired
     if elapsed_time > DELTA:
         removed = 'Removed'
+        logger.info(f'{file} last accessed on {atime} - {removed}')
         os.remove(file_path)
 
     # If working file is empty and older than a few minutes, assume process failed
@@ -53,5 +57,5 @@ for file in os.listdir(CACHE_DIR):
         if os.path.isfile(CACHE_DIR + cache_file):
             logger.error(f"Associated Cache File: {cache_file} Is Present")
 
-    logger.info(f'{file} last accessed on {atime} - {removed}')
-                                                                        
+    # This is only useful for debugging
+    #logger.info(f'{file} last accessed on {atime} - {removed}')
