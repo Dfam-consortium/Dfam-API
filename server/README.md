@@ -1,5 +1,5 @@
 ## API Server Tools
-**cache-cleanup.py** - This script deletes old cache files that are either incomplete or over a certain age in the `/webresults/browse-cache` folder on `dfweb1` and `dfweb2`. It is run with `crontab`
+**cache-cleanup.py** - This script deletes old cache files that are either incomplete or over a certain age in the `webresults/browse-cache` folder served to the webservers.  The script is run on the NFS server as a cronjob.
 
 **API_Reporter.R** - An R shiny script that displays usage data loaded from a CSV file generated from the API logs. Currently, the CSV is loaded from a url and is hard-coded
 
