@@ -275,6 +275,10 @@ const submitSearch = ({ sequence, cutoff, organism, evalue }) => new Promise(
       // "weird" characters with a check that the assembly
       // in question actually exists.
       organism = organism.replace(/[^A-Za-z0-9 _-]/g, '');
+      
+      if (organism == "other" && cutoff != "evalue") {
+        reject(Service.rejectResponse({ message: "Evalue must be specified for Other species"}, 400))
+      }
 
       // Preprocess options
       //   - dfamdequeuer expects options to stored as a CSV string
