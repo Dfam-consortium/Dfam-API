@@ -1,8 +1,11 @@
 const child_process = require('child_process');
-const {te_idx_bin} = require('../config');
+const {te_idx_bin, te_idx_dir} = require('../config');
+
+const data_dir = ['--data-dir', te_idx_dir]
 
 async function query(args) {
   let res = await new Promise((resolve, reject) => {
+    args.unshift(...data_dir); // add data dir to front of args
     let runner = child_process.spawn(te_idx_bin, args);
     let data='';
     runner.on('error', err => { reject(err); });
@@ -20,6 +23,7 @@ async function query(args) {
 async function chromInAssembly(full_assembly, chrom) {
   let res = await new Promise((resolve, reject) => {
     let args = ["--assembly", full_assembly, "json-query", "--data-type", "sequences", "--key", chrom];
+    args.unshift(...data_dir); // add data dir to front of args
     let data = 0;
     let runner = child_process.spawn(te_idx_bin, args);
     runner.on('error', err => { reject(err);});
