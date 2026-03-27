@@ -251,9 +251,16 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
     query.where.push({ name: { [Sequelize.Op.like]: escape.escape_sql_like(name_prefix, '\\') + "%" } });
   } else if (name_accession) {
     const where_name_acc = "%" + escape.escape_sql_like(name_accession, '\\') + "%";
+    // Escape single quotes for safe interpolation into the EXISTS literal
+    const alias_like = where_name_acc.replace(/'/g, "\\'");
     query.where.push({ [Sequelize.Op.or]: [
       { name: { [Sequelize.Op.like]: where_name_acc } },
       { accession: { [Sequelize.Op.like]: where_name_acc } },
+      Sequelize.literal(
+        `EXISTS (SELECT 1 FROM family_database_alias fda` +
+        ` WHERE fda.family_id = \`family\`.\`id\`` +
+        ` AND fda.db_link LIKE '${alias_like}')`
+      ),
     ] });
   }
 
@@ -403,10 +410,10 @@ function buildFamQuery (format_rules, name, name_accession, name_prefix, classif
   //query.logging = console.log;
 
   // The query can produce N rows for a given family if the family has more than one
-  // taxonomic label *and* the user asks for all families descendant from a clade 
-  // higher than both labels.  Anthony round that a simple query.distinct here fixes
-  // the problem. 6/27/23
-  query.distinct = true;
+  // taxonomic label *and* the user asks for all families descendant from a clade
+  // higher than both labels. Only enable DISTINCT when the clade JOIN is active,
+  // as COUNT(DISTINCT id) on the full table is expensive. 6/27/23
+  query.distinct = !!clade_info;
 
   return query;
 }
