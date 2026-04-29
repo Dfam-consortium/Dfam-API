@@ -651,27 +651,6 @@ test.serial('get taxa coverage', async t => {
   t.truthy(body.species);
 });
 
-// Searches Service
-//test.serial('submit search', async t => {
-//  const body = await post_body('/searches');
-//  t.truthy(body.id);
-//});
-
-//test.serial('read search results', async t => { // needs to be run on dfam
-//  const body = await get_body('/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac');
-//  t.truthy(body.results);
-//  t.truthy(body.results[0].hits);
-//  t.truthy(body.results[0].tandem_repeats);
-//});
-
-//test.serial('read search result alignments', async t => { // needs to be run on dfam
-//  const body = await get_body('/searches/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302');
-//  t.truthy(body.hmm);
-//  t.truthy(body.match);
-//  t.truthy(body.seq);
-//  t.truthy(body.pp);
-//});
-
 // Submit an AluYa5-like sequence, wait for results, and verify at least one hit is returned.
 test.serial('submit AluYa5 search and read results', async t => {
   t.timeout(360000); // 6 minutes — search can take well over the 80 s global default
