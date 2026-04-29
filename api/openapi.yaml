@@ -17,7 +17,7 @@ info:
     url: https://creativecommons.org/publicdomain/zero/1.0/
   termsOfService: https://creativecommons.org/publicdomain/zero/1.0/
   title: Dfam REST API
-  version: 0.4.0
+  version: 6.0.0
 servers:
 - url: https://dfam.org/
 tags:
@@ -500,56 +500,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Error
       summary: Retrieve an individual Dfam family's seed alignment data.
-      tags:
-      - families
-      x-eov-operation-handler: controllers/FamiliesController
-    x-swagger-router-controller: Families
-  /families/{id}/relationships:
-    get:
-      description: Retrieve an individual Dfam family's relationship information.
-      operationId: readFamilyRelationships
-      parameters:
-      - description: The Dfam family accession.
-        explode: false
-        in: path
-        name: id
-        required: true
-        schema:
-          type: string
-        style: simple
-      - description: "Which families to include. \"all\" searches all of Dfam, and\
-          \ \"related\" searches only families that are found in ancestor or descendant\
-          \ clades of the one this family belongs to. Default is \"all\"."
-        explode: true
-        in: query
-        name: include
-        required: false
-        schema:
-          type: string
-        style: form
-      - description: Whether to include matches to raw ("DR") families. Default is
-          false.
-        explode: true
-        in: query
-        name: include_raw
-        required: false
-        schema:
-          type: boolean
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/familyRelationshipsResponse'
-          description: Success
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: Error
-      summary: Retrieve an individual Dfam family's relationship information.
       tags:
       - families
       x-eov-operation-handler: controllers/FamiliesController
@@ -2043,10 +1993,6 @@ components:
       - name
       - version
       type: object
-    familyRelationshipsResponse:
-      items:
-        $ref: '#/components/schemas/familyRelationshipsResponse_inner'
-      type: array
     TandemRepeatSearchResponse:
       example:
         repeats:
@@ -2567,114 +2513,6 @@ components:
           items:
             $ref: '#/components/schemas/familyResponse_features_inner_attributes_inner'
           type: array
-      type: object
-    familyRelationshipsResponse_inner_auto_overlap_model:
-      description: Details of the first family.
-      example:
-        length: 5
-        id: id_5
-        accession: accession
-      properties:
-        id:
-          description: Human-readable identifier for the family (either the "name"
-            or "accession").
-          type: string
-        accession:
-          description: The Dfam accession for the family.
-          type: string
-        length:
-          description: The total length of the family.
-          type: integer
-      type: object
-    familyRelationshipsResponse_inner_auto_overlap_target:
-      description: Details of the second family.
-      example:
-        length: 2
-        id: id_6
-        accession: accession
-      properties:
-        id:
-          description: Human-readable identifier for the family (either the "name"
-            or "accession").
-          type: string
-        accession:
-          description: The Dfam accession for the family.
-          type: string
-        length:
-          description: The total length of the family.
-          type: integer
-      type: object
-    familyRelationshipsResponse_inner_auto_overlap:
-      example:
-        model:
-          length: 5
-          id: id_7
-          accession: accession
-        target:
-          length: 2
-          id: id_8
-          accession: accession
-      properties:
-        model:
-          $ref: '#/components/schemas/familyRelationshipsResponse_inner_auto_overlap_model'
-        target:
-          $ref: '#/components/schemas/familyRelationshipsResponse_inner_auto_overlap_target'
-      type: object
-    familyRelationshipsResponse_inner:
-      example:
-        coverage: coverage
-        target_start: 6
-        strand: strand
-        identity: identity
-        cigar: cigar
-        target_end: 5
-        model_end: 1
-        evalue: evalue
-        auto_overlap:
-          model:
-            length: 5
-            id: id_9
-            accession: accession
-          target:
-            length: 2
-            id: id_10
-            accession: accession
-        model_start: 0
-      properties:
-        strand:
-          description: "For a forward strand match, '+'; for a reverse strand match,\
-            \ '-'."
-          type: string
-        evalue:
-          description: The e-value of the hit.
-          type: string
-        identity:
-          description: Percentage identity of the overlap region.
-          type: string
-        coverage:
-          description: Percentage shared coverage of the two families.
-          type: string
-        cigar:
-          description: "Alignment between the two families, expressed as a sequence\
-            \ of counts paired with the characters \"M\", \"I\", and \"D\" representing\
-            \ a match/insertion/deletion in the alignment."
-          type: string
-        model_start:
-          description: Start position of the overlap region in the first family (one-based).
-          type: integer
-        target_start:
-          description: Start position of the overlap region in the second family (one-based).
-          type: integer
-        model_end:
-          description: "End position of the overlap region in the first family (one-based,\
-            \ fully-closed)."
-          type: integer
-        target_end:
-          description: "End position of the overlap region in the second family (one-based,\
-            \ fully-closed)."
-          type: integer
-        auto_overlap:
-          $ref: '#/components/schemas/familyRelationshipsResponse_inner_auto_overlap'
       type: object
     familyAssembliesResponse_inner:
       example:

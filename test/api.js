@@ -40,6 +40,19 @@ winston.configure({
 //load example sequence
 const example_seq = fs.readFileSync('./test/example_sequence.fasta').toString();
 
+// AluYa5-like sequence (311 bp) guaranteed to return at least one Dfam hit
+const alu_search_seq = '>AluYa5_test\n' +
+  'GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACGAGGTCAGGAGATCGAGACCATCCTG\n' +
+  'GCTAACACGGTGAAACCCCGTCTCTACTAAAAATACAAAAAATTAGCCGGGCGTGGTGGCGGGCGCCTGTAGTCCCAGCTACTCGGGAGG\n' +
+  'CTGAGGCAGGAGAATGGCGTGAACCCGGGAGGCGGAGCTTGCAGTGAGCCGAGATCGCGCCACTGCACTCCAGCCTGGGCGACAGAGCGA\n' +
+  'GACTCCGTCTCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
+const webresults_dir = '/u4/webresults';
+
+// Shared state for the AluYa5 search tests (populated by the submit/results test)
+let aluSearchId;
+let aluFirstHit;
+
 // Setup global members to hold server
 let request;
 let serverInstance;
@@ -80,6 +93,19 @@ async function post_body(url) {
   };
   const response = await request.post(url).type('form').send(data).expect(200);
   return response.body;
+}
+
+// Poll GET /searches/{id} every intervalMs until the search completes (HTTP 200).
+// Returns 202 while pending/running; throws on unexpected status or timeout.
+async function pollSearch(id, maxWaitMs = 300000, intervalMs = 5000) {
+  const deadline = Date.now() + maxWaitMs;
+  while (Date.now() < deadline) {
+    const resp = await request.get(`/searches/${id}`);
+    if (resp.status === 200) return resp.body;
+    if (resp.status !== 202) throw new Error(`Unexpected status ${resp.status} polling search ${id}`);
+    await new Promise(r => setTimeout(r, intervalMs));
+  }
+  throw new Error(`Search ${id} did not complete within ${maxWaitMs}ms`);
 }
 
 //
@@ -474,9 +500,10 @@ test.serial('download families', async t => {
 });
 
 test.serial('test caching', async t => { // works on dfam
+  let filename = `${webresults_dir}/browse-cache/c13cbab7f78a81b80f88386047019aea.cache`;
+  if (fs.existsSync(filename)) fs.unlinkSync(filename);
   let url = '/families?format=fasta&name_accession=DF000000&classification=root%253BInterspersed_Repeat%253BTransposable_Element%253BClass_I_Retrotransposition%253BLINE&clade_relatives=descendants&download=true';
   await request.get(url).expect(202);
-  let filename = '/u2/webresults/browse-cache/c13cbab7f78a81b80f88386047019aea.cache';
   let file = fs.existsSync(filename);
   fs.unlinkSync(filename);
   t.truthy(file);
@@ -549,24 +576,6 @@ test.serial('get family seed', async t => {
 
   const bad = request.get('/families/DF000000001/seed?format=fake&download=true');
   await bad.expect(400);
-});
-
-// /families/{id}/relationships
-test.serial('get family relationships', async t => {
-  const body = await get_body('/families/DF000000001/relationships');
-  t.truthy(body.length);
-});
-
-test.serial('get family relationships include', async t => {
-  const body = await get_body('/families/DF000002176/relationships');
-  const body2 = await get_body('/families/DF000002176/relationships?include=related');
-  t.true(body.length > body2.length);
-});
-
-test.serial('get family relationships include_raw', async t => {
-  const body = await get_body('/families/DF000002176/relationships?include_raw=false');
-  const body2 = await get_body('/families/DF000002176/relationships?include_raw=true');
-  t.true(body.length < body2.length);
 });
 
 // FamilyAssembliesService
@@ -642,20 +651,71 @@ test.serial('get taxa coverage', async t => {
 });
 
 // Searches Service
-test.serial('submit search', async t => {
-  const body = await post_body('/searches');
-  t.truthy(body.id);
-});
+//test.serial('submit search', async t => {
+//  const body = await post_body('/searches');
+//  t.truthy(body.id);
+//});
 
-test.serial('read search results', async t => { // needs to be run on dfam
-  const body = await get_body('/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac');
+//test.serial('read search results', async t => { // needs to be run on dfam
+//  const body = await get_body('/searches/1cea44d0-3258-11ee-a3b7-c77d081c00ac');
+//  t.truthy(body.results);
+//  t.truthy(body.results[0].hits);
+//  t.truthy(body.results[0].tandem_repeats);
+//});
+
+//test.serial('read search result alignments', async t => { // needs to be run on dfam
+//  const body = await get_body('/searches/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302');
+//  t.truthy(body.hmm);
+//  t.truthy(body.match);
+//  t.truthy(body.seq);
+//  t.truthy(body.pp);
+//});
+
+// Submit an AluYa5-like sequence, wait for results, and verify at least one hit is returned.
+test.serial('submit AluYa5 search and read results', async t => {
+  t.timeout(360000); // 6 minutes — search can take well over the 80 s global default
+  const resp = await request.post('/searches').type('form').send({
+    sequence: alu_search_seq,
+    organism: 'Homo sapiens',
+    cutoff: 'curated',
+    evalue: 0,
+  }).expect(200);
+
+  aluSearchId = resp.body.id;
+  t.truthy(aluSearchId);
+
+  const body = await pollSearch(aluSearchId);
+
   t.truthy(body.results);
-  t.truthy(body.results[0].hits);
-  t.truthy(body.results[0].tandem_repeats);
+  t.true(body.results.length > 0);
+  t.true(body.results[0].hits.length > 0, 'Expected at least one hit for the AluYa5 sequence');
+
+  aluFirstHit = body.results[0].hits[0];
+  t.truthy(aluFirstHit.accession);
+  t.truthy(aluFirstHit.bit_score);
+  t.truthy(aluFirstHit.e_value);
+  t.truthy(aluFirstHit.sequence);
+  t.truthy(aluFirstHit.seq_start);
+  t.truthy(aluFirstHit.seq_end);
 });
 
-test.serial('read search result alignments', async t => { // needs to be run on dfam
-  const body = await get_body('/searches/e1f44e10-4144-11ee-a3b7-c77d081c00ac/alignment?sequence=Example&start=435&end=617&family=DF000000302');
+// Using the search submitted above, fetch detailed alignment data for the first hit.
+test.serial('read AluYa5 search result alignment', async t => {
+  t.timeout(360000); // 6 minutes
+  t.truthy(aluSearchId, 'Requires "submit AluYa5 search and read results" to pass first');
+  t.truthy(aluFirstHit, 'Requires "submit AluYa5 search and read results" to pass first');
+
+  const resp = await request
+    .get(`/searches/${aluSearchId}/alignment`)
+    .query({
+      sequence: aluFirstHit.sequence,
+      start: aluFirstHit.seq_start,
+      end: aluFirstHit.seq_end,
+      family: aluFirstHit.accession,
+    })
+    .expect(200);
+
+  const body = resp.body;
   t.truthy(body.hmm);
   t.truthy(body.match);
   t.truthy(body.seq);

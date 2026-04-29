@@ -83,10 +83,6 @@ const readFamilyHmm = async (request, response) => {
   await Controller.handleRequest(request, response, service.readFamilyHmm);
 };
 
-const readFamilyRelationships = async (request, response) => {
-  await Controller.handleRequest(request, response, service.readFamilyRelationships);
-};
-
 const readFamilySeed = async (request, response) => {
   await Controller.handleRequest(request, response, service.readFamilySeed);
 };
@@ -102,7 +98,6 @@ module.exports = {
   readFamilies,
   readFamilyById,
   readFamilyHmm,
-  readFamilyRelationships,
   readFamilySeed,
   readFamilySequence,
   readProteinAlignments,

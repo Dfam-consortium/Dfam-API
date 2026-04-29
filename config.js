@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const yaml = require('js-yaml');
 const { randomBytes } = require('node:crypto');
 
 let conf_file = process.env.DFAM_CONF || '../Conf/dfam.conf';
@@ -23,9 +24,6 @@ const config = {
   BASE_VERSION: '',
   CONTROLLER_DIRECTORY: path.join(__dirname, 'controllers'),
   PROJECT_DIR: __dirname,
-  VERSION_MAJOR: '5',
-  VERSION_MINOR: '1',
-  VERSION_BUGFIX: '1',
   CACHE_CUTOFF: 100,
   apiserver: { 
     db_timezone: 'America/Los_Angeles',
@@ -47,7 +45,9 @@ const config = {
 
 };
 
+config.SERVER_VERSION = '2.0.0';
 config.OPENAPI_YAML = path.join(config.ROOT_DIR, 'api', 'openapi.yaml');
+config.SPEC_VERSION = yaml.load(fs.readFileSync(config.OPENAPI_YAML, 'utf8')).info.version;
 config.FULL_PATH = `${config.URL_PATH}:${config.URL_PORT}/${config.BASE_VERSION}`;
 config.FILE_UPLOAD_PATH = path.join(config.PROJECT_DIR, 'uploaded_files');
 

@@ -7,8 +7,8 @@ const ExpressServer = require('./expressServer');
 config.validateConfig();
 
 // Announce ourselves to the logger
-logger.info("DFAM-API Version " + config.VERSION_MAJOR + "." +
-            config.VERSION_MINOR + "." + config.VERSION_BUGFIX);
+logger.info(`DFAM-API server version: ${config.SERVER_VERSION}`);
+logger.info(`DFAM-API API spec version: ${config.SPEC_VERSION}`);
 
 if (config.REQUIRE_ALTCHA) {
   logger.info("DFAM-API Altcha verification for private endpoints is turned ON");

@@ -18,12 +18,13 @@ const getVersion = () => new Promise(
 
       let data = await conn.query( query, { type: "SELECT" });
       data = data[0];
+      const [major, minor, bugfix] = config.SPEC_VERSION.split('.');
       resolve(Service.successResponse(
         {
-          payload: { 
-            "major": config.VERSION_MAJOR,
-            "minor": config.VERSION_MINOR, 
-            "bugfix": config.VERSION_BUGFIX,
+          payload: {
+            "major": major,
+            "minor": minor,
+            "bugfix": bugfix,
             "dfam_version": data.dfam_version,
             "total_families": data.total_families,
             "curated_families": data.curated_families,
