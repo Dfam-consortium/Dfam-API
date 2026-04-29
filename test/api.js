@@ -461,9 +461,10 @@ test.serial('search families classification', async t => {
 });
 
 // NOTE: This number changes per release.  In Dfam 3.9 it's 1510 ( LINE-dependent_Retroposon;SINE + ERV1;SINE-like )
+//       It's likely this number will only get bigger.  So for now simply check that it's >=
 test.serial('search families type', async t => {
   const body = await get_body('/families?type=SINE');
-  t.true(body.total_count == 1510);
+  t.true(body.total_count >= 1510);
 });
 
 test.serial('search families desc', async t => {
