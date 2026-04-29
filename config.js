@@ -45,7 +45,7 @@ const config = {
 
 };
 
-config.SERVER_VERSION = '2.0.0';
+config.SERVER_VERSION = '6.0.0';
 config.OPENAPI_YAML = path.join(config.ROOT_DIR, 'api', 'openapi.yaml');
 config.SPEC_VERSION = yaml.load(fs.readFileSync(config.OPENAPI_YAML, 'utf8')).info.version;
 config.FULL_PATH = `${config.URL_PATH}:${config.URL_PORT}/${config.BASE_VERSION}`;
