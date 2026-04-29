@@ -97,7 +97,77 @@ const formatAlignment = async ( seqID, ordStart, ordEnd, nhmmer_out ) => {
   }
 };
 
+// RMH - 4/27/26: The API was not closing files when this function
+//                errored out early.  This reached a point where the
+//                shell-open files limit was reached and the server stoped
+//                responding to requests.
 async function reAlignAnnotationHMM(twoBitFile, seqName, startPos, endPos, hmmData) {
+  const [seqFile, hmmFile] = await Promise.all([
+    tmpFileAsync({ discardDescriptor: true }),
+    tmpFileAsync({ discardDescriptor: true }),
+  ]);
+
+  try {
+    try {
+      await fs.promises.writeFile(hmmFile.path, hmmData);
+    } catch (err) {
+      throw new Error('Error saving hmm data to a temporary file. ' + err);
+    }
+
+    let ordStart = startPos;
+    let ordEnd = endPos;
+
+    if (ordEnd < ordStart) {
+      ordStart = endPos;
+      ordEnd = startPos;
+    }
+
+    const twoBitToFa = path.join(ucsc_utils_bin, 'twoBitToFa');
+    const search = twoBitFile + ':' + seqName + ':' + (ordStart - 1) + '-' + ordEnd;
+
+    let fasta;
+    try {
+      const result = await execFileAsync(twoBitToFa, [search, 'stdout']);
+      fasta = result.stdout;
+    } catch (err) {
+      throw new Error('Error extracting sequence data from twoBit file. ' + err);
+    }
+
+    try {
+      await fs.promises.writeFile(seqFile.path, Buffer.from(fasta));
+    } catch (err) {
+      throw new Error('Error saving sequence data to a temporary file. ' + err);
+    }
+
+    const nhmmer = path.join(hmmer_bin_dir, 'nhmmer');
+
+    // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
+    // TODO: (JR) A region might match a model more than once. The "best" match within the
+    //       region will be used here, which might not be the right one.
+    const nhmmer_out = await execFileAsync(nhmmer, [
+      '--max',
+      '-T',
+      '0',
+      '--notextw',
+      hmmFile.path,
+      seqFile.path,
+    ]);
+
+    return formatAlignment(
+      seqName,
+      ordStart,
+      ordEnd,
+      nhmmer_out.stdout,
+      startPos
+    );
+  } finally {
+    hmmFile.cleanup();
+    seqFile.cleanup();
+  }
+}
+
+/// DEPRECATED
+async function reAlignAnnotationHMMOLD(twoBitFile, seqName, startPos, endPos, hmmData) {
 
   const [seqFile, hmmFile] = await Promise.all([
     tmpFileAsync({ detachDescriptor: true }),

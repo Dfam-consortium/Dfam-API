@@ -501,10 +501,127 @@ const  parseTRF = async (filePath) => {
 };
 
 // TODO: deduplicate a lot of this code with AlignmentService.
-async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
+// RMH - 4/27/26: The API was not closing files when this function
+//                errored out early.  This reached a point where the
+//                shell-open files limit was reached and the server stoped
+//                responding to requests.
+async function reAlignSearchHMM(dataDir, seqID, startPos, endPos, hmmData) {
   const [seqFile, hmmFile] = await Promise.all([
-    tmpFileAsync({ detachDescriptor: true }),
-    tmpFileAsync({ detachDescriptor: true }),
+    tmpFileAsync({ discardDescriptor: true }),
+    tmpFileAsync({ discardDescriptor: true }),
+  ]);
+
+  try {
+    // Save HMM data to file.  Using the path avoids keeping a tmp fd open.
+    try {
+      await fs.promises.writeFile(hmmFile.path, hmmData);
+    } catch (err) {
+      throw new Error('Error saving hmm data to a temporary file. ' + err);
+    }
+
+    let ordStart = startPos;
+    let ordEnd = endPos;
+
+    if (ordEnd < ordStart) {
+      ordStart = endPos;
+      ordEnd = startPos;
+    }
+
+    const faOneRecord = path.join(config.ucsc_utils_bin, 'faOneRecord');
+    const faFrag = path.join(config.ucsc_utils_bin, 'faFrag');
+
+    const fasta = await new Promise(function(resolve, reject) {
+      const faOneRecordProc = child_process.spawn(
+        faOneRecord,
+        [path.join(dataDir, 'dfamscan.in'), seqID]
+      );
+
+      const faFragProc = child_process.spawn(
+        faFrag,
+        ['stdin', ordStart - 1, ordEnd, 'stdout']
+      );
+
+      let settled = false;
+
+      function fail(err) {
+        if (!settled) {
+          settled = true;
+          reject(err);
+        }
+      }
+
+      function succeed(value) {
+        if (!settled) {
+          settled = true;
+          resolve(value);
+        }
+      }
+
+      faOneRecordProc.stdout.pipe(faFragProc.stdin);
+
+      faOneRecordProc.on('error', fail);
+      faFragProc.on('error', fail);
+
+      faOneRecordProc.on('close', function(code) {
+        if (code) {
+          fail(new Error('faOneRecord exited with code ' + code));
+        }
+      });
+
+      let faFragOut = '';
+
+      faFragProc.stdout.on('data', function(data) {
+        faFragOut += data.toString();
+      });
+
+      faFragProc.on('close', function(code) {
+        if (!code) {
+          succeed(faFragOut);
+        } else {
+          fail(new Error('faFrag exited with code ' + code));
+        }
+      });
+    });
+
+    // Save sequence data to file.
+    try {
+      await fs.promises.writeFile(seqFile.path, fasta);
+    } catch (err) {
+      throw new Error('Error saving sequence data to a temporary file. ' + err);
+    }
+
+    const nhmmer = path.join(config.hmmer_bin_dir, 'nhmmer');
+
+    // HACK: (JR) Passing '-T 0' to force nhmmer to show all results regardless of score or e-value.
+    // TODO: (JR) A region might match a model more than once. The "best" match within the
+    //       region will be used here, which might not be the right one.
+    const nhmmer_out = await execFileAsync(nhmmer, [
+      '--max',
+      '-T',
+      '0',
+      '--notextw',
+      hmmFile.path,
+      seqFile.path,
+    ]);
+
+    return formatAlignment(
+      seqID,
+      ordStart,
+      ordEnd,
+      nhmmer_out.stdout,
+      startPos
+    );
+  } finally {
+    hmmFile.cleanup();
+    seqFile.cleanup();
+  }
+}
+
+/// DEPRECATED
+async function reAlignSearchHMMOLD( dataDir, seqID, startPos, endPos, hmmData ) {
+  const [seqFile, hmmFile] = await Promise.all([
+    tmpFileAsync({ discardDescriptor: true }),
+    tmpFileAsync({ discardDescriptor: true }),
   ]);
 
   // Save HMM data to file
@@ -576,6 +693,7 @@ async function reAlignSearchHMM( dataDir, seqID, startPos, endPos, hmmData ) {
     seqFile.cleanup();
   }
 }
+
 
 module.exports = {
   readSearchResultAlignment,
